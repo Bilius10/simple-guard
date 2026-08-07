@@ -1,0 +1,80 @@
+:host {
+  display: block;
+  min-height: 100%;
+}
+
+.system-shell {
+  min-height: 100vh;
+  border: 8px solid #31b7d7;
+  background: #061326;
+  color: #d7f7ff;
+}
+
+.status-bar {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 18px;
+  border-bottom: 1px solid #31b7d7;
+  background: #0b1a24;
+  font-family: "Cascadia Mono", "Roboto Mono", monospace;
+  font-size: 0.75rem;
+}
+
+.brand {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #7fa6b6;
+}
+
+.status-light {
+  width: 8px;
+  height: 8px;
+  background: #39d98a;
+}
+
+.startup {
+  min-height: calc(100vh - 64px);
+  display: grid;
+  align-content: center;
+  padding: clamp(24px, 6vw, 80px);
+}
+
+.eyebrow,
+.message {
+  margin: 0;
+  color: #7fa6b6;
+  font-family: "Cascadia Mono", "Roboto Mono", monospace;
+}
+
+h1 {
+  margin: 12px 0;
+  max-width: 18ch;
+  font-family: "Cascadia Mono", "Roboto Mono", monospace;
+  font-size: 2.5rem;
+  letter-spacing: 0;
+}
+
+@media (max-width: 480px) {
+  .system-shell {
+    border-width: 4px;
+  }
+
+  .status-bar {
+    align-items: flex-start;
+    flex-direction: column;
+    padding-block: 12px;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+}

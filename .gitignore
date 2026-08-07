@@ -1,0 +1,19 @@
+# Local secrets
+.env
+.env.*
+!.env.example
+deploy/.env
+
+# Frontend output
+web-admin/node_modules/
+web-admin/dist/
+web-admin/.angular/
+web-admin/coverage/
+api/.maven-local/
+
+# Operating system and IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.codex/
