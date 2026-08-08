@@ -14,6 +14,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(properties = {
         "simpleguard.instance-id=test-instance",
         "simpleguard.public-url=http://localhost",
+        "simpleguard.oidc.issuer-uri=https://idp.localhost/realms/simpleguard",
+        "simpleguard.oidc.jwk-set-uri=http://keycloak:8080/realms/simpleguard/protocol/openid-connect/certs",
         "spring.flyway.enabled=false"
 })
 class ApiApplicationTests {
@@ -34,7 +36,12 @@ class ApiApplicationTests {
 
     @Test
     void nonHealthActuatorEndpointIsDeniedTests() throws Exception {
-        mockMvc.perform(get("/actuator/info"))
-                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/actuator/info")
+                        .header("Accept-Language", "pt-BR"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.erro_code").value("INVALID_TOKEN"))
+                .andExpect(jsonPath("$.mensagem").value("Token invalido ou sessao expirada."))
+                .andExpect(jsonPath("$.uri").value("/actuator/info"))
+                .andExpect(jsonPath("$.data").exists());
     }
 }

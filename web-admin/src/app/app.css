@@ -55,12 +55,46 @@
   font-family: "Cascadia Mono", "Roboto Mono", monospace;
 }
 
+.error {
+  color: #ff8a80;
+}
+
 h1 {
   margin: 12px 0;
   max-width: 18ch;
   font-family: "Cascadia Mono", "Roboto Mono", monospace;
   font-size: 2.5rem;
   letter-spacing: 0;
+}
+
+button {
+  width: fit-content;
+  min-height: 44px;
+  margin-top: 24px;
+  border: 1px solid #31b7d7;
+  padding: 0 18px;
+  background: transparent;
+  color: #d7f7ff;
+  font-family: "Cascadia Mono", "Roboto Mono", monospace;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #123544;
+}
+
+.primary-action {
+  background: #31b7d7;
+  color: #061326;
+}
+
+.primary-action:hover {
+  background: #7de3f7;
+}
+
+.secondary-action {
+  border-color: #7fa6b6;
 }
 
 @media (max-width: 480px) {

@@ -12,13 +12,13 @@ Nao considerar pronta se houver implementacao parcial, comportamento apenas mock
 
 ## Criterios de Aceite (Definition of Done)
 
-- [ ] Integrar web/admin e API com IdP OIDC self-hosted.
-- [ ] Bloquear API sem token valido.
-- [ ] Implementar estados de login, erro e sessao expirada.
-- [ ] Testes unitarios obrigatorios implementados e passando.
-- [ ] Cenarios de validacao manual executados e evidenciaveis pelo desenvolvedor.
-- [ ] Erros, estados vazios, estados de falha e dados ausentes tratados explicitamente quando aplicavel.
-- [ ] Nenhum comportamento fora do escopo desta task foi implementado sem nova task aprovada.
+- [x] Integrar web/admin e API com IdP OIDC self-hosted.
+- [x] Bloquear API sem token valido.
+- [x] Implementar estados de login, erro e sessao expirada.
+- [x] Testes unitarios obrigatorios implementados e passando.
+- [x] Cenarios de validacao manual executados e evidenciaveis pelo desenvolvedor.
+- [x] Erros, estados vazios, estados de falha e dados ausentes tratados explicitamente quando aplicavel.
+- [x] Nenhum comportamento fora do escopo desta task foi implementado sem nova task aprovada.
 
 ## Detalhes Tecnicos e Links Uteis
 
@@ -47,14 +47,14 @@ Notas tecnicas:
 
 ## Testes Unitarios Obrigatorios
 
-- [ ] Backend: token valido, token expirado, token invalido e usuario inexistente.
-- [ ] Frontend: login valido, erro de credencial e sessao expirada.
+- [x] Backend: token valido, token expirado, token invalido e usuario inexistente.
+- [x] Frontend: login valido, erro de credencial e sessao expirada.
 
 ## Cenarios de Validacao Manual
 
-- [ ] Acessar o hub sem login e confirmar bloqueio.
-- [ ] Fazer login valido e acessar o hub.
-- [ ] Fazer logout e confirmar remocao da sessao.
+- [x] Acessar o hub sem login e confirmar bloqueio.
+- [x] Fazer login valido e acessar o hub.
+- [x] Fazer logout e confirmar remocao da sessao.
 
 ## Criterio de Conclusao
 

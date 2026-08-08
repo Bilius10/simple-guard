@@ -1,6 +1,8 @@
 package simple.guard.api.config;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.autoconfigure.validation.ValidationAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Configuration;
@@ -10,6 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class SimpleGuardPropertiesTests {
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+            .withConfiguration(AutoConfigurations.of(ValidationAutoConfiguration.class))
             .withUserConfiguration(PropertiesTestConfiguration.class);
 
     @Test
@@ -36,7 +39,7 @@ class SimpleGuardPropertiesTests {
                 .run(context -> {
                     assertThat(context).hasFailed();
                     assertThat(context.getStartupFailure())
-                            .hasStackTraceContaining("SIMPLEGUARD_INSTANCE_ID is required");
+                            .hasStackTraceContaining("SIMPLEGUARD_INSTANCE_ID");
                 });
     }
 
@@ -47,7 +50,21 @@ class SimpleGuardPropertiesTests {
                 .run(context -> {
                     assertThat(context).hasFailed();
                     assertThat(context.getStartupFailure())
-                            .hasStackTraceContaining("SIMPLEGUARD_PUBLIC_URL is required");
+                            .hasStackTraceContaining("SIMPLEGUARD_PUBLIC_URL");
+                });
+    }
+
+    @Test
+    void failsClearlyWhenPublicUrlIsNotAbsoluteTests() {
+        contextRunner
+                .withPropertyValues(
+                        "simpleguard.instance-id=local-test",
+                        "simpleguard.public-url=localhost"
+                )
+                .run(context -> {
+                    assertThat(context).hasFailed();
+                    assertThat(context.getStartupFailure())
+                            .hasStackTraceContaining("SIMPLEGUARD_PUBLIC_URL");
                 });
     }
 

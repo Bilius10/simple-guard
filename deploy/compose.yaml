@@ -4,6 +4,8 @@ services:
   postgres:
     image: postgis/postgis:18-3.6-alpine
     restart: unless-stopped
+    ports:
+      - "5432:5432"
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-simpleguard}
       POSTGRES_USER: ${POSTGRES_USER:-simpleguard}
@@ -29,6 +31,8 @@ services:
     environment:
       SIMPLEGUARD_INSTANCE_ID: ${SIMPLEGUARD_INSTANCE_ID:?SIMPLEGUARD_INSTANCE_ID is required}
       SIMPLEGUARD_PUBLIC_URL: ${SIMPLEGUARD_PUBLIC_URL:?SIMPLEGUARD_PUBLIC_URL is required}
+      SIMPLEGUARD_OIDC_ISSUER_URI: ${SIMPLEGUARD_OIDC_ISSUER_URI:-https://idp.localhost/realms/simpleguard}
+      SIMPLEGUARD_OIDC_JWK_SET_URI: ${SIMPLEGUARD_OIDC_JWK_SET_URI:-http://keycloak:8080/realms/simpleguard/protocol/openid-connect/certs}
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-simpleguard}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-simpleguard}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
@@ -64,10 +68,11 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:26.7.0
     restart: unless-stopped
-    command: ["start-dev", "--health-enabled=true"]
+    command: ["start-dev", "--health-enabled=true", "--import-realm"]
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-admin}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?KEYCLOAK_ADMIN_PASSWORD is required}
+      KEYCLOAK_SIMPLEGUARD_ADMIN_PASSWORD: ${KEYCLOAK_SIMPLEGUARD_ADMIN_PASSWORD:?KEYCLOAK_SIMPLEGUARD_ADMIN_PASSWORD is required}
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://postgres:5432/${KEYCLOAK_DB:-keycloak}
       KC_DB_USERNAME: ${POSTGRES_USER:-simpleguard}
@@ -76,6 +81,8 @@ services:
       KC_HTTP_ENABLED: "true"
       KC_PROXY_HEADERS: xforwarded
       KC_HEALTH_ENABLED: "true"
+    volumes:
+      - ./keycloak/realm-simpleguard.json:/opt/keycloak/data/import/realm-simpleguard.json:ro
     depends_on:
       postgres:
         condition: service_healthy

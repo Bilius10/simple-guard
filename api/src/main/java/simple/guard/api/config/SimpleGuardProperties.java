@@ -8,12 +8,12 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 @ConfigurationProperties(prefix = "simpleguard")
 public record SimpleGuardProperties(
-        @NotBlank(message = "SIMPLEGUARD_INSTANCE_ID is required")
+        @NotBlank(message = "{simple_guard_instance_id_required}")
         String instanceId,
-        @NotBlank(message = "SIMPLEGUARD_PUBLIC_URL is required")
+        @NotBlank(message = "{simple_guard_public_url_required}")
         @Pattern(
                 regexp = "^https?://.+$",
-                message = "SIMPLEGUARD_PUBLIC_URL must be an absolute HTTP or HTTPS URL"
+                message = "{simple_guard_public_url_absolute_required}"
         )
         String publicUrl
 ) {

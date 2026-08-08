@@ -9,7 +9,7 @@
 ## Configuracao
 
 1. Copie `deploy/.env.example` para `deploy/.env`.
-2. Substitua as duas senhas de exemplo por valores locais fortes e distintos.
+2. Substitua as senhas de exemplo por valores locais fortes e distintos.
 3. Nao versione `deploy/.env`.
 
 Variaveis obrigatorias:
@@ -20,6 +20,9 @@ Variaveis obrigatorias:
 | `SIMPLEGUARD_PUBLIC_URL` | URL publica absoluta servida pelo Caddy. |
 | `POSTGRES_PASSWORD` | Senha do banco usada pela API e pelo Keycloak no ambiente local. |
 | `KEYCLOAK_ADMIN_PASSWORD` | Senha inicial do administrador tecnico do Keycloak. |
+| `KEYCLOAK_SIMPLEGUARD_ADMIN_PASSWORD` | Senha inicial do usuario `admin` no realm `simpleguard`. |
+| `SIMPLEGUARD_OIDC_ISSUER_URI` | Issuer OIDC externo validado pela API. |
+| `SIMPLEGUARD_OIDC_JWK_SET_URI` | Endpoint interno usado pela API para buscar as chaves JWT do Keycloak. |
 
 Variaveis com valor local padrao: `POSTGRES_DB`, `POSTGRES_USER`, `KEYCLOAK_DB` e `KEYCLOAK_ADMIN_USERNAME`.
 
@@ -38,7 +41,14 @@ Rotas:
 - Web admin: `https://localhost`
 - API health: `https://localhost/actuator/health`
 - API readiness: `https://localhost/actuator/health/readiness`
+- Sessao autenticada: `https://localhost/api/session/me`
 - Keycloak: `https://idp.localhost`
+
+Credenciais locais importadas no realm `simpleguard`:
+
+- Usuario: `admin`
+- Email: `admin@simpleguard.local`
+- Senha: valor de `KEYCLOAK_SIMPLEGUARD_ADMIN_PASSWORD`
 
 O Caddy usa uma autoridade certificadora local. O navegador pode exigir que o certificado raiz do volume `caddy-data` seja confiado manualmente no host.
 
