@@ -32,7 +32,18 @@
         } @else {
           <p class="message">Validando usuario na API.</p>
         }
-        <button type="button" class="secondary-action" (click)="logout()">Sair</button>
+        <div class="authenticated-actions" aria-label="Acoes administrativas">
+          <button type="button" class="danger-outline-action" (click)="openCriticalActionSimulation()">
+            Simular acao critica
+          </button>
+          <button type="button" class="secondary-action" (click)="openCriticalActionFailureSimulation()">
+            Simular falha
+          </button>
+          <button type="button" class="secondary-action" (click)="logout()">Sair</button>
+        </div>
+        @if (criticalActionEvent(); as event) {
+          <p class="message confirmation-event">Evento emitido: command-confirmed / {{ event.actionType }}</p>
+        }
       </section>
     }
     @case ('session_expired') {
@@ -51,5 +62,14 @@
         <button type="button" class="primary-action" (click)="login()">Tentar novamente</button>
       </section>
     }
+  }
+
+  @if (criticalAction(); as action) {
+    <sg-critical-action-dialog
+      [action]="action"
+      [errorMessage]="criticalActionError()"
+      (cancelAction)="cancelCriticalAction()"
+      (confirmAction)="confirmCriticalAction($event)"
+    />
   }
 </main>

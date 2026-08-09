@@ -84,6 +84,12 @@ button:hover {
   background: #123544;
 }
 
+.authenticated-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
 .primary-action {
   background: #31b7d7;
   color: #061326;
@@ -95,6 +101,15 @@ button:hover {
 
 .secondary-action {
   border-color: #7fa6b6;
+}
+
+.danger-outline-action {
+  border-color: #ff8a80;
+  color: #ffd1cc;
+}
+
+.danger-outline-action:hover {
+  background: #361f25;
 }
 
 @media (max-width: 480px) {

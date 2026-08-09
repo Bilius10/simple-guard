@@ -1,0 +1,44 @@
+<div class="dialog-backdrop">
+  <section class="critical-dialog" role="dialog" aria-modal="true" aria-labelledby="critical-action-title">
+    <p class="dialog-eyebrow">ACAO CRITICA</p>
+    <h2 id="critical-action-title">Confirmar comando</h2>
+
+    <dl class="action-details">
+      <div>
+        <dt>Tipo</dt>
+        <dd>{{ action().actionType }}</dd>
+      </div>
+      <div>
+        <dt>Alvo</dt>
+        <dd>{{ action().targetName }}</dd>
+      </div>
+      <div>
+        <dt>Ultima localizacao</dt>
+        <dd>{{ action().lastKnownLocation }}</dd>
+      </div>
+      <div>
+        <dt>Atualizacao</dt>
+        <dd>{{ action().lastUpdatedAt }}</dd>
+      </div>
+      <div>
+        <dt>Conectividade</dt>
+        <dd>{{ action().connectivityState }}</dd>
+      </div>
+      <div>
+        <dt>Reautenticacao</dt>
+        <dd>{{ action().stepUpRequirement === 'required' ? 'exigida futuramente' : 'nao exigida' }}</dd>
+      </div>
+    </dl>
+
+    <p class="consequence">{{ action().consequence }}</p>
+
+    @if (errorMessage()) {
+      <p class="dialog-error" role="alert">{{ errorMessage() }}</p>
+    }
+
+    <div class="dialog-actions">
+      <button type="button" class="secondary-action" (click)="cancel()">Cancelar</button>
+      <button type="button" class="danger-action" (click)="confirm()">Confirmar comando</button>
+    </div>
+  </section>
+</div>

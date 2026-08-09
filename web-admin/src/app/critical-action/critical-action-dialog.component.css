@@ -1,0 +1,100 @@
+:host {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+}
+
+.dialog-backdrop {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(2, 9, 18, 0.82);
+}
+
+.critical-dialog {
+  width: min(100%, 560px);
+  border: 1px solid #ff8a80;
+  padding: 24px;
+  background: #0b1a24;
+  color: #d7f7ff;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+}
+
+.dialog-eyebrow,
+.action-details,
+.consequence,
+.dialog-error {
+  font-family: "Cascadia Mono", "Roboto Mono", monospace;
+}
+
+.dialog-eyebrow {
+  margin: 0 0 8px;
+  color: #ff8a80;
+  font-size: 0.75rem;
+}
+
+h2 {
+  margin: 0 0 18px;
+  font-family: "Cascadia Mono", "Roboto Mono", monospace;
+  font-size: 1.5rem;
+  letter-spacing: 0;
+}
+
+.action-details {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.action-details div {
+  display: grid;
+  grid-template-columns: minmax(128px, 0.45fr) 1fr;
+  gap: 12px;
+}
+
+dt {
+  color: #7fa6b6;
+}
+
+dd {
+  margin: 0;
+}
+
+.consequence {
+  margin: 18px 0 0;
+  color: #ffd1cc;
+}
+
+.dialog-error {
+  margin: 18px 0 0;
+  color: #ff8a80;
+}
+
+.dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.danger-action {
+  border-color: #ff8a80;
+  background: #ff8a80;
+  color: #061326;
+}
+
+.danger-action:hover {
+  background: #ffd1cc;
+}
+
+@media (max-width: 480px) {
+  .critical-dialog {
+    padding: 18px;
+  }
+
+  .action-details div {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}

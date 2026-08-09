@@ -3,6 +3,7 @@ package simple.guard.api.shared.i18n;
 public enum SimpleGuardTranslation {
     ERROR_INVALID_TOKEN("simple_guard_error_invalid_token"),
     ERROR_ACCESS_DENIED("simple_guard_error_access_denied"),
+    ERROR_CRITICAL_ACTION_CONFIRMATION_REQUIRED("simple_guard_error_critical_action_confirmation_required"),
     ERROR_VALIDATION("simple_guard_error_validation"),
     ERROR_SYSTEM("simple_guard_error_system"),
     INSTANCE_ID_REQUIRED("simple_guard_instance_id_required"),

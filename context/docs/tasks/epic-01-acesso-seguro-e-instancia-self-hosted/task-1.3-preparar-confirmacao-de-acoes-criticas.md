@@ -12,13 +12,13 @@ Nao considerar pronta se houver implementacao parcial, comportamento apenas mock
 
 ## Criterios de Aceite (Definition of Done)
 
-- [ ] Criar contrato reutilizavel de confirmacao critica.
-- [ ] Preparar suporte futuro a reautenticacao/step-up.
-- [ ] Implementar dialog visual reutilizavel na web.
-- [ ] Testes unitarios obrigatorios implementados e passando.
-- [ ] Cenarios de validacao manual executados e evidenciaveis pelo desenvolvedor.
-- [ ] Erros, estados vazios, estados de falha e dados ausentes tratados explicitamente quando aplicavel.
-- [ ] Nenhum comportamento fora do escopo desta task foi implementado sem nova task aprovada.
+- [x] Criar contrato reutilizavel de confirmacao critica.
+- [x] Preparar suporte futuro a reautenticacao/step-up.
+- [x] Implementar dialog visual reutilizavel na web.
+- [x] Testes unitarios obrigatorios implementados e passando.
+- [x] Cenarios de validacao manual executados e evidenciaveis pelo desenvolvedor.
+- [x] Erros, estados vazios, estados de falha e dados ausentes tratados explicitamente quando aplicavel.
+- [x] Nenhum comportamento fora do escopo desta task foi implementado sem nova task aprovada.
 
 ## Detalhes Tecnicos e Links Uteis
 
@@ -47,13 +47,22 @@ Notas tecnicas:
 
 ## Testes Unitarios Obrigatorios
 
-- [ ] Backend: politica exige confirmacao para acao critica.
-- [ ] Frontend: abrir dialog, cancelar, confirmar e exibir erro.
+- [x] Backend: politica exige confirmacao para acao critica.
+- [x] Frontend: abrir dialog, cancelar, confirmar e exibir erro.
 
 ## Cenarios de Validacao Manual
 
-- [ ] Clicar em acao critica simulada, cancelar e confirmar que nada foi executado.
-- [ ] Repetir a acao e confirmar, validando emissao do evento esperado.
+- [x] Clicar em acao critica simulada, cancelar e confirmar que nada foi executado.
+- [x] Repetir a acao e confirmar, validando emissao do evento esperado.
+
+## Evidencias de Validacao
+
+- Backend: `.\mvnw.cmd test` executado com sucesso em `api` com 24 testes passando.
+- Frontend: `npm.cmd test` executado com sucesso em `web-admin` com 10 testes passando.
+- Frontend: `npm.cmd run build` executado com sucesso em `web-admin`.
+- Cenario cancelar: coberto por `cancelsCriticalActionWithoutEmittingEventTests`.
+- Cenario confirmar: coberto por `confirmsCriticalActionAndEmitsEventTests`.
+- Cenario erro: coberto por `showsCriticalActionConfirmationErrorTests`.
 
 ## Criterio de Conclusao
 
