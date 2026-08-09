@@ -1,0 +1,260 @@
+:host {
+  display: block;
+}
+
+.device-registry {
+  border-top: 1px solid #28404a;
+  background: #0a1117;
+}
+
+.registry-header,
+.registry-layout,
+.form-heading,
+.list-heading {
+  display: flex;
+}
+
+.registry-header {
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px 28px;
+  border-bottom: 1px solid #28404a;
+}
+
+.section-kicker,
+.form-heading p,
+.list-heading p,
+.system-state p,
+.empty-state p {
+  margin: 0;
+  color: #8aa0aa;
+}
+
+.section-kicker,
+.device-count,
+.step-index,
+.pairing-status,
+.empty-code {
+  font-family: "Cascadia Mono", "Roboto Mono", monospace;
+  font-size: 0.75rem;
+}
+
+h2,
+h3,
+h4 {
+  margin: 0;
+  letter-spacing: 0;
+}
+
+h2 {
+  margin-top: 4px;
+  font-size: 1.75rem;
+}
+
+.device-count {
+  color: #8aa0aa;
+}
+
+.registry-layout {
+  align-items: stretch;
+}
+
+.registration-form {
+  width: min(380px, 38%);
+  padding: 28px;
+  border-right: 1px solid #28404a;
+  background: #101a21;
+}
+
+.form-heading,
+.list-heading {
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.form-heading h3,
+.list-heading h3 {
+  margin-bottom: 4px;
+  font-size: 1rem;
+}
+
+.form-heading p,
+.list-heading p {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.step-index {
+  color: #3cc4df;
+}
+
+label {
+  display: block;
+  margin: 18px 0 7px;
+  color: #b9c9cf;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+input,
+select {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid #425963;
+  border-radius: 2px;
+  padding: 0 11px;
+  background: #071016;
+  color: #e6f1f4;
+  font: inherit;
+}
+
+input:focus,
+select:focus {
+  outline: 2px solid #3cc4df;
+  outline-offset: 1px;
+}
+
+.field-error,
+.feedback {
+  margin: 7px 0 0;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.field-error,
+.error-feedback,
+.error-state {
+  color: #ff8a80;
+}
+
+.success-feedback {
+  color: #55d69e;
+}
+
+.register-action,
+.retry-action {
+  min-height: 42px;
+  border: 1px solid #3cc4df;
+  border-radius: 2px;
+  font-family: "Cascadia Mono", "Roboto Mono", monospace;
+  cursor: pointer;
+}
+
+.register-action {
+  width: 100%;
+  margin-top: 24px;
+  background: #3cc4df;
+  color: #071016;
+  font-weight: 700;
+}
+
+.register-action:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.device-list {
+  min-width: 0;
+  flex: 1;
+  padding: 28px;
+}
+
+.system-state,
+.empty-state {
+  min-height: 220px;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  text-align: center;
+}
+
+.empty-code {
+  margin-bottom: 12px;
+  color: #d6a94a;
+}
+
+.empty-state h4 {
+  margin-bottom: 6px;
+}
+
+.retry-action {
+  margin-top: 14px;
+  padding: 0 14px;
+  background: transparent;
+  color: #d7f7ff;
+}
+
+.device-table {
+  border-top: 1px solid #425963;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.7fr) minmax(100px, 0.8fr) minmax(110px, 0.8fr) minmax(180px, 1fr);
+  gap: 16px;
+  align-items: center;
+}
+
+.table-header {
+  min-height: 38px;
+  color: #708891;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+}
+
+.device-row {
+  min-height: 58px;
+  border-top: 1px solid #22343c;
+  color: #aebfc5;
+  font-size: 0.8125rem;
+}
+
+.device-name {
+  color: #edf7f9;
+  font-weight: 700;
+}
+
+.pairing-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  border: 1px solid #896f35;
+  padding: 0 8px;
+  color: #e5bd62;
+}
+
+@media (max-width: 840px) {
+  .registry-layout {
+    display: block;
+  }
+
+  .registration-form {
+    width: 100%;
+    border-right: 0;
+    border-bottom: 1px solid #28404a;
+  }
+
+  .device-table {
+    overflow-x: auto;
+  }
+
+  .table-row {
+    min-width: 690px;
+  }
+}
+
+@media (max-width: 480px) {
+  .registry-header,
+  .registration-form,
+  .device-list {
+    padding: 20px;
+  }
+
+  .registry-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+}

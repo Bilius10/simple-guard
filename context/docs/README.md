@@ -15,6 +15,7 @@ Indice dos documentos de planejamento do projeto.
 
 ## Documentos principais
 
+- `contexto/project-constitution.md`
 - `contexto/project-context.md`
 - `discovery/simpleguard-discovery.md`
 - `produto/simpleguard-product-brief.md`

@@ -152,6 +152,7 @@ Estas lacunas devem permanecer explicitas em PRD, UX, arquitetura, epicos e stor
 ## Usage Guidelines
 
 - Agentes devem ler este arquivo antes de criar PRD, UX spec, arquitetura, epicos, stories ou codigo.
+- Agentes devem ler tambem `contexto/project-constitution.md` antes de alterar codigo, contratos ou padroes de desenvolvimento.
 - Quando uma decisao nao estiver neste arquivo nem nas referencias, marque como lacuna ou assuncao.
 - Atualize este arquivo quando uma lacuna de discovery for decidida formalmente.
 - Mantenha o arquivo enxuto e focado em regras que previnem erro de interpretacao.

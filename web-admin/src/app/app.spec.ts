@@ -6,6 +6,7 @@ import { vi } from 'vitest';
 import { App } from './app';
 import { AuthState } from './auth/auth.models';
 import { OidcClientService } from './auth/oidc-client.service';
+import { DeviceApiService } from './devices/device-api.service';
 import { SessionApiService } from './session/session-api.service';
 
 describe('AppTests', () => {
@@ -26,6 +27,11 @@ describe('AppTests', () => {
     })),
   };
 
+  const deviceApiStub = {
+    list: vi.fn().mockReturnValue(of([])),
+    create: vi.fn(),
+  };
+
   beforeEach(async () => {
     authServiceStub.state.set({ status: 'login_required' });
     vi.clearAllMocks();
@@ -35,6 +41,7 @@ describe('AppTests', () => {
       providers: [
         { provide: OidcClientService, useValue: authServiceStub },
         { provide: SessionApiService, useValue: sessionApiStub },
+        { provide: DeviceApiService, useValue: deviceApiStub },
       ],
     }).compileComponents();
   });

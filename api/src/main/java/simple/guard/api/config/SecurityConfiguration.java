@@ -29,6 +29,7 @@ public class SecurityConfiguration {
                         "/livez",
                         "/readyz"
                 ).permitAll()
+                .requestMatchers("/api/devices/**").hasRole("ADMIN")
                 .anyRequest()
                 .authenticated()
         );

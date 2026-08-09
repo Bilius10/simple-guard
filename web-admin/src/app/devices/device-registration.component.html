@@ -1,0 +1,109 @@
+<section class="device-registry" aria-labelledby="device-registry-title">
+  <header class="registry-header">
+    <div>
+      <p class="section-kicker">INVENTARIO MONITORADO</p>
+      <h2 id="device-registry-title">Dispositivos</h2>
+    </div>
+    <span class="device-count">{{ devices().length }} cadastrados</span>
+  </header>
+
+  <div class="registry-layout">
+    <form class="registration-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="form-heading">
+        <span class="step-index">01</span>
+        <div>
+          <h3>Novo dispositivo</h3>
+          <p>Informe os dados basicos para iniciar o pareamento.</p>
+        </div>
+      </div>
+
+      <label for="device-name">Nome do dispositivo</label>
+      <input
+        id="device-name"
+        type="text"
+        formControlName="name"
+        maxlength="160"
+        autocomplete="off"
+        placeholder="Ex.: Notebook de campo"
+      />
+      @if (form.controls.name.touched && form.controls.name.invalid) {
+        <p class="field-error">Informe um nome valido com ate 160 caracteres.</p>
+      }
+
+      <label for="device-type">Tipo</label>
+      <select id="device-type" formControlName="type">
+        <option [ngValue]="null" disabled>Selecione o tipo</option>
+        @for (option of typeOptions; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+      @if (form.controls.type.touched && form.controls.type.invalid) {
+        <p class="field-error">Selecione o tipo do dispositivo.</p>
+      }
+
+      <label for="device-platform">Plataforma</label>
+      <select id="device-platform" formControlName="platform">
+        <option [ngValue]="null" disabled>Selecione a plataforma</option>
+        @for (option of platformOptions; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+      @if (form.controls.platform.touched && form.controls.platform.invalid) {
+        <p class="field-error">Selecione a plataforma do dispositivo.</p>
+      }
+
+      @if (submitError()) {
+        <p class="feedback error-feedback" role="alert">{{ submitError() }}</p>
+      }
+      @if (successMessage()) {
+        <p class="feedback success-feedback" role="status">{{ successMessage() }}</p>
+      }
+
+      <button type="submit" class="register-action" [disabled]="submitting()">
+        {{ submitting() ? 'Cadastrando...' : 'Cadastrar dispositivo' }}
+      </button>
+    </form>
+
+    <section class="device-list" aria-labelledby="device-list-title" aria-live="polite">
+      <div class="list-heading">
+        <span class="step-index">02</span>
+        <div>
+          <h3 id="device-list-title">Prontos para parear</h3>
+          <p>Dispositivos cadastrados aguardando vinculacao com um agente.</p>
+        </div>
+      </div>
+
+      @if (loading()) {
+        <p class="system-state">Carregando inventario...</p>
+      } @else if (loadError()) {
+        <div class="system-state error-state" role="alert">
+          <p>{{ loadError() }}</p>
+          <button type="button" class="retry-action" (click)="loadDevices()">Tentar novamente</button>
+        </div>
+      } @else if (devices().length === 0) {
+        <div class="empty-state">
+          <span class="empty-code">DEVICE_00</span>
+          <h4>Nenhum dispositivo cadastrado</h4>
+          <p>O primeiro dispositivo aparecera aqui como pendente de pareamento.</p>
+        </div>
+      } @else {
+        <div class="device-table" role="table" aria-label="Dispositivos cadastrados">
+          <div class="table-row table-header" role="row">
+            <span role="columnheader">Dispositivo</span>
+            <span role="columnheader">Tipo</span>
+            <span role="columnheader">Plataforma</span>
+            <span role="columnheader">Estado</span>
+          </div>
+          @for (device of devices(); track device.deviceId) {
+            <div class="table-row device-row" role="row">
+              <span class="device-name" role="cell">{{ device.name }}</span>
+              <span role="cell">{{ typeLabel(device.type) }}</span>
+              <span role="cell">{{ platformLabel(device.platform) }}</span>
+              <span role="cell"><span class="pairing-status">Pendente de pareamento</span></span>
+            </div>
+          }
+        </div>
+      }
+    </section>
+  </div>
+</section>

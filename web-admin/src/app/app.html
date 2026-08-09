@@ -21,26 +21,36 @@
       </section>
     }
     @case ('authenticated') {
-      <section class="startup" aria-labelledby="startup-title">
-        <p class="eyebrow">SESSAO AUTENTICADA</p>
-        <h1 id="startup-title">Hub administrativo</h1>
+      <section class="workspace" aria-labelledby="workspace-title">
+        <header class="workspace-heading">
+          <div>
+            <p class="eyebrow">SESSAO AUTENTICADA</p>
+            <h1 id="workspace-title">Hub administrativo</h1>
+          </div>
         @if (session(); as administrator) {
-          <p class="message">{{ administrator.displayName }} - {{ administrator.email }}</p>
-          <p class="message">Perfil: {{ administrator.role }}</p>
+            <div class="operator-meta">
+              <strong>{{ administrator.displayName }}</strong>
+              <span>{{ administrator.email }} / {{ administrator.role }}</span>
+            </div>
         } @else if (sessionError()) {
-          <p class="message error">{{ sessionError() }}</p>
+            <p class="message error">{{ sessionError() }}</p>
         } @else {
-          <p class="message">Validando usuario na API.</p>
+            <p class="message">Validando usuario na API.</p>
         }
-        <div class="authenticated-actions" aria-label="Acoes administrativas">
-          <button type="button" class="danger-outline-action" (click)="openCriticalActionSimulation()">
-            Simular acao critica
-          </button>
-          <button type="button" class="secondary-action" (click)="openCriticalActionFailureSimulation()">
-            Simular falha
-          </button>
-          <button type="button" class="secondary-action" (click)="logout()">Sair</button>
-        </div>
+        </header>
+
+        @if (session()) {
+          <sg-device-registration />
+          <div class="authenticated-actions" aria-label="Acoes administrativas">
+            <button type="button" class="danger-outline-action" (click)="openCriticalActionSimulation()">
+              Simular acao critica
+            </button>
+            <button type="button" class="secondary-action" (click)="openCriticalActionFailureSimulation()">
+              Simular falha
+            </button>
+            <button type="button" class="secondary-action" (click)="logout()">Sair</button>
+          </div>
+        }
         @if (criticalActionEvent(); as event) {
           <p class="message confirmation-event">Evento emitido: command-confirmed / {{ event.actionType }}</p>
         }

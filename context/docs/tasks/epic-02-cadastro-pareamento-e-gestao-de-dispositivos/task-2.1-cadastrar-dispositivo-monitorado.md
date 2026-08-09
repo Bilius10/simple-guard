@@ -12,13 +12,13 @@ Nao considerar pronta se houver implementacao parcial, comportamento apenas mock
 
 ## Criterios de Aceite (Definition of Done)
 
-- [ ] Criar entidade/endpoint minimo de dispositivo.
-- [ ] Criar formulario web de cadastro.
-- [ ] Exibir dispositivo em estado `unpaired`.
-- [ ] Testes unitarios obrigatorios implementados e passando.
-- [ ] Cenarios de validacao manual executados e evidenciaveis pelo desenvolvedor.
-- [ ] Erros, estados vazios, estados de falha e dados ausentes tratados explicitamente quando aplicavel.
-- [ ] Nenhum comportamento fora do escopo desta task foi implementado sem nova task aprovada.
+- [x] Criar entidade/endpoint minimo de dispositivo.
+- [x] Criar formulario web de cadastro.
+- [x] Exibir dispositivo em estado `unpaired`.
+- [x] Testes unitarios obrigatorios implementados e passando.
+- [x] Cenarios de validacao manual executados e evidenciaveis pelo desenvolvedor.
+- [x] Erros, estados vazios, estados de falha e dados ausentes tratados explicitamente quando aplicavel.
+- [x] Nenhum comportamento fora do escopo desta task foi implementado sem nova task aprovada.
 
 ## Detalhes Tecnicos e Links Uteis
 
@@ -47,14 +47,26 @@ Notas tecnicas:
 
 ## Testes Unitarios Obrigatorios
 
-- [ ] Backend: criacao valida, campos obrigatorios e plataforma invalida.
-- [ ] Frontend: formulario, validacao, sucesso e estado vazio.
+- [x] Backend: criacao valida, campos obrigatorios e plataforma invalida.
+- [x] Frontend: formulario, validacao, sucesso e estado vazio.
 
 ## Cenarios de Validacao Manual
 
-- [ ] Cadastrar Android, notebook e desktop.
-- [ ] Confirmar que todos aparecem na lista como pendentes de pareamento.
+- [x] Cadastrar Android, notebook e desktop.
+- [x] Confirmar que todos aparecem na lista como pendentes de pareamento.
 
 ## Criterio de Conclusao
 
 - Dispositivo cadastrado aparece na web e fica pronto para pareamento.
+
+## Evidencias De Implementacao
+
+- API administrativa implementada em `POST /api/devices` e `GET /api/devices`.
+- Persistencia criada pela migration `V3__create_devices.sql`, incluindo vinculo com conta e auditoria completa.
+- Dispositivos novos sao persistidos e devolvidos com `pairingStatus` igual a `unpaired`.
+- Formulario Angular implementado com nome, tipo e plataforma, seguido da lista de dispositivos cadastrados.
+- Estados de carregamento, vazio, validacao, sucesso, falha e nova tentativa tratados na interface.
+- Backend validado em 2026-08-08 com `./mvnw test`: 24 testes passando.
+- Frontend validado em 2026-08-08 com `npm test`: 15 testes passando.
+- Build de producao validado em 2026-08-08 com `npm run build`.
+- Validacao manual integrada permanece pendente ate a atualizacao dos containers locais.

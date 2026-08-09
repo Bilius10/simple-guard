@@ -7,11 +7,12 @@ import {
   CriticalActionConfirmationEvent,
   CriticalActionConfirmationRequest,
 } from './critical-action/critical-action.models';
+import { DeviceRegistrationComponent } from './devices/device-registration.component';
 import { AdministratorSession, SessionApiService } from './session/session-api.service';
 
 @Component({
   selector: 'sg-root',
-  imports: [CriticalActionDialogComponent],
+  imports: [CriticalActionDialogComponent, DeviceRegistrationComponent],
   templateUrl: './app.html',
   styleUrl: './app.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

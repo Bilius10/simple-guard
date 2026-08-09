@@ -2,6 +2,7 @@ package simple.guard.api.error.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -31,7 +32,8 @@ public class ApiExceptionHandler {
             ));
         }
 
-        if (exception instanceof MethodArgumentNotValidException) {
+        if (exception instanceof MethodArgumentNotValidException
+                || exception instanceof HttpMessageNotReadableException) {
             return ResponseEntity.badRequest().body(errorResponseFactory.create(
                     SimpleGuardErrorCode.VALIDATION_ERROR,
                     SimpleGuardTranslation.ERROR_VALIDATION,
