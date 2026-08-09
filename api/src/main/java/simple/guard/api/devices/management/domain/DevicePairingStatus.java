@@ -1,7 +1,8 @@
-package simple.guard.api.devices.domain;
+package simple.guard.api.devices.management.domain;
 
 public enum DevicePairingStatus {
-    UNPAIRED("unpaired");
+    UNPAIRED("unpaired"),
+    PAIRED("paired");
 
     private final String apiValue;
 

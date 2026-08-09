@@ -1,4 +1,4 @@
-package simple.guard.api.devices.domain;
+package simple.guard.api.devices.management.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

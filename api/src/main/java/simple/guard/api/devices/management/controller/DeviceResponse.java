@@ -1,8 +1,8 @@
-package simple.guard.api.devices.controller;
+package simple.guard.api.devices.management.controller;
 
-import simple.guard.api.devices.domain.Device;
-import simple.guard.api.devices.domain.DevicePlatform;
-import simple.guard.api.devices.domain.DeviceType;
+import simple.guard.api.devices.management.domain.Device;
+import simple.guard.api.devices.management.domain.DevicePlatform;
+import simple.guard.api.devices.management.domain.DeviceType;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;

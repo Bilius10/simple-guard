@@ -12,13 +12,13 @@ Nao considerar pronta se houver implementacao parcial, comportamento apenas mock
 
 ## Criterios de Aceite (Definition of Done)
 
-- [ ] Criar sessoes curtas de pareamento.
-- [ ] Exibir codigo/QR e expiracao na web.
-- [ ] Auditar criacao e expiracao.
-- [ ] Testes unitarios obrigatorios implementados e passando.
+- [x] Criar sessoes curtas de pareamento.
+- [x] Exibir codigo/QR e expiracao na web.
+- [x] Auditar criacao e expiracao.
+- [x] Testes unitarios obrigatorios implementados e passando.
 - [ ] Cenarios de validacao manual executados e evidenciaveis pelo desenvolvedor.
-- [ ] Erros, estados vazios, estados de falha e dados ausentes tratados explicitamente quando aplicavel.
-- [ ] Nenhum comportamento fora do escopo desta task foi implementado sem nova task aprovada.
+- [x] Erros, estados vazios, estados de falha e dados ausentes tratados explicitamente quando aplicavel.
+- [x] Nenhum comportamento fora do escopo desta task foi implementado sem nova task aprovada.
 
 ## Detalhes Tecnicos e Links Uteis
 
@@ -47,8 +47,8 @@ Notas tecnicas:
 
 ## Testes Unitarios Obrigatorios
 
-- [ ] Backend: sessao valida, expiracao, reutilizacao bloqueada e dispositivo ja pareado.
-- [ ] Frontend: aguardando, expirado e erro.
+- [x] Backend: sessao valida, expiracao, reutilizacao bloqueada e dispositivo ja pareado.
+- [x] Frontend: aguardando, expirado e erro.
 
 ## Cenarios de Validacao Manual
 
@@ -58,3 +58,16 @@ Notas tecnicas:
 ## Criterio de Conclusao
 
 - Pareamento usa codigo temporario auditavel e nao reutilizavel.
+
+## Evidencias De Implementacao
+
+- API administrativa implementada em `POST /api/devices/{deviceId}/pairing-sessions`.
+- Persistencia criada pela migration `V4__create_pairing_sessions.sql`, com auditoria, expiracao, uso unico e uma unica sessao ativa por dispositivo.
+- Codigo de oito caracteres gerado com `SecureRandom`; somente o hash SHA-256 e persistido e a resposta usa `Cache-Control: no-store`.
+- Validade padrao configurada em cinco minutos por `SIMPLEGUARD_PAIRING_SESSION_VALIDITY`.
+- Sessoes vencidas sao expiradas periodicamente e registram motivo `TIMEOUT`; a geracao de um novo codigo expira o anterior com motivo `REPLACED`.
+- Web administrativa exibe codigo, dispositivo, horario de expiracao e estados `Aguardando agente`, `Codigo expirado` e falha.
+- Backend validado em 2026-08-08 com `./mvnw test`: 34 testes passando.
+- Frontend validado em 2026-08-08 com `npm test`: 18 testes passando.
+- Build de producao validado em 2026-08-08 com `npm run build`.
+- Validacao manual integrada permanece pendente porque o acesso ao Docker via WSL nao estava disponivel nesta sessao.

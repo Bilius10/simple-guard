@@ -1,10 +1,10 @@
-package simple.guard.api.devices.controller;
+package simple.guard.api.devices.management.controller;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import simple.guard.api.devices.domain.DevicePlatform;
-import simple.guard.api.devices.domain.DeviceType;
+import simple.guard.api.devices.management.domain.DevicePlatform;
+import simple.guard.api.devices.management.domain.DeviceType;
 
 public record CreateDeviceRequest(
         @NotBlank(message = "{simple_guard_device_name_required}")

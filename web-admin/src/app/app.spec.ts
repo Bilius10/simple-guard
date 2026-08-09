@@ -7,6 +7,7 @@ import { App } from './app';
 import { AuthState } from './auth/auth.models';
 import { OidcClientService } from './auth/oidc-client.service';
 import { DeviceApiService } from './devices/device-api.service';
+import { NotificationService } from './notifications/notification.service';
 import { SessionApiService } from './session/session-api.service';
 
 describe('AppTests', () => {
@@ -30,6 +31,14 @@ describe('AppTests', () => {
   const deviceApiStub = {
     list: vi.fn().mockReturnValue(of([])),
     create: vi.fn(),
+    generatePairingSession: vi.fn(),
+  };
+
+  const notificationStub = {
+    notifications: signal([]),
+    success: vi.fn(),
+    error: vi.fn(),
+    dismiss: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -42,6 +51,7 @@ describe('AppTests', () => {
         { provide: OidcClientService, useValue: authServiceStub },
         { provide: SessionApiService, useValue: sessionApiStub },
         { provide: DeviceApiService, useValue: deviceApiStub },
+        { provide: NotificationService, useValue: notificationStub },
       ],
     }).compileComponents();
   });
@@ -115,7 +125,8 @@ describe('AppTests', () => {
 
     const element = fixture.nativeElement as HTMLElement;
     expect(element.querySelector('[role="dialog"]')).not.toBeNull();
-    expect(element.querySelector('[role="alert"]')?.textContent).toContain('Falha ao emitir evento');
+    expect(element.querySelector('[role="alert"]')).toBeNull();
+    expect(notificationStub.error).toHaveBeenCalledWith('Falha ao emitir evento de confirmacao critica.');
     expect(fixture.componentInstance.criticalActionEvent()).toBeNull();
   });
 

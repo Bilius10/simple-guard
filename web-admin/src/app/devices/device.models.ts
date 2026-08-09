@@ -13,6 +13,15 @@ export interface Device {
   readonly name: string;
   readonly type: DeviceType;
   readonly platform: DevicePlatform;
-  readonly pairingStatus: 'unpaired';
+  readonly pairingStatus: 'unpaired' | 'paired';
+  readonly createdAt: string;
+}
+
+export interface PairingSession {
+  readonly pairingSessionId: string;
+  readonly deviceId: string;
+  readonly pairingCode: string;
+  readonly status: 'waiting' | 'used' | 'expired';
+  readonly expiresAt: string;
   readonly createdAt: string;
 }

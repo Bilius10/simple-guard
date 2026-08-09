@@ -1,13 +1,17 @@
-package simple.guard.api.devices.service;
+package simple.guard.api.devices.management.service;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import simple.guard.api.devices.controller.CreateDeviceRequest;
-import simple.guard.api.devices.controller.DeviceResponse;
-import simple.guard.api.devices.domain.Device;
-import simple.guard.api.devices.domain.DevicePairingStatus;
-import simple.guard.api.devices.domain.DeviceRepository;
+import simple.guard.api.devices.management.controller.CreateDeviceRequest;
+import simple.guard.api.devices.management.controller.DeviceResponse;
+import simple.guard.api.devices.management.domain.Device;
+import simple.guard.api.devices.management.domain.DevicePairingStatus;
+import simple.guard.api.devices.management.domain.DeviceRepository;
+import simple.guard.api.error.domain.SimpleGuardErrorCode;
+import simple.guard.api.error.domain.SimpleGuardException;
 import simple.guard.api.identity.domain.Account;
+import simple.guard.api.shared.i18n.SimpleGuardTranslation;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -48,5 +52,14 @@ public class DeviceService {
         return devices.findAllByAccountIdOrderByCreatedAtDesc(account.getId()).stream()
                 .map(DeviceResponse::from)
                 .toList();
+    }
+
+    public Device findByIdAndAccountId(UUID deviceId, UUID accountId) {
+        return devices.findByIdAndAccountId(deviceId, accountId)
+                .orElseThrow(() -> new SimpleGuardException(
+                        HttpStatus.NOT_FOUND,
+                        SimpleGuardErrorCode.DEVICE_NOT_FOUND,
+                        SimpleGuardTranslation.ERROR_DEVICE_NOT_FOUND
+                ));
     }
 }

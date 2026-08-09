@@ -1,4 +1,4 @@
-package simple.guard.api.devices.domain;
+package simple.guard.api.devices.management.domain;
 
 public enum DevicePlatform {
     ANDROID,

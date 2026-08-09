@@ -1,0 +1,21 @@
+<aside class="notification-stack" aria-live="polite" aria-label="Notificacoes">
+  @for (notification of notifications.notifications(); track notification.id) {
+    <article
+      class="notification"
+      [class.success-notification]="notification.type === 'success'"
+      [class.error-notification]="notification.type === 'error'"
+      [attr.role]="notification.type === 'error' ? 'alert' : 'status'"
+    >
+      <span class="notification-marker" aria-hidden="true"></span>
+      <p>{{ notification.message }}</p>
+      <button
+        type="button"
+        class="dismiss-notification"
+        aria-label="Fechar notificacao"
+        (click)="notifications.dismiss(notification.id)"
+      >
+        X
+      </button>
+    </article>
+  }
+</aside>

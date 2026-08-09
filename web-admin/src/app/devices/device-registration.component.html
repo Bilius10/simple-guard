@@ -52,13 +52,6 @@
         <p class="field-error">Selecione a plataforma do dispositivo.</p>
       }
 
-      @if (submitError()) {
-        <p class="feedback error-feedback" role="alert">{{ submitError() }}</p>
-      }
-      @if (successMessage()) {
-        <p class="feedback success-feedback" role="status">{{ successMessage() }}</p>
-      }
-
       <button type="submit" class="register-action" [disabled]="submitting()">
         {{ submitting() ? 'Cadastrando...' : 'Cadastrar dispositivo' }}
       </button>
@@ -93,16 +86,74 @@
             <span role="columnheader">Tipo</span>
             <span role="columnheader">Plataforma</span>
             <span role="columnheader">Estado</span>
+            <span role="columnheader">Pareamento</span>
           </div>
           @for (device of devices(); track device.deviceId) {
             <div class="table-row device-row" role="row">
               <span class="device-name" role="cell">{{ device.name }}</span>
               <span role="cell">{{ typeLabel(device.type) }}</span>
               <span role="cell">{{ platformLabel(device.platform) }}</span>
-              <span role="cell"><span class="pairing-status">Pendente de pareamento</span></span>
+              <span role="cell">
+                @if (device.pairingStatus === 'unpaired') {
+                  <span class="pairing-status">Pendente de pareamento</span>
+                } @else {
+                  <span class="pairing-status paired-status">Pareado</span>
+                }
+              </span>
+              <span role="cell">
+                @if (device.pairingStatus === 'unpaired') {
+                  <button
+                    type="button"
+                    class="pairing-action"
+                    [disabled]="pairingLoadingDeviceId() === device.deviceId"
+                    (click)="generatePairingSession(device)"
+                  >
+                    {{ pairingLoadingDeviceId() === device.deviceId ? 'Gerando...' : 'Gerar codigo' }}
+                  </button>
+                }
+              </span>
             </div>
           }
         </div>
+
+        @if (activePairing(); as pairing) {
+          <section
+            class="pairing-console"
+            [class.expired-state]="pairingExpired()"
+            [class.waiting-state]="!pairingExpired()"
+            aria-labelledby="pairing-session-title"
+            aria-live="polite"
+          >
+            <header class="pairing-heading">
+              <div>
+                <span class="pairing-label">SESSAO DE PAREAMENTO</span>
+                <h4 id="pairing-session-title">{{ pairing.device.name }}</h4>
+              </div>
+              <button type="button" class="close-pairing-action" (click)="closePairingSession()">Fechar</button>
+            </header>
+
+            @if (pairingExpired()) {
+              <p class="pairing-state-label expired-label">Codigo expirado</p>
+              <p class="pairing-instruction">Este codigo nao pode mais ser utilizado.</p>
+              <button
+                type="button"
+                class="pairing-action regenerate-action"
+                [disabled]="pairingLoadingDeviceId() === pairing.device.deviceId"
+                (click)="generatePairingSession(pairing.device)"
+              >
+                Gerar novo codigo
+              </button>
+            } @else {
+              <p class="pairing-state-label waiting-label">Aguardando agente</p>
+              <output class="pairing-code" aria-label="Codigo de pareamento">{{ pairing.session.pairingCode }}</output>
+              <p class="pairing-instruction">Informe este codigo somente no dispositivo em sua posse.</p>
+            }
+
+            <p class="pairing-expiration">
+              Expira em {{ pairing.session.expiresAt | date:'dd/MM/yyyy HH:mm:ss' }}
+            </p>
+          </section>
+        }
       }
     </section>
   </div>

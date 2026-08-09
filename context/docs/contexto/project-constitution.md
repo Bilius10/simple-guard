@@ -3,7 +3,7 @@ title: "Constituicao do Projeto SimpleGuard"
 project_name: "SimpleGuard"
 status: "draft"
 created: "2026-08-08"
-updated: "2026-08-08"
+updated: "2026-08-09"
 source_material:
   - "contexto/project-context.md"
   - "produto/simpleguard-prd.md"
@@ -74,6 +74,8 @@ Se uma lacuna nao estiver coberta por estas fontes, registre a suposicao antes d
 - Todo comportamento novo deve ser coberto por teste.
 - Testes de backend devem seguir o padrao `*Tests`.
 - Testes de frontend devem cobrir o fluxo real do componente ou servico.
+- Backend deve manter cobertura JaCoCo de 100% para instrucoes, branches, linhas, metodos e classes.
+- `mvn verify` deve ser a validacao padrao do backend quando houver mudanca Java, porque executa testes e regra de cobertura.
 - Nao aceitar implementacao sem teste quando o risco for funcional ou de contrato.
 - Validacoes manuais devem ser registradas quando a task pedir evidencia executavel.
 
@@ -91,6 +93,8 @@ Se uma lacuna nao estiver coberta por estas fontes, registre a suposicao antes d
 - Fluxos sensiveis precisam de validacao de autenticacao, autorizacao e contrato.
 - Nao confiar em dados vindos do front para regras criticas sem checagem adicional.
 - O backend deve preservar separacao entre autenticacao, dominio e resposta HTTP.
+- Codigos sensiveis de pareamento ou confirmacao nao devem ser persistidos em texto claro.
+- Respostas HTTP que exponham segredo temporario devem impedir cache explicito.
 
 ## 10. Auditoria E Estados
 
@@ -98,6 +102,8 @@ Se uma lacuna nao estiver coberta por estas fontes, registre a suposicao antes d
 - Eventos observados, comandos solicitados, comandos executados e confirmacoes nao devem ser misturados.
 - Falhas de conectividade devem ser tratadas como estado esperado.
 - O historico e a auditoria devem favorecer reconstrucao cronologica.
+- Sessoes temporarias sensiveis devem registrar criacao, expiracao, uso e motivo de expiracao quando aplicavel.
+- Sessoes temporarias substituidas devem encerrar explicitamente a sessao anterior antes de expor uma nova.
 
 ## 11. Documentacao
 

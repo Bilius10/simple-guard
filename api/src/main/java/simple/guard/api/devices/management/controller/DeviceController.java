@@ -1,4 +1,4 @@
-package simple.guard.api.devices.controller;
+package simple.guard.api.devices.management.controller;
 
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import simple.guard.api.devices.service.DeviceService;
+import simple.guard.api.devices.management.service.DeviceService;
 import simple.guard.api.identity.domain.Account;
 
 import java.net.URI;

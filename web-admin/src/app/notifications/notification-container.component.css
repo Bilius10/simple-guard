@@ -1,0 +1,81 @@
+:host {
+  position: fixed;
+  top: 72px;
+  right: 24px;
+  z-index: 40;
+  width: min(360px, calc(100vw - 32px));
+  pointer-events: none;
+}
+
+.notification-stack {
+  display: grid;
+  gap: 10px;
+}
+
+.notification {
+  display: grid;
+  grid-template-columns: 8px 1fr 32px;
+  align-items: start;
+  gap: 12px;
+  min-height: 54px;
+  border: 1px solid #315466;
+  padding: 12px;
+  background: #0b1a24;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 35%);
+  color: #d7f7ff;
+  font-family: "Cascadia Mono", "Roboto Mono", monospace;
+  font-size: 0.75rem;
+  pointer-events: auto;
+}
+
+.notification-marker {
+  width: 8px;
+  height: 100%;
+  min-height: 30px;
+  background: #31b7d7;
+}
+
+.success-notification {
+  border-color: #39d98a;
+}
+
+.success-notification .notification-marker {
+  background: #39d98a;
+}
+
+.error-notification {
+  border-color: #ff8a80;
+}
+
+.error-notification .notification-marker {
+  background: #ff8a80;
+}
+
+.notification p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.dismiss-notification {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #315466;
+  padding: 0;
+  background: transparent;
+  color: #d7f7ff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.dismiss-notification:hover {
+  background: #123544;
+}
+
+@media (max-width: 560px) {
+  :host {
+    top: 68px;
+    right: 16px;
+    left: 16px;
+    width: auto;
+  }
+}

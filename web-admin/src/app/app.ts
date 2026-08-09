@@ -8,11 +8,13 @@ import {
   CriticalActionConfirmationRequest,
 } from './critical-action/critical-action.models';
 import { DeviceRegistrationComponent } from './devices/device-registration.component';
+import { NotificationContainerComponent } from './notifications/notification-container.component';
+import { NotificationService } from './notifications/notification.service';
 import { AdministratorSession, SessionApiService } from './session/session-api.service';
 
 @Component({
   selector: 'sg-root',
-  imports: [CriticalActionDialogComponent, DeviceRegistrationComponent],
+  imports: [CriticalActionDialogComponent, DeviceRegistrationComponent, NotificationContainerComponent],
   templateUrl: './app.html',
   styleUrl: './app.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -26,6 +28,7 @@ export class App implements OnInit {
   readonly criticalActionError = signal<string | null>(null);
   readonly criticalActionEvent = signal<CriticalActionConfirmationEvent | null>(null);
 
+  private readonly notifications = inject(NotificationService);
   private readonly sessionApi = inject(SessionApiService);
   private criticalActionFailureSimulation = false;
 
@@ -63,7 +66,7 @@ export class App implements OnInit {
 
   confirmCriticalAction(action: CriticalActionConfirmationRequest): void {
     if (this.criticalActionFailureSimulation) {
-      this.criticalActionError.set('Falha ao emitir evento de confirmacao critica.');
+      this.notifications.error('Falha ao emitir evento de confirmacao critica.');
       return;
     }
 
@@ -83,6 +86,7 @@ export class App implements OnInit {
     } catch {
       this.session.set(null);
       this.sessionError.set('Nao foi possivel validar a sessao na API.');
+      this.notifications.error('Nao foi possivel validar a sessao na API.');
     }
   }
 

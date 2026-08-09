@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 
 import { SIMPLEGUARD_AUTH_CONFIG } from '../auth/auth.config';
-import { CreateDeviceRequest, Device } from './device.models';
+import { CreateDeviceRequest, Device, PairingSession } from './device.models';
 
 @Injectable({ providedIn: 'root' })
 export class DeviceApiService {
@@ -16,5 +16,12 @@ export class DeviceApiService {
 
   create(request: CreateDeviceRequest) {
     return this.http.post<Device>(`${this.config.apiBaseUrl}/devices`, request);
+  }
+
+  generatePairingSession(deviceId: string) {
+    return this.http.post<PairingSession>(
+      `${this.config.apiBaseUrl}/devices/${deviceId}/pairing-sessions`,
+      {},
+    );
   }
 }

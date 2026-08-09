@@ -116,25 +116,21 @@ select:focus {
   outline-offset: 1px;
 }
 
-.field-error,
-.feedback {
+.field-error {
   margin: 7px 0 0;
   font-size: 0.75rem;
   line-height: 1.4;
 }
 
 .field-error,
-.error-feedback,
 .error-state {
   color: #ff8a80;
 }
 
-.success-feedback {
-  color: #55d69e;
-}
-
 .register-action,
-.retry-action {
+.retry-action,
+.pairing-action,
+.close-pairing-action {
   min-height: 42px;
   border: 1px solid #3cc4df;
   border-radius: 2px;
@@ -186,13 +182,25 @@ select:focus {
   color: #d7f7ff;
 }
 
+.pairing-action,
+.close-pairing-action {
+  padding: 0 12px;
+  background: transparent;
+  color: #d7f7ff;
+}
+
+.pairing-action:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
 .device-table {
   border-top: 1px solid #425963;
 }
 
 .table-row {
   display: grid;
-  grid-template-columns: minmax(180px, 1.7fr) minmax(100px, 0.8fr) minmax(110px, 0.8fr) minmax(180px, 1fr);
+  grid-template-columns: minmax(180px, 1.5fr) minmax(90px, 0.7fr) minmax(100px, 0.7fr) minmax(170px, 1fr) minmax(120px, 0.8fr);
   gap: 16px;
   align-items: center;
 }
@@ -223,6 +231,88 @@ select:focus {
   border: 1px solid #896f35;
   padding: 0 8px;
   color: #e5bd62;
+}
+
+.paired-status {
+  border-color: #39765f;
+  color: #55d69e;
+}
+
+.pairing-console {
+  margin-top: 24px;
+  border-top: 1px solid #425963;
+  border-bottom: 1px solid #425963;
+  padding: 22px 0;
+}
+
+.pairing-console.waiting-state {
+  border-top-color: #3cc4df;
+}
+
+.pairing-console.expired-state {
+  border-top-color: #a16868;
+}
+
+.pairing-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.pairing-label,
+.pairing-state-label,
+.pairing-code,
+.pairing-expiration {
+  font-family: "Cascadia Mono", "Roboto Mono", monospace;
+}
+
+.pairing-label {
+  color: #708891;
+  font-size: 0.6875rem;
+}
+
+.pairing-heading h4 {
+  margin-top: 5px;
+}
+
+.close-pairing-action {
+  min-height: 34px;
+  border-color: #425963;
+}
+
+.pairing-state-label {
+  margin: 22px 0 8px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.waiting-label {
+  color: #55d69e;
+}
+
+.expired-label {
+  color: #ff8a80;
+}
+
+.pairing-code {
+  display: block;
+  color: #edf7f9;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.pairing-instruction,
+.pairing-expiration {
+  margin: 9px 0 0;
+  color: #8aa0aa;
+  font-size: 0.75rem;
+}
+
+.regenerate-action {
+  min-height: 38px;
+  margin-top: 12px;
 }
 
 @media (max-width: 840px) {
