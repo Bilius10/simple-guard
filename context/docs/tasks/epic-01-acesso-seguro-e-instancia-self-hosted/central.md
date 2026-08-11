@@ -4,7 +4,7 @@ Fase: MVP
 
 Objetivo: permitir que o administrador acesse uma instancia SimpleGuard self-hosted com autenticacao segura, configuracao minima e base operacional pronta.
 
-FRs cobertos: FR1, FR2.
+RFs/RNFs cobertos: RF-01, RNF 11.1, RNF 11.3.
 
 Resultado esperado: instancia local sobe com API, web, banco, IdP e proxy; administrador consegue autenticar; acoes criticas ja seguem um padrao de confirmacao.
 

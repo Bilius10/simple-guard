@@ -11,6 +11,9 @@ Estrutura:
 Fonte consolidada:
 - `.codex/bmad/output/planning-artifacts/epics.md`
 
+Rastreabilidade:
+- `coverage-matrix.md`
+
 Regras:
 
 - Tasks de front devem referenciar o UX spec da superficie e o Figma oficial.

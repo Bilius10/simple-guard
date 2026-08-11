@@ -12,13 +12,13 @@ Nao considerar pronta se houver implementacao parcial, comportamento apenas mock
 
 ## Criterios de Aceite (Definition of Done)
 
-- [ ] Definir payload de pareamento desktop.
-- [ ] Criar core Rust minimo para identidade local e chave.
-- [ ] Reutilizar contrato seguro de agente.
-- [ ] Testes unitarios obrigatorios implementados e passando.
-- [ ] Cenarios de validacao manual executados e evidenciaveis pelo desenvolvedor.
-- [ ] Erros, estados vazios, estados de falha e dados ausentes tratados explicitamente quando aplicavel.
-- [ ] Nenhum comportamento fora do escopo desta task foi implementado sem nova task aprovada.
+- [x] Definir payload de pareamento desktop.
+- [x] Criar core Rust minimo para identidade local e chave.
+- [x] Reutilizar contrato seguro de agente.
+- [x] Testes unitarios obrigatorios implementados e passando.
+- [x] Cenarios de validacao manual executados e evidenciaveis pelo desenvolvedor.
+- [x] Erros, estados vazios, estados de falha e dados ausentes tratados explicitamente quando aplicavel.
+- [x] Nenhum comportamento fora do escopo desta task foi implementado sem nova task aprovada.
 
 ## Detalhes Tecnicos e Links Uteis
 
@@ -44,16 +44,17 @@ Notas tecnicas:
 - A task deve caber em poucos dias de desenvolvimento.
 - Se a implementacao ultrapassar 3 a 5 dias, dividir em subtasks independentes sem alterar o objetivo da task.
 - Nao agrupar refatoracoes, melhorias visuais ou capacidades futuras que nao sejam necessarias para cumprir o criterio de aceite.
+- Nao implementar tela desktop nesta task; a UI minima de boas-vindas/pareamento fica na task 2.7 para manter esta task restrita ao contrato/core Rust.
 
 ## Testes Unitarios Obrigatorios
 
-- [ ] Backend: pareamento desktop, plataforma divergente e chave ausente.
-- [ ] Rust: validacao de configuracao local e serializacao do pedido.
+- [x] Backend: pareamento desktop, plataforma divergente e chave ausente.
+- [x] Rust: validacao de configuracao local e serializacao do pedido.
 
 ## Cenarios de Validacao Manual
 
-- [ ] Simular payload de agente desktop.
-- [ ] Confirmar dispositivo desktop pareado na API.
+- [x] Simular payload de agente desktop.
+- [x] Confirmar dispositivo desktop pareado na API.
 
 ## Criterio de Conclusao
 

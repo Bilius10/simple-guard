@@ -4,7 +4,7 @@ Fase: MVP
 
 Objetivo: permitir analisar trajetoria, pontos coletados, paradas inferidas e gaps de conectividade por janela de tempo.
 
-FRs cobertos: FR8, FR9, FR12.
+RFs/RNFs cobertos: RF-06, RF-07, RF-11, RF-12.
 
 Resultado esperado: administrador reconstrui deslocamento e eventos relevantes antes ou durante um incidente.
 

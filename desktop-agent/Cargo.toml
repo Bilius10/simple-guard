@@ -1,0 +1,10 @@
+[package]
+name = "simpleguard-desktop-agent"
+version = "0.1.0"
+edition = "2021"
+description = "Core contract for the SimpleGuard desktop agent pairing flow"
+publish = false
+
+[lib]
+name = "simpleguard_desktop_agent"
+path = "src/lib.rs"

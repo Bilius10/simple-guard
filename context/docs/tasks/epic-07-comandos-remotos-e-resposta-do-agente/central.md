@@ -4,7 +4,7 @@ Fase: MVP
 
 Objetivo: permitir solicitar bloqueio remoto e alarme com confirmacao explicita, fila, expiracao, estados auditaveis e resposta do agente.
 
-FRs cobertos: FR2, FR11, FR12, FR14.
+RFs/RNFs cobertos: RF-01, RF-05, RF-09, RF-10, RF-11, RNF 11.1, RNF 11.3.
 
 Resultado esperado: administrador reage ao incidente sem apagar dados e entende exatamente o estado de cada comando.
 
@@ -14,3 +14,6 @@ Tasks:
 - `task-7.3-agente-android-buscar-e-validar-comando.md`
 - `task-7.4-reportar-execucao-de-bloqueio-ou-alarme.md`
 - `task-7.5-mostrar-estado-de-comando-na-web-e-no-agente.md`
+- `task-7.6-mostrar-comando-recebido-no-agente-desktop.md`
+- `task-7.7-agente-desktop-buscar-e-validar-comando.md`
+- `task-7.8-reportar-execucao-de-comando-do-agente-desktop.md`

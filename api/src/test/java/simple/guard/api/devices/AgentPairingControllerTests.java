@@ -117,6 +117,50 @@ class AgentPairingControllerTests {
     }
 
     @Test
+    void completesDesktopAgentPairingWithSecureAgentContractTests() throws Exception {
+        devices.deleteAll();
+        devices.save(deviceTests(
+                DevicePairingStatus.UNPAIRED,
+                DeviceType.DESKTOP,
+                DevicePlatform.WINDOWS,
+                "Desktop operacional"
+        ));
+        PairingSession session = pairingSessions.save(waitingSessionTests(validExpiresAtTests()));
+        String desktopAgentInstanceId = "desktop-windows-agent-001";
+
+        mockMvc.perform(post("/api/agent/pairing/complete")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(pairingRequestTests(
+                                PAIRING_CODE,
+                                desktopAgentInstanceId,
+                                DevicePlatform.WINDOWS,
+                                publicKeyTests()
+                        )))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Cache-Control", "no-store"))
+                .andExpect(jsonPath("$.deviceId").value(DEVICE_ID.toString()))
+                .andExpect(jsonPath("$.deviceName").value("Desktop operacional"))
+                .andExpect(jsonPath("$.platform").value("WINDOWS"))
+                .andExpect(jsonPath("$.pairingStatus").value("paired"))
+                .andExpect(jsonPath("$.pairedAt").exists());
+
+        assertThat(devices.findById(DEVICE_ID)).get().satisfies(device -> {
+            assertThat(device.getPairingStatus()).isEqualTo(DevicePairingStatus.PAIRED);
+            assertThat(device.getUpdatedBy()).isEqualTo("agent:" + desktopAgentInstanceId);
+        });
+        assertThat(pairingSessions.findById(session.getId())).get()
+                .satisfies(usedSession -> assertThat(usedSession.getStatus()).isEqualTo(PairingSessionStatus.USED));
+        assertThat(deviceKeys.findAll()).singleElement().satisfies(deviceKey -> {
+            assertThat(deviceKey.getDeviceId()).isEqualTo(DEVICE_ID);
+            assertThat(deviceKey.getPairingSessionId()).isEqualTo(session.getId());
+            assertThat(deviceKey.getAgentInstanceId()).isEqualTo(desktopAgentInstanceId);
+            assertThat(deviceKey.getPlatform()).isEqualTo(DevicePlatform.WINDOWS);
+            assertThat(deviceKey.getStatus()).isEqualTo(DeviceKeyStatus.ACTIVE);
+            assertThat(deviceKey.getPublicKey()).isEqualTo(publicKeyTests());
+        });
+    }
+
+    @Test
     void rejectsAgentPairingWithInvalidCodeTests() throws Exception {
         mockMvc.perform(post("/api/agent/pairing/complete")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -225,6 +269,35 @@ class AgentPairingControllerTests {
     }
 
     @Test
+    void rejectsDesktopAgentPairingWhenPublicKeyIsMissingTests() throws Exception {
+        devices.deleteAll();
+        devices.save(deviceTests(
+                DevicePairingStatus.UNPAIRED,
+                DeviceType.DESKTOP,
+                DevicePlatform.WINDOWS,
+                "Desktop operacional"
+        ));
+        pairingSessions.save(waitingSessionTests(validExpiresAtTests()));
+
+        mockMvc.perform(post("/api/agent/pairing/complete")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "pairingCode": "ABCD-2345",
+                                  "agentInstanceId": "desktop-windows-agent-001",
+                                  "platform": "WINDOWS"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.erro_code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.uri").value("/api/agent/pairing/complete"));
+
+        assertThat(deviceKeys.count()).isZero();
+        assertThat(devices.findById(DEVICE_ID)).get()
+                .satisfies(device -> assertThat(device.getPairingStatus()).isEqualTo(DevicePairingStatus.UNPAIRED));
+    }
+
+    @Test
     void rejectsAgentPairingWhenDeviceIsAlreadyPairedTests() throws Exception {
         Device device = devices.findById(DEVICE_ID).orElseThrow();
         device.setPairingStatus(DevicePairingStatus.PAIRED);
@@ -260,6 +333,36 @@ class AgentPairingControllerTests {
                 .satisfies(currentSession -> assertThat(currentSession.getStatus()).isEqualTo(PairingSessionStatus.WAITING));
     }
 
+    @Test
+    void rejectsDesktopAgentPairingWhenPlatformDoesNotMatchRegisteredDeviceTests() throws Exception {
+        devices.deleteAll();
+        devices.save(deviceTests(
+                DevicePairingStatus.UNPAIRED,
+                DeviceType.DESKTOP,
+                DevicePlatform.WINDOWS,
+                "Desktop operacional"
+        ));
+        PairingSession session = pairingSessions.save(waitingSessionTests(validExpiresAtTests()));
+
+        mockMvc.perform(post("/api/agent/pairing/complete")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(pairingRequestTests(
+                                PAIRING_CODE,
+                                "desktop-linux-agent-001",
+                                DevicePlatform.LINUX,
+                                publicKeyTests()
+                        )))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.erro_code").value("DEVICE_PLATFORM_MISMATCH"))
+                .andExpect(jsonPath("$.uri").value("/api/agent/pairing/complete"));
+
+        assertThat(deviceKeys.count()).isZero();
+        assertThat(devices.findById(DEVICE_ID)).get()
+                .satisfies(device -> assertThat(device.getPairingStatus()).isEqualTo(DevicePairingStatus.UNPAIRED));
+        assertThat(pairingSessions.findById(session.getId())).get()
+                .satisfies(currentSession -> assertThat(currentSession.getStatus()).isEqualTo(PairingSessionStatus.WAITING));
+    }
+
     private static Account accountTests() {
         return new Account(
                 ACCOUNT_ID,
@@ -276,12 +379,21 @@ class AgentPairingControllerTests {
     }
 
     private static Device deviceTests(DevicePairingStatus status) {
+        return deviceTests(status, DeviceType.MOBILE, DevicePlatform.ANDROID, "Celular operacional");
+    }
+
+    private static Device deviceTests(
+            DevicePairingStatus status,
+            DeviceType type,
+            DevicePlatform platform,
+            String name
+    ) {
         return new Device(
                 DEVICE_ID,
                 ACCOUNT_ID,
-                "Celular operacional",
-                DeviceType.MOBILE,
-                DevicePlatform.ANDROID,
+                name,
+                type,
+                platform,
                 status,
                 "administrator-subject",
                 NOW,
@@ -314,14 +426,23 @@ class AgentPairingControllerTests {
     }
 
     private static String pairingRequestTests(String pairingCode, String agentInstanceId, String publicKey) {
+        return pairingRequestTests(pairingCode, agentInstanceId, DevicePlatform.ANDROID, publicKey);
+    }
+
+    private static String pairingRequestTests(
+            String pairingCode,
+            String agentInstanceId,
+            DevicePlatform platform,
+            String publicKey
+    ) {
         return """
                 {
                   "pairingCode": "%s",
                   "agentInstanceId": "%s",
-                  "platform": "ANDROID",
+                  "platform": "%s",
                   "publicKey": "%s"
                 }
-                """.formatted(pairingCode, agentInstanceId, publicKey);
+                """.formatted(pairingCode, agentInstanceId, platform.name(), publicKey);
     }
 
     private static String publicKeyTests() {

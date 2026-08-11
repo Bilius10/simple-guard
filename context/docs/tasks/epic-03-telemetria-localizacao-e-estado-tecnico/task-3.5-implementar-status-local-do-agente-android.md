@@ -13,6 +13,9 @@ Nao considerar pronta se houver implementacao parcial, comportamento apenas mock
 ## Criterios de Aceite (Definition of Done)
 
 - [ ] Implementar tela/status local do agente.
+- [ ] Implementar tela `Mobile Agent / 03 - Permissoes` com lista de permissoes, estados e acoes curtas.
+- [ ] Implementar tela `Mobile Agent / 04 - Status Ativo` com estado geral, ultima sincronizacao, bateria, rede, fila local e instancia pareada.
+- [ ] Implementar tela `Mobile Agent / 06 - Offline / Fila Local` quando houver perda de conexao ou eventos pendentes.
 - [ ] Mostrar ultima sincronizacao e fila local.
 - [ ] Indicar permissoes pendentes, offline e falha.
 - [ ] Testes unitarios obrigatorios implementados e passando.
@@ -47,11 +50,15 @@ Notas tecnicas:
 ## Testes Unitarios Obrigatorios
 
 - [ ] Android: mapeamento de estados e renderizacao de fila local.
+- [ ] Android: renderizacao da tela de permissoes com estados `concedida`, `pendente` e `bloqueada`.
+- [ ] Android: renderizacao da tela de status ativo.
+- [ ] Android: renderizacao do estado offline/fila local.
 
 ## Cenarios de Validacao Manual
 
 - [ ] Revogar permissao de localizacao.
 - [ ] Desconectar internet e validar estados na UI.
+- [ ] Gerar evento local pendente e confirmar exibicao na fila local.
 
 ## Criterio de Conclusao
 

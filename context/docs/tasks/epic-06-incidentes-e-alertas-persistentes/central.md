@@ -4,7 +4,7 @@ Fase: MVP
 
 Objetivo: permitir abrir, acompanhar, atualizar e encerrar incidentes, mantendo alertas persistentes ate confirmacao manual.
 
-FRs cobertos: FR10, FR12.
+RFs/RNFs cobertos: RF-08, RF-11.
 
 Resultado esperado: incidentes e alertas organizam a resposta operacional sem incluir comando remoto neste epico.
 

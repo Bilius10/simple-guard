@@ -4,7 +4,7 @@ Fase: MVP
 
 Objetivo: permitir gerar relatorio operacional de incidente com mapa, trajetoria, paradas, dados tecnicos, eventos, acoes e limitacoes.
 
-FRs cobertos: FR8, FR9, FR12, FR13.
+RFs/RNFs cobertos: RF-06, RF-07, RF-11, RF-12, RNF 11.4.
 
 Resultado esperado: administrador produz PDF compreensivel para seguradora, boletim de ocorrencia ou autoridade, sem prometer prova juridica formal.
 

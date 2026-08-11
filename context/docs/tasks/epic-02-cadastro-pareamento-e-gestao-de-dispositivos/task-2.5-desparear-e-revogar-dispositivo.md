@@ -16,6 +16,9 @@ Nao considerar pronta se houver implementacao parcial, comportamento apenas mock
 - [ ] Atualizar estado do dispositivo.
 - [ ] Rejeitar telemetria posterior.
 - [ ] Exibir confirmacao perigosa na web.
+- [ ] Android: implementar tela `Mobile Agent / 07 - Despareamento` com instancia atual, nome do dispositivo, consequencias e confirmacao explicita.
+- [ ] Android: tratar estados de despareamento solicitado, despareado, falha ao comunicar API e despareado localmente com sincronizacao pendente.
+- [ ] Desktop: implementar tela `Desktop Agent / 08 - Despareamento` com instancia atual, nome do dispositivo, aviso de impacto, confirmacao explicita e resultado.
 - [ ] Testes unitarios obrigatorios implementados e passando.
 - [ ] Cenarios de validacao manual executados e evidenciaveis pelo desenvolvedor.
 - [ ] Erros, estados vazios, estados de falha e dados ausentes tratados explicitamente quando aplicavel.
@@ -26,6 +29,8 @@ Nao considerar pronta se houver implementacao parcial, comportamento apenas mock
 Referencias obrigatorias:
 - `docs/produto/simpleguard-prd.md`
 - `docs/ux/simpleguard-ux-plataforma-web.md`
+- `docs/ux/simpleguard-ux-app-celular.md`
+- `docs/ux/simpleguard-ux-app-computador.md`
 - Figma oficial: https://www.figma.com/design/xWz2JTC3lp1N2uUeJXkLy9/SimpleGuard-UX-Screens?node-id=0-1&p=f&t=ete3nHVxHZKwr5qj-0
 
 Notas tecnicas:
@@ -50,11 +55,16 @@ Notas tecnicas:
 
 - [ ] Backend: revogacao, idempotencia e telemetria rejeitada apos revogacao.
 - [ ] Frontend: confirmacao, sucesso e falha.
+- [ ] Android: renderizacao dos estados de despareamento e falha.
+- [ ] Desktop: renderizacao dos estados de despareamento e falha quando a UI desktop existir.
 
 ## Cenarios de Validacao Manual
 
 - [ ] Desparear dispositivo.
 - [ ] Tentar enviar telemetria com credencial antiga e confirmar rejeicao.
+- [ ] Android: desparear com API disponivel e validar retorno para estado local nao pareado.
+- [ ] Android: simular falha de API e validar estado local pendente de sincronizacao.
+- [ ] Desktop: desparear com API disponivel e validar retorno para estado local nao pareado quando a UI desktop existir.
 
 ## Criterio de Conclusao
 

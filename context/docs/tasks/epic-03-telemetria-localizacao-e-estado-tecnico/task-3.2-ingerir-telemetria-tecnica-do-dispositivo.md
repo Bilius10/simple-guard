@@ -15,6 +15,9 @@ Nao considerar pronta se houver implementacao parcial, comportamento apenas mock
 - [ ] Criar endpoint/servico de telemetria tecnica.
 - [ ] Persistir bateria, rede, sinal e permissoes quando disponiveis.
 - [ ] Representar dados ausentes como `null`.
+- [ ] Android: coletar bateria, rede, sinal e permissoes quando disponiveis.
+- [ ] Android: enviar telemetria tecnica para o endpoint de agente pareado usando credencial/chave do pareamento.
+- [ ] Android: tratar sensores/permissoes indisponiveis como dados ausentes, sem usar `0` como fallback.
 - [ ] Testes unitarios obrigatorios implementados e passando.
 - [ ] Cenarios de validacao manual executados e evidenciaveis pelo desenvolvedor.
 - [ ] Erros, estados vazios, estados de falha e dados ausentes tratados explicitamente quando aplicavel.
@@ -25,6 +28,7 @@ Nao considerar pronta se houver implementacao parcial, comportamento apenas mock
 Referencias obrigatorias:
 - `docs/produto/simpleguard-prd.md`
 - `docs/arquitetura/simpleguard-arquitetura.md`
+- `docs/ux/simpleguard-ux-app-celular.md`
 
 Notas tecnicas:
 - Seguir arquitetura e contratos ja definidos nos documentos de referencia.
@@ -47,11 +51,14 @@ Notas tecnicas:
 ## Testes Unitarios Obrigatorios
 
 - [ ] Backend: valores validos, ausentes, fora de faixa e duplicados.
+- [ ] Android: coleta valida, dados ausentes, bateria baixa e falha de envio.
 
 ## Cenarios de Validacao Manual
 
 - [ ] Enviar telemetria com bateria baixa.
 - [ ] Confirmar estado tecnico salvo.
+- [ ] Android: enviar bateria/rede/sinal/permissoes e confirmar persistencia na API.
+- [ ] Android: simular dado tecnico indisponivel e confirmar `null` no backend.
 
 ## Criterio de Conclusao
 

@@ -4,7 +4,7 @@ Fase: MVP
 
 Objetivo: permitir que o administrador acompanhe dispositivos em mapa dominante, com estados visuais, centralizacao, selecao e leitura operacional rapida.
 
-FRs cobertos: FR6, FR7.
+RFs/RNFs cobertos: RF-04, RF-05, RNF 11.4, RNF 11.5.
 
 Resultado esperado: hub web operacional com mapa MapLibre, marcadores por estado, painel tecnico e atualizacao em tempo util.
 

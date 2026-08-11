@@ -21,6 +21,9 @@ android-agent/build/
 android-agent/**/build/
 android-agent/local.properties
 
+# Rust output
+desktop-agent/target/
+
 # Operating system and IDE
 .DS_Store
 Thumbs.db

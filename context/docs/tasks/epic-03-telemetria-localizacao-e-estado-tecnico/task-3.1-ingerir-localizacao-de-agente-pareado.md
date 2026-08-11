@@ -16,6 +16,9 @@ Nao considerar pronta se houver implementacao parcial, comportamento apenas mock
 - [ ] Validar autenticidade do agente.
 - [ ] Persistir ponto bruto em PostGIS.
 - [ ] Separar `collected_at` e `received_at`.
+- [ ] Android: coletar localizacao quando permissao estiver disponivel.
+- [ ] Android: enviar localizacao para o endpoint de agente pareado usando credencial/chave do pareamento.
+- [ ] Android: tratar localizacao ausente, permissao negada, GPS desligado e falha de rede sem inventar coordenadas.
 - [ ] Testes unitarios obrigatorios implementados e passando.
 - [ ] Cenarios de validacao manual executados e evidenciaveis pelo desenvolvedor.
 - [ ] Erros, estados vazios, estados de falha e dados ausentes tratados explicitamente quando aplicavel.
@@ -26,6 +29,7 @@ Nao considerar pronta se houver implementacao parcial, comportamento apenas mock
 Referencias obrigatorias:
 - `docs/arquitetura/simpleguard-arquitetura.md`
 - `docs/produto/simpleguard-prd.md`
+- `docs/ux/simpleguard-ux-app-celular.md`
 
 Notas tecnicas:
 - Seguir arquitetura e contratos ja definidos nos documentos de referencia.
@@ -48,11 +52,14 @@ Notas tecnicas:
 ## Testes Unitarios Obrigatorios
 
 - [ ] Backend: payload valido, assinatura invalida, dispositivo revogado e coordenada invalida.
+- [ ] Android: coleta valida, permissao negada, GPS indisponivel e falha de envio.
 
 ## Cenarios de Validacao Manual
 
 - [ ] Enviar ponto valido via cliente HTTP.
 - [ ] Confirmar persistencia e resposta da API.
+- [ ] Android: enviar localizacao real ou simulada e confirmar persistencia na API.
+- [ ] Android: revogar permissao de localizacao e confirmar estado tratado no app.
 
 ## Criterio de Conclusao
 

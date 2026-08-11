@@ -4,7 +4,7 @@ Fase: backlog exploratorio
 
 Objetivo: explorar usuarios secundarios, permissoes granulares, alertas multicanal, integracoes externas, modo vigia e oferta gerenciada.
 
-FRs cobertos: backlog futuro; sem compromisso MVP.
+RFs/RNFs cobertos: backlog futuro; sem compromisso MVP.
 
 Resultado esperado: ideias futuras sao avaliadas sem contaminar o MVP com complexidade prematura.
 
