@@ -2,74 +2,174 @@
   <header class="status-bar">
     <span class="brand">SIMPLEGUARD</span>
     <span class="status"><span class="status-light" aria-hidden="true"></span>{{ auth.state().status }}</span>
+    <span class="timestamp">14:32:31 BRT</span>
   </header>
 
   @switch (auth.state().status) {
     @case ('loading') {
-      <section class="startup" aria-labelledby="startup-title">
-        <p class="eyebrow">AUTENTICACAO</p>
-        <h1 id="startup-title">Validando sessao</h1>
-        <p class="message">Conectando ao provedor OIDC self-hosted.</p>
+      <section class="startup boot-screen" aria-labelledby="startup-title">
+        <div class="terminal-card">
+          <h1 id="startup-title">SIMPLEGUARD</h1>
+          <p class="message">Central operacional</p>
+          <dl class="telemetry-list">
+            <div>
+              <dt>Inicializacao central</dt>
+              <dd class="ok">ok</dd>
+            </div>
+            <div>
+              <dt>Conexao com API</dt>
+              <dd>em andamento</dd>
+            </div>
+            <div>
+              <dt>Autenticacao externa</dt>
+              <dd class="warning">pendente</dd>
+            </div>
+            <div>
+              <dt>Componente mapa</dt>
+              <dd>pendente</dd>
+            </div>
+          </dl>
+          <div class="card-actions">
+            <button type="button" class="primary-action">Testar no central</button>
+            <button type="button" class="secondary-action">Modo diagnostico</button>
+          </div>
+        </div>
       </section>
     }
     @case ('login_required') {
-      <section class="startup" aria-labelledby="startup-title">
-        <p class="eyebrow">INSTANCIA SELF-HOSTED</p>
-        <h1 id="startup-title">Central operacional</h1>
-        <p class="message">Acesso administrativo exige autenticacao segura.</p>
-        <button type="button" class="primary-action" (click)="login()">Entrar com Keycloak</button>
+      <section class="startup login-screen" aria-labelledby="startup-title">
+        <div class="login-card">
+          <h1 id="startup-title">Central operacional</h1>
+          <dl class="telemetry-list">
+            <div>
+              <dt>Web/admin</dt>
+              <dd>simpleguard.local</dd>
+            </div>
+            <div>
+              <dt>Senha MFA</dt>
+              <dd>********</dd>
+            </div>
+            <div>
+              <dt>Sessao admin</dt>
+              <dd class="ok">disponivel</dd>
+            </div>
+            <div>
+              <dt>Estado</dt>
+              <dd class="warning">etapa de autenticacao e acesso de alta seguranca</dd>
+            </div>
+          </dl>
+          <button type="button" class="primary-action" (click)="login()">Acessar</button>
+          <button type="button" class="secondary-action">Recuperar acesso</button>
+        </div>
       </section>
     }
     @case ('authenticated') {
       <section class="workspace" aria-labelledby="workspace-title">
-        <header class="workspace-heading">
-          <div>
-            <p class="eyebrow">SESSAO AUTENTICADA</p>
-            <h1 id="workspace-title">Hub administrativo</h1>
-          </div>
-        @if (session(); as administrator) {
-            <div class="operator-meta">
-              <strong>{{ administrator.displayName }}</strong>
-              <span>{{ administrator.email }} / {{ administrator.role }}</span>
-            </div>
-        } @else if (sessionError()) {
-            <p class="message error">{{ sessionError() }}</p>
-        } @else {
-            <p class="message">Validando usuario na API.</p>
-        }
-        </header>
+        <h1 id="workspace-title" class="visually-hidden">Hub administrativo</h1>
+        <nav class="side-rail" aria-label="Modulos operacionais">
+          <span>HC</span>
+          <span>INV</span>
+          <span>DEV</span>
+          <span>KEY</span>
+          <span>RPT</span>
+          <span>LOG</span>
+        </nav>
 
-        @if (session()) {
-          <sg-device-registration />
-          <div class="authenticated-actions" aria-label="Acoes administrativas">
-            <button type="button" class="danger-outline-action" (click)="openCriticalActionSimulation()">
-              Simular acao critica
-            </button>
-            <button type="button" class="secondary-action" (click)="openCriticalActionFailureSimulation()">
-              Simular falha
-            </button>
-            <button type="button" class="secondary-action" (click)="logout()">Sair</button>
-          </div>
-        }
-        @if (criticalActionEvent(); as event) {
-          <p class="message confirmation-event">Evento emitido: command-confirmed / {{ event.actionType }}</p>
-        }
+        <section class="map-stage" aria-label="Hub de monitoramento">
+          <iframe
+            class="map-frame"
+            title="Mapa operacional"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            src="https://www.openstreetmap.org/export/embed.html?bbox=-46.735%2C-23.625%2C-46.555%2C-23.485&amp;layer=mapnik"
+          ></iframe>
+        </section>
+
+        <aside class="operator-panel">
+          @if (session(); as administrator) {
+            <section class="panel-card operator-meta">
+              <h2>Dispositivo selecionado</h2>
+              <dl class="telemetry-list">
+                <div>
+                  <dt>Admin</dt>
+                  <dd>{{ administrator.displayName }}</dd>
+                </div>
+                <div>
+                  <dt>Entrada</dt>
+                  <dd class="danger">Alerta ativo</dd>
+                </div>
+                <div>
+                  <dt>E-mail</dt>
+                  <dd>{{ administrator.email }}</dd>
+                </div>
+                <div>
+                  <dt>Role</dt>
+                  <dd class="warning">{{ administrator.role }}</dd>
+                </div>
+              </dl>
+              <div class="authenticated-actions" aria-label="Acoes administrativas">
+                <button type="button" class="danger-outline-action" (click)="openCriticalActionSimulation()">
+                  Confirmar
+                </button>
+                <button type="button" class="secondary-action" (click)="openCriticalActionFailureSimulation()">
+                  Falha simulada
+                </button>
+                <button type="button" class="secondary-action" (click)="logout()">Sair</button>
+              </div>
+            </section>
+          } @else if (sessionError()) {
+            <p class="message error">{{ sessionError() }}</p>
+          } @else {
+            <p class="message">Validando usuario na API.</p>
+          }
+
+          @if (session()) {
+            <sg-device-registration />
+          }
+
+          @if (criticalActionEvent(); as event) {
+            <p class="message confirmation-event">Evento emitido: command-confirmed / {{ event.actionType }}</p>
+          }
+        </aside>
+
+        <footer class="workspace-footer">
+          <span>14:36 dispositivo remoto</span>
+          <span class="ok">18:40 bloqueio entregue</span>
+          <span class="warning">16:13 gps provavel falso</span>
+          <span>fila 04 eventos</span>
+        </footer>
       </section>
     }
     @case ('session_expired') {
-      <section class="startup" aria-labelledby="startup-title">
-        <p class="eyebrow">SESSAO EXPIRADA</p>
-        <h1 id="startup-title">Entre novamente</h1>
-        <p class="message">{{ auth.state().message }}</p>
-        <button type="button" class="primary-action" (click)="login()">Renovar acesso</button>
+      <section class="startup login-screen" aria-labelledby="startup-title">
+        <div class="login-card">
+          <h1 id="startup-title">Entre novamente</h1>
+          <dl class="telemetry-list">
+            <div>
+              <dt>Sessao admin</dt>
+              <dd class="danger">expirada</dd>
+            </div>
+            <div>
+              <dt>Mensagem</dt>
+              <dd>{{ auth.state().message }}</dd>
+            </div>
+          </dl>
+          <button type="button" class="primary-action" (click)="login()">Renovar acesso</button>
+        </div>
       </section>
     }
     @case ('auth_error') {
-      <section class="startup" aria-labelledby="startup-title">
-        <p class="eyebrow">ERRO DE LOGIN</p>
-        <h1 id="startup-title">Acesso nao concluido</h1>
-        <p class="message error">{{ auth.state().message }}</p>
-        <button type="button" class="primary-action" (click)="login()">Tentar novamente</button>
+      <section class="startup login-screen" aria-labelledby="startup-title">
+        <div class="login-card">
+          <h1 id="startup-title">Acesso nao concluido</h1>
+          <dl class="telemetry-list">
+            <div>
+              <dt>Erro</dt>
+              <dd class="danger">{{ auth.state().message }}</dd>
+            </div>
+          </dl>
+          <button type="button" class="primary-action" (click)="login()">Tentar novamente</button>
+        </div>
       </section>
     }
   }

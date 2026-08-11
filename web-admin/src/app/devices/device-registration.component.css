@@ -348,3 +348,211 @@ select:focus {
     gap: 8px;
   }
 }
+
+/* Compact platform panel used by tasks 2.1 and 2.2. */
+.device-registry {
+  border: 1px solid #0d7188;
+  background: #061923;
+  color: #e8fbff;
+  font-family: "Cascadia Mono", "Roboto Mono", monospace;
+}
+
+.registry-header {
+  align-items: center;
+  padding: 12px;
+  border-bottom: 1px solid #124653;
+}
+
+.section-kicker {
+  display: none;
+}
+
+h2 {
+  color: #e8fbff;
+  font-size: 0.82rem;
+}
+
+.device-count,
+.form-heading p,
+.list-heading p,
+.system-state p,
+.empty-state p {
+  color: #7ea4af;
+  font-size: 0.58rem;
+}
+
+.registry-layout {
+  display: block;
+}
+
+.registration-form,
+.device-list {
+  width: 100%;
+  padding: 12px;
+  border: 0;
+  background: transparent;
+}
+
+.registration-form {
+  border-bottom: 1px solid #124653;
+}
+
+.form-heading,
+.list-heading {
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.step-index {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  min-width: 26px;
+  height: 22px;
+  border: 1px solid #114c5b;
+  color: #37dff8;
+  font-size: 0.52rem;
+}
+
+.form-heading h3,
+.list-heading h3 {
+  color: #e8fbff;
+  font-size: 0.72rem;
+}
+
+label {
+  margin: 9px 0 5px;
+  color: #7ea4af;
+  font-size: 0.56rem;
+}
+
+input,
+select {
+  min-height: 24px;
+  border: 1px solid #124653;
+  padding: 0 8px;
+  background: #071b24;
+  color: #e8fbff;
+  font-size: 0.58rem;
+}
+
+input:focus,
+select:focus {
+  outline: 1px solid #37dff8;
+}
+
+.field-error {
+  margin-top: 5px;
+  color: #ff5b5b;
+  font-size: 0.54rem;
+}
+
+.register-action,
+.retry-action,
+.pairing-action,
+.close-pairing-action {
+  min-height: 28px;
+  border-color: #10b8d8;
+  background: #053b55;
+  color: #e8fbff;
+  font-size: 0.56rem;
+}
+
+.register-action {
+  margin-top: 12px;
+}
+
+.device-list {
+  min-width: 0;
+}
+
+.system-state,
+.empty-state {
+  min-height: 120px;
+}
+
+.empty-code {
+  color: #ffd84d;
+}
+
+.device-table {
+  border-top: 0;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
+  border: 1px solid #124653;
+  padding: 8px;
+}
+
+.table-header {
+  display: none;
+}
+
+.device-row {
+  min-height: auto;
+  margin-top: 7px;
+  color: #7ea4af;
+  font-size: 0.56rem;
+}
+
+.device-row span {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.device-name {
+  color: #e8fbff;
+}
+
+.pairing-status {
+  min-height: auto;
+  border: 0;
+  padding: 0;
+  color: #ffd84d;
+  text-align: right;
+}
+
+.paired-status {
+  color: #1affa9;
+}
+
+.pairing-console {
+  margin-top: 12px;
+  border: 1px solid #124653;
+  padding: 10px;
+  background: #071b24;
+}
+
+.pairing-heading {
+  gap: 8px;
+}
+
+.pairing-label {
+  color: #7ea4af;
+  font-size: 0.52rem;
+}
+
+.pairing-heading h4,
+.pairing-state-label,
+.pairing-instruction,
+.pairing-expiration {
+  font-size: 0.58rem;
+}
+
+.pairing-state-label {
+  margin: 10px 0 6px;
+}
+
+.pairing-code {
+  font-size: 1rem;
+}
+
+@media (max-width: 840px) {
+  .table-row {
+    min-width: 0;
+  }
+}

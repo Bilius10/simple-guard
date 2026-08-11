@@ -1,11 +1,13 @@
 package simple.guard.agent
 
 import android.app.Activity
-import android.graphics.Color
+import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.provider.Settings
-import android.view.ViewGroup
 import android.view.Gravity
+import android.view.View
+import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.Button
 import android.widget.EditText
@@ -30,8 +32,13 @@ class MainActivity : Activity() {
     private lateinit var pairingCodeField: EditText
     private lateinit var deviceNameField: EditText
     private lateinit var statusBadge: TextView
-    private lateinit var statusTitle: TextView
-    private lateinit var statusDetail: TextView
+    private lateinit var apiStatusValue: TextView
+    private lateinit var qrStatusValue: TextView
+    private lateinit var statePrimaryValue: TextView
+    private lateinit var stateDetailValue: TextView
+    private lateinit var stateSuccessValue: TextView
+    private lateinit var stateFailureValue: TextView
+    private lateinit var footerStatus: TextView
     private lateinit var actionButton: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,64 +52,100 @@ class MainActivity : Activity() {
     }
 
     private fun buildContent(): ScrollView {
-        val fieldSpacing = dp(14)
-        val content = LinearLayout(this).apply {
+        val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             layoutParams = ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
             minimumHeight = resources.displayMetrics.heightPixels
-            setPadding(dp(28), dp(36), dp(28), dp(36))
-            setBackgroundColor(Color.rgb(4, 12, 18))
+            setBackgroundColor(SCREEN_BACKGROUND)
         }
 
-        content.addView(label("SimpleGuard Agent", 28, Color.WHITE))
-        content.addView(label("Pareamento do dispositivo", 14, Color.rgb(157, 196, 212)))
+        root.addView(header())
 
-        statusBadge = label("", 13, Color.rgb(26, 255, 169))
-        statusBadge.setPadding(0, dp(42), 0, dp(8))
-        content.addView(statusBadge)
+        val content = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(22), dp(24), dp(22), dp(10))
+        }
+        root.addView(
+            content,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                0,
+                1f
+            )
+        )
 
-        statusTitle = label("", 22, Color.WHITE)
-        content.addView(statusTitle)
+        val pairingPanel = panel("Pareamento")
+        statusBadge = badge("")
+        pairingPanel.addView(statusBadge, wrapBottomMargin(dp(10)))
 
-        statusDetail = label("", 14, Color.rgb(196, 226, 238))
-        statusDetail.setPadding(0, dp(8), 0, dp(30))
-        content.addView(statusDetail)
+        instanceUrlField = editableRow(
+            label = "URL instancia",
+            hint = "http://192.168.1.5:8080"
+        )
+        pairingPanel.addView(instanceUrlField.parent as View, bottomMargin(dp(7)))
 
-        instanceUrlField = input("URL da instancia", "https://simpleguard.local")
-        content.addView(instanceUrlField, fieldLayoutParams(fieldSpacing))
+        apiStatusValue = valueRow(
+            label = "API",
+            value = "Conectando",
+            valueColor = WARNING
+        )
+        pairingPanel.addView(apiStatusValue.parent as View, bottomMargin(dp(7)))
 
-        pairingCodeField = input("Codigo de pareamento", "PXYY-4XFA")
-        pairingCodeField.imeOptions = EditorInfo.IME_ACTION_NEXT
-        content.addView(pairingCodeField, fieldLayoutParams(fieldSpacing))
+        qrStatusValue = valueRow(
+            label = "QR code",
+            value = "Leitor ativo",
+            valueColor = TEXT
+        )
+        pairingPanel.addView(qrStatusValue.parent as View)
+        content.addView(pairingPanel, bottomMargin(dp(18)))
 
-        deviceNameField = input("Nome deste dispositivo", "Celular de campo")
+        val codePanel = panel("Codigo / QR")
+        deviceNameField = editableRow(
+            label = "Nome sugerido",
+            hint = "Android Entrega 03"
+        )
         deviceNameField.imeOptions = EditorInfo.IME_ACTION_DONE
-        content.addView(deviceNameField, fieldLayoutParams(fieldSpacing))
+        codePanel.addView(deviceNameField.parent as View, bottomMargin(dp(7)))
 
-        content.addView(qrPanel(), fieldLayoutParams(dp(22)))
+        pairingCodeField = editableRow(
+            label = "Codigo manual",
+            hint = "PXYY-4XFA"
+        )
+        pairingCodeField.imeOptions = EditorInfo.IME_ACTION_NEXT
+        codePanel.addView(pairingCodeField.parent as View, bottomMargin(dp(7)))
 
-        actionButton = Button(this).apply {
-            text = "Parear dispositivo"
-            setTextColor(Color.rgb(3, 18, 25))
-            setBackgroundColor(Color.rgb(65, 196, 218))
-            setPadding(0, dp(12), 0, dp(12))
-        }
-        content.addView(actionButton, LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
-        ))
+        statePrimaryValue = valueRow("Estado 1", "Aguardando codigo", TEXT)
+        codePanel.addView(statePrimaryValue.parent as View, bottomMargin(dp(7)))
+
+        stateDetailValue = valueRow("Estado 2", "Codigo expirado", DANGER)
+        codePanel.addView(stateDetailValue.parent as View, bottomMargin(dp(7)))
+
+        stateSuccessValue = valueRow("Estado 3", "Pareado com sucesso", SUCCESS)
+        codePanel.addView(stateSuccessValue.parent as View, bottomMargin(dp(7)))
+
+        stateFailureValue = valueRow("Estado 4", "Falha de pareamento", DANGER)
+        codePanel.addView(stateFailureValue.parent as View)
+        content.addView(codePanel, bottomMargin(dp(18)))
+
+        content.addView(spacer())
+
+        actionButton = commandButton("Validar codigo")
+        content.addView(actionButton)
+
+        footerStatus = footer("Pareamento ainda nao concluido")
+        root.addView(footerStatus)
 
         return ScrollView(this).apply {
-            setBackgroundColor(Color.rgb(4, 12, 18))
+            setBackgroundColor(SCREEN_BACKGROUND)
             isFillViewport = true
             layoutParams = ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
-            addView(content, ViewGroup.LayoutParams(
+            addView(root, ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
             ))
@@ -165,13 +208,53 @@ class MainActivity : Activity() {
 
     private fun render(state: PairingUiState) {
         statusBadge.text = state.badge
-        statusTitle.text = state.title
-        statusDetail.text = state.detail
         statusBadge.setTextColor(state.color)
+        statusBadge.background = bordered(BADGE_BACKGROUND, state.color, dp(1), dp(1))
+        apiStatusValue.text = when (state.stage) {
+            PairingStage.PAIRED -> "Conectada"
+            PairingStage.VALIDATING -> "Conectando"
+            PairingStage.FAILURE -> "Falha"
+            PairingStage.EXPIRED -> "Codigo expirado"
+            PairingStage.WAITING -> "Aguardando"
+        }
+        apiStatusValue.setTextColor(statusColor(state))
+        qrStatusValue.text = when (state.stage) {
+            PairingStage.PAIRED -> "Pareado"
+            PairingStage.VALIDATING -> "Validando"
+            PairingStage.FAILURE -> "Falha"
+            PairingStage.EXPIRED -> "Expirado"
+            PairingStage.WAITING -> "Leitor ativo"
+        }
+        qrStatusValue.setTextColor(statusColor(state))
+        statePrimaryValue.text = state.title
+        statePrimaryValue.setTextColor(state.color)
+        stateDetailValue.text = state.detail
+        stateDetailValue.setTextColor(
+            if (state.stage == PairingStage.EXPIRED || state.stage == PairingStage.FAILURE) {
+                DANGER
+            } else {
+                MUTED
+            }
+        )
+        stateSuccessValue.setTextColor(if (state.stage == PairingStage.PAIRED) SUCCESS else MUTED)
+        stateFailureValue.setTextColor(
+            if (state.stage == PairingStage.FAILURE || state.stage == PairingStage.EXPIRED) {
+                DANGER
+            } else {
+                MUTED
+            }
+        )
+        footerStatus.text = when (state.stage) {
+            PairingStage.PAIRED -> "Pareamento concluido"
+            PairingStage.VALIDATING -> "Validando pareamento"
+            PairingStage.EXPIRED -> "Codigo expirado"
+            PairingStage.FAILURE -> "Pareamento nao concluido"
+            PairingStage.WAITING -> "Pareamento ainda nao concluido"
+        }
         actionButton.text = when (state.stage) {
             PairingStage.PAIRED -> "Pareado"
             PairingStage.VALIDATING -> "Validando"
-            else -> "Parear dispositivo"
+            else -> "Validar codigo"
         }
     }
 
@@ -188,36 +271,167 @@ class MainActivity : Activity() {
         return created
     }
 
-    private fun input(label: String, hint: String): EditText {
+    private fun header(): TextView =
+        TextView(this).apply {
+            text = "SimpleGuard Agent"
+            typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
+            textSize = 13f
+            includeFontPadding = false
+            gravity = Gravity.CENTER
+            setTextColor(ACCENT)
+            setBackgroundColor(HEADER_BACKGROUND)
+            setPadding(0, dp(18), 0, dp(18))
+        }
+
+    private fun panel(title: String): LinearLayout =
+        LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            background = bordered(PANEL_BACKGROUND, BORDER, dp(1), dp(2))
+            setPadding(dp(14), dp(14), dp(14), dp(14))
+            addView(panelTitle(title), bottomMargin(dp(10)))
+        }
+
+    private fun panelTitle(text: String): TextView =
+        TextView(this).apply {
+            this.text = text
+            typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
+            textSize = 15f
+            includeFontPadding = false
+            setTextColor(TEXT)
+        }
+
+    private fun badge(text: String): TextView =
+        TextView(this).apply {
+            this.text = text
+            typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
+            textSize = 10f
+            includeFontPadding = false
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(8), dp(5), dp(8), dp(5))
+            background = bordered(BADGE_BACKGROUND, ACCENT, dp(1), dp(1))
+            setTextColor(ACCENT)
+        }
+
+    private fun editableRow(label: String, hint: String): EditText {
+        val container = rowContainer()
+        container.addView(rowLabel(label))
         return EditText(this).apply {
             this.hint = hint
             this.contentDescription = label
-            setHintTextColor(Color.rgb(134, 152, 160))
-            setTextColor(Color.WHITE)
+            typeface = Typeface.MONOSPACE
+            textSize = 10f
+            includeFontPadding = false
+            gravity = Gravity.END or Gravity.CENTER_VERTICAL
+            setHintTextColor(MUTED)
+            setTextColor(TEXT)
             setSingleLine(true)
-            setPadding(dp(16), dp(12), dp(16), dp(12))
+            setPadding(dp(6), 0, 0, 0)
+            background = null
+            imeOptions = EditorInfo.IME_ACTION_NEXT
+            container.addView(
+                this,
+                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.3f)
+            )
         }
     }
 
-    private fun label(text: String, size: Int, color: Int): TextView {
+    private fun valueRow(label: String, value: String, valueColor: Int): TextView {
+        val container = rowContainer()
+        container.addView(rowLabel(label))
         return TextView(this).apply {
+            text = value
+            typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
+            textSize = 10f
+            includeFontPadding = false
+            gravity = Gravity.END or Gravity.CENTER_VERTICAL
+            setTextColor(valueColor)
+            container.addView(
+                this,
+                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.3f)
+            )
+        }
+    }
+
+    private fun rowContainer(): LinearLayout =
+        LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            minimumHeight = dp(30)
+            background = bordered(ROW_BACKGROUND, ROW_BORDER, dp(1), dp(1))
+            setPadding(dp(9), 0, dp(9), 0)
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                dp(30)
+            )
+        }
+
+    private fun rowLabel(text: String): TextView =
+        TextView(this).apply {
             this.text = text
-            textSize = size.toFloat()
-            setTextColor(color)
+            typeface = Typeface.MONOSPACE
+            textSize = 10f
+            includeFontPadding = false
+            gravity = Gravity.CENTER_VERTICAL
+            setTextColor(LABEL)
+            setPadding(0, 0, dp(8), 0)
+            layoutParams = LinearLayout.LayoutParams(
+                0,
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                1f
+            )
+        }
+
+    private fun commandButton(text: String): Button =
+        Button(this).apply {
+            this.text = text
+            typeface = Typeface.MONOSPACE
+            textSize = 11f
+            isAllCaps = false
+            includeFontPadding = false
+            setTextColor(TEXT)
+            background = bordered(BUTTON_BACKGROUND, ACCENT, dp(1), dp(2))
+            setPadding(0, dp(10), 0, dp(10))
+        }
+
+    private fun footer(text: String): TextView =
+        TextView(this).apply {
+            this.text = text
+            typeface = Typeface.MONOSPACE
+            textSize = 9f
+            includeFontPadding = false
+            setTextColor(MUTED)
+            setBackgroundColor(HEADER_BACKGROUND)
+            setPadding(dp(22), dp(8), dp(22), dp(8))
+        }
+
+    private fun spacer(): View =
+        View(this).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                0,
+                1f
+            )
+        }
+
+    private fun statusColor(state: PairingUiState): Int =
+        when (state.stage) {
+            PairingStage.PAIRED -> SUCCESS
+            PairingStage.VALIDATING -> WARNING
+            PairingStage.FAILURE,
+            PairingStage.EXPIRED -> DANGER
+            PairingStage.WAITING -> TEXT
+        }
+
+    private fun bordered(backgroundColor: Int, strokeColor: Int, strokeWidth: Int, radius: Int): GradientDrawable {
+        return GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = radius.toFloat()
+            setColor(backgroundColor)
+            setStroke(strokeWidth, strokeColor)
         }
     }
 
-    private fun qrPanel(): TextView {
-        return TextView(this).apply {
-            text = "Leitor de QR code pendente. Use o codigo manual por enquanto."
-            textSize = 13f
-            setTextColor(Color.rgb(157, 196, 212))
-            setPadding(dp(18), dp(22), dp(18), dp(22))
-            gravity = Gravity.CENTER
-        }
-    }
-
-    private fun fieldLayoutParams(bottomMargin: Int): LinearLayout.LayoutParams =
+    private fun bottomMargin(bottomMargin: Int): LinearLayout.LayoutParams =
         LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
@@ -225,6 +439,32 @@ class MainActivity : Activity() {
             setMargins(0, 0, 0, bottomMargin)
         }
 
+    private fun wrapBottomMargin(bottomMargin: Int): LinearLayout.LayoutParams =
+        LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        ).apply {
+            setMargins(0, 0, 0, bottomMargin)
+        }
+
     private fun dp(value: Int): Int =
         (value * resources.displayMetrics.density).toInt()
+
+    private companion object {
+        const val SCREEN_BACKGROUND = 0xFF001021.toInt()
+        const val HEADER_BACKGROUND = 0xFF000911.toInt()
+        const val PANEL_BACKGROUND = 0xFF061923.toInt()
+        const val ROW_BACKGROUND = 0xFF071B24.toInt()
+        const val BADGE_BACKGROUND = 0xFF062237.toInt()
+        const val BUTTON_BACKGROUND = 0xFF053B55.toInt()
+        const val BORDER = 0xFF10B8D8.toInt()
+        const val ROW_BORDER = 0xFF104554.toInt()
+        const val ACCENT = 0xFF3EDCF4.toInt()
+        const val TEXT = 0xFFE8FBFF.toInt()
+        const val LABEL = 0xFF8CB0BC.toInt()
+        const val MUTED = 0xFF6C8791.toInt()
+        const val WARNING = 0xFFFFD84D.toInt()
+        const val SUCCESS = 0xFF1AFFA9.toInt()
+        const val DANGER = 0xFFFF5B5B.toInt()
+    }
 }
