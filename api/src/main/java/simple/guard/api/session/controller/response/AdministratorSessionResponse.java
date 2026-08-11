@@ -1,4 +1,4 @@
-package simple.guard.api.session.domain;
+package simple.guard.api.session.controller.response;
 
 public record AdministratorSessionResponse(
         String subject,

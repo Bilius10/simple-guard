@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import simple.guard.api.devices.pairing.controller.response.PairingSessionResponse;
 import simple.guard.api.devices.pairing.service.PairingSessionService;
 import simple.guard.api.identity.domain.Account;
 

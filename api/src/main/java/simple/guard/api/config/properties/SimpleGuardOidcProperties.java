@@ -1,4 +1,4 @@
-package simple.guard.api.config;
+package simple.guard.api.config.properties;
 
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.boot.context.properties.ConfigurationProperties;

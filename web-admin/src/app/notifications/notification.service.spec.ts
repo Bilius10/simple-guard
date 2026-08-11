@@ -42,4 +42,22 @@ describe('NotificationServiceTests', () => {
 
     expect(notifications.notifications()).toHaveLength(0);
   });
+
+  it('ignoresDismissForUnknownNotificationTests', () => {
+    const notifications = TestBed.inject(NotificationService);
+
+    notifications.dismiss(999);
+
+    expect(notifications.notifications()).toEqual([]);
+  });
+
+  it('clearsPendingTimersOnDestroyTests', () => {
+    const notifications = TestBed.inject(NotificationService);
+
+    notifications.success('Operacao agendada.');
+    notifications.ngOnDestroy();
+    vi.advanceTimersByTime(10_000);
+
+    expect(notifications.notifications()).toHaveLength(1);
+  });
 });

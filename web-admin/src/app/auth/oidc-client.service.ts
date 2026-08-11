@@ -1,5 +1,6 @@
 import { DOCUMENT } from '@angular/common';
 import { inject, Injectable, signal } from '@angular/core';
+import { sha256 } from 'js-sha256';
 
 import { SIMPLEGUARD_AUTH_CONFIG } from './auth.config';
 import { AuthState, OidcDiscoveryDocument, StoredTokenSet, TokenResponse } from './auth.models';
@@ -221,8 +222,16 @@ export class OidcClientService {
 
   private async createCodeChallenge(verifier: string): Promise<string> {
     const encodedVerifier = new TextEncoder().encode(verifier);
-    const digest = await crypto.subtle.digest('SHA-256', encodedVerifier);
-    return this.toBase64Url(new Uint8Array(digest));
+    return this.toBase64Url(await this.sha256(encodedVerifier));
+  }
+
+  private async sha256(bytes: Uint8Array): Promise<Uint8Array> {
+    if (globalThis.crypto?.subtle?.digest) {
+      const digestInput = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
+      return new Uint8Array(await globalThis.crypto.subtle.digest('SHA-256', digestInput));
+    }
+
+    return new Uint8Array(sha256.array(bytes));
   }
 
   private toBase64Url(bytes: Uint8Array): string {

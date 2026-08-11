@@ -3,9 +3,15 @@ package simple.guard.api.identity.domain;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -13,6 +19,7 @@ import java.util.UUID;
 @Entity
 @Data
 @AllArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "accounts")
 public class Account {
 
@@ -35,15 +42,19 @@ public class Account {
     private boolean active;
 
     @Column(nullable = false)
+    @CreatedBy
     private String createdBy;
 
     @Column(nullable = false)
+    @CreatedDate
     private OffsetDateTime createdAt;
 
     @Column(nullable = false)
+    @LastModifiedBy
     private String updatedBy;
 
     @Column(nullable = false)
+    @LastModifiedDate
     private OffsetDateTime updatedAt;
 
     protected Account() {

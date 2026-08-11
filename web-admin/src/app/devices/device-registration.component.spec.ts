@@ -175,6 +175,59 @@ describe('DeviceRegistrationComponentTests', () => {
     );
   });
 
+  it('closesActivePairingSessionTests', async () => {
+    deviceApiStub.list.mockReturnValue(of([androidDevice]));
+    const fixture = TestBed.createComponent(DeviceRegistrationComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    await fixture.componentInstance.generatePairingSession(androidDevice);
+    fixture.componentInstance.closePairingSession();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.activePairing()).toBeNull();
+    expect(fixture.componentInstance.pairingExpired()).toBe(false);
+    expect((fixture.nativeElement as HTMLElement).querySelector('.waiting-state')).toBeNull();
+  });
+
+  it('expiresActivePairingSessionWhenTimerEndsTests', async () => {
+    vi.useFakeTimers();
+    deviceApiStub.list.mockReturnValue(of([androidDevice]));
+    deviceApiStub.generatePairingSession.mockReturnValue(of(pairingSessionTests(1 / 60)));
+    const fixture = TestBed.createComponent(DeviceRegistrationComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    await fixture.componentInstance.generatePairingSession(androidDevice);
+    expect(fixture.componentInstance.pairingExpired()).toBe(false);
+
+    vi.advanceTimersByTime(1_001);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.pairingExpired()).toBe(true);
+    vi.useRealTimers();
+  });
+
+  it('returnsRawLabelsForUnknownDeviceValuesTests', () => {
+    const fixture = TestBed.createComponent(DeviceRegistrationComponent);
+
+    expect(fixture.componentInstance.typeLabel('UNKNOWN' as never)).toBe('UNKNOWN');
+    expect(fixture.componentInstance.platformLabel('UNKNOWN' as never)).toBe('UNKNOWN');
+  });
+
+  it('doesNotSubmitWhenRawRequiredValuesBecomeNullTests', async () => {
+    const fixture = TestBed.createComponent(DeviceRegistrationComponent);
+    fixture.componentInstance.form.controls.name.setValue('Notebook operacional');
+    fixture.componentInstance.form.controls.type.clearValidators();
+    fixture.componentInstance.form.controls.type.setValue(null);
+    fixture.componentInstance.form.controls.type.updateValueAndValidity();
+    fixture.componentInstance.form.controls.platform.setValue('LINUX');
+
+    await fixture.componentInstance.submit();
+
+    expect(deviceApiStub.create).not.toHaveBeenCalled();
+  });
+
   function pairingSessionTests(offsetMinutes = 5): PairingSession {
     return {
       pairingSessionId: '00000000-0000-0000-0000-000000000301',

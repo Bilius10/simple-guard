@@ -1,4 +1,4 @@
-package simple.guard.api.devices.management.controller;
+package simple.guard.api.devices.management.controller.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

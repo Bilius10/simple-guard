@@ -1,4 +1,4 @@
-package simple.guard.api.devices.pairing.controller;
+package simple.guard.api.devices.pairing.controller.response;
 
 import simple.guard.api.devices.pairing.domain.PairingSession;
 

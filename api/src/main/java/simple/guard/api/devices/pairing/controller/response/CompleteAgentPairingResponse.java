@@ -1,29 +1,29 @@
-package simple.guard.api.devices.management.controller;
+package simple.guard.api.devices.pairing.controller.response;
 
 import simple.guard.api.devices.management.domain.Device;
 import simple.guard.api.devices.management.domain.DevicePlatform;
-import simple.guard.api.devices.management.domain.DeviceType;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-public record DeviceResponse(
+public record CompleteAgentPairingResponse(
         UUID deviceId,
-        String name,
-        DeviceType type,
+        String deviceName,
         DevicePlatform platform,
         String pairingStatus,
-        OffsetDateTime createdAt
+        OffsetDateTime pairedAt
 ) {
 
-    public static DeviceResponse from(Device device) {
-        return new DeviceResponse(
+    public static CompleteAgentPairingResponse from(
+            Device device,
+            OffsetDateTime pairedAt
+    ) {
+        return new CompleteAgentPairingResponse(
                 device.getId(),
                 device.getName(),
-                device.getType(),
                 device.getPlatform(),
                 device.getPairingStatus().apiValue(),
-                device.getCreatedAt()
+                pairedAt
         );
     }
 }

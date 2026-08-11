@@ -2,6 +2,7 @@ package simple.guard.api.devices.pairing.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
@@ -10,12 +11,11 @@ import jakarta.persistence.Version;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.http.HttpStatus;
-import simple.guard.api.devices.pairing.domain.PairingSessionExpirationReason;
-import simple.guard.api.devices.pairing.domain.PairingSessionStatus;
-import simple.guard.api.error.domain.SimpleGuardErrorCode;
-import simple.guard.api.error.domain.SimpleGuardException;
-import simple.guard.api.shared.i18n.SimpleGuardTranslation;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -24,6 +24,7 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "pairing_sessions")
 public class PairingSession {
 
@@ -55,58 +56,55 @@ public class PairingSession {
     private OffsetDateTime expiredAt;
 
     @Column(nullable = false, length = 128)
+    @CreatedBy
     private String createdBy;
 
     @Column(nullable = false)
+    @CreatedDate
     private OffsetDateTime createdAt;
 
     @Column(nullable = false, length = 128)
+    @LastModifiedBy
     private String updatedBy;
 
     @Column(nullable = false)
+    @LastModifiedDate
     private OffsetDateTime updatedAt;
 
     @Version
     @Column(nullable = false)
     private long version;
 
-    public boolean isValidAt(OffsetDateTime now) {
-        return status == PairingSessionStatus.WAITING && now.isBefore(expiresAt);
-    }
-
-    public void expire(OffsetDateTime now, String actor, PairingSessionExpirationReason reason) {
-        if (status != PairingSessionStatus.WAITING) {
-            return;
-        }
-
+    public void expire(OffsetDateTime now, PairingSessionExpirationReason reason) {
         status = PairingSessionStatus.EXPIRED;
         expirationReason = reason;
         expiredAt = now;
-        updatedBy = actor;
-        updatedAt = now;
     }
 
-    public void use(OffsetDateTime now, String actor) {
-        if (status == PairingSessionStatus.USED) {
-            throw new SimpleGuardException(
-                    HttpStatus.CONFLICT,
-                    SimpleGuardErrorCode.PAIRING_SESSION_ALREADY_USED,
-                    SimpleGuardTranslation.ERROR_PAIRING_SESSION_ALREADY_USED
-            );
-        }
-
-        if (!isValidAt(now)) {
-            expire(now, actor, PairingSessionExpirationReason.TIMEOUT);
-            throw new SimpleGuardException(
-                    HttpStatus.GONE,
-                    SimpleGuardErrorCode.PAIRING_SESSION_EXPIRED,
-                    SimpleGuardTranslation.ERROR_PAIRING_SESSION_EXPIRED
-            );
-        }
-
+    public void use(OffsetDateTime now) {
         status = PairingSessionStatus.USED;
         usedAt = now;
-        updatedBy = actor;
-        updatedAt = now;
+    }
+
+    public PairingSession(
+            UUID id,
+            UUID deviceId,
+            UUID accountId,
+            String codeHash,
+            PairingSessionStatus status,
+            PairingSessionExpirationReason expirationReason,
+            OffsetDateTime expiresAt,
+            OffsetDateTime usedAt,
+            OffsetDateTime expiredAt
+    ) {
+        this.id = id;
+        this.deviceId = deviceId;
+        this.accountId = accountId;
+        this.codeHash = codeHash;
+        this.status = status;
+        this.expirationReason = expirationReason;
+        this.expiresAt = expiresAt;
+        this.usedAt = usedAt;
+        this.expiredAt = expiredAt;
     }
 }

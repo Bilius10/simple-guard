@@ -12,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.web.servlet.MockMvc;
+import simple.guard.api.devices.keys.domain.DeviceKeyRepository;
 import simple.guard.api.devices.management.domain.DevicePairingStatus;
 import simple.guard.api.devices.management.domain.DeviceRepository;
 import simple.guard.api.devices.pairing.domain.PairingSessionExpirationReason;
@@ -58,8 +59,12 @@ class DeviceControllerTests {
     @Autowired
     private PairingSessionRepository pairingSessions;
 
+    @Autowired
+    private DeviceKeyRepository deviceKeys;
+
     @BeforeEach
     void resetDataTests() {
+        deviceKeys.deleteAll();
         pairingSessions.deleteAll();
         devices.deleteAll();
         accounts.deleteAll();

@@ -3,11 +3,11 @@ package simple.guard.api.devices.pairing.service;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import simple.guard.api.config.SimpleGuardPairingProperties;
+import simple.guard.api.config.properties.SimpleGuardPairingProperties;
 import simple.guard.api.devices.management.domain.Device;
 import simple.guard.api.devices.management.domain.DevicePairingStatus;
 import simple.guard.api.devices.management.service.DeviceService;
-import simple.guard.api.devices.pairing.controller.PairingSessionResponse;
+import simple.guard.api.devices.pairing.controller.response.PairingSessionResponse;
 import simple.guard.api.devices.pairing.domain.PairingSession;
 import simple.guard.api.devices.pairing.domain.PairingSessionExpirationReason;
 import simple.guard.api.devices.pairing.domain.PairingSessionRepository;
@@ -15,6 +15,7 @@ import simple.guard.api.devices.pairing.domain.PairingSessionStatus;
 import simple.guard.api.error.domain.SimpleGuardErrorCode;
 import simple.guard.api.error.domain.SimpleGuardException;
 import simple.guard.api.identity.domain.Account;
+import simple.guard.api.shared.audit.AuditContext;
 import simple.guard.api.shared.i18n.SimpleGuardTranslation;
 
 import java.time.Clock;
@@ -57,9 +58,9 @@ public class PairingSessionService {
         validatePairingStatusIsPaired(device.getPairingStatus());
 
         OffsetDateTime now = OffsetDateTime.now(clock);
-        validateOpenPairingSessionsCount(deviceId, now);
 
-        expireElapsedSessionsForDevice(deviceId, account.getSubject(), now);
+        validateOpenPairingSessionsCount(deviceId, now);
+        expireElapsedSessionsForDevice(deviceId, now);
 
         String pairingCode = codeGenerator.generate();
 
@@ -72,12 +73,7 @@ public class PairingSessionService {
                 null,
                 now.plus(properties.sessionValidity()),
                 null,
-                null,
-                account.getSubject(),
-                now,
-                account.getSubject(),
-                now,
-                0L
+                null
         );
 
         return PairingSessionResponse.from(pairingSessions.save(session), pairingCode);
@@ -90,18 +86,20 @@ public class PairingSessionService {
                 PairingSessionStatus.WAITING,
                 now
         );
-        elapsed.forEach(session -> session.expire(now, SYSTEM_ACTOR, PairingSessionExpirationReason.TIMEOUT));
-        pairingSessions.saveAll(elapsed);
+        AuditContext.runAs(SYSTEM_ACTOR, () -> {
+            elapsed.forEach(session -> session.expire(now, PairingSessionExpirationReason.TIMEOUT));
+            pairingSessions.saveAll(elapsed);
+        });
     }
 
-    private void expireElapsedSessionsForDevice(UUID deviceId, String actor, OffsetDateTime now) {
+    private void expireElapsedSessionsForDevice(UUID deviceId, OffsetDateTime now) {
         List<PairingSession> elapsed = pairingSessions.findAllByDeviceIdAndStatusAndExpiresAtLessThanEqual(
                 deviceId,
                 PairingSessionStatus.WAITING,
                 now
         );
 
-        elapsed.forEach(session -> session.expire(now, actor, PairingSessionExpirationReason.TIMEOUT));
+        elapsed.forEach(session -> session.expire(now, PairingSessionExpirationReason.TIMEOUT));
 
         pairingSessions.saveAllAndFlush(elapsed);
     }
@@ -126,5 +124,14 @@ public class PairingSessionService {
                     SimpleGuardTranslation.ERROR_MAX_OPEN_PAIRING_SESSIONS_REACHED
             );
         }
+    }
+
+    public PairingSession findPairingSession(String pairingCode) {
+        return pairingSessions.findByCodeHash(codeHasher.hash(pairingCode))
+                .orElseThrow(() -> new SimpleGuardException(
+                        HttpStatus.NOT_FOUND,
+                        SimpleGuardErrorCode.PAIRING_SESSION_INVALID,
+                        SimpleGuardTranslation.ERROR_PAIRING_SESSION_INVALID
+                ));
     }
 }

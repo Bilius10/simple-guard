@@ -6,6 +6,8 @@ public enum SimpleGuardTranslation {
     ERROR_CRITICAL_ACTION_CONFIRMATION_REQUIRED("simple_guard_error_critical_action_confirmation_required"),
     ERROR_DEVICE_NOT_FOUND("simple_guard_error_device_not_found"),
     ERROR_DEVICE_ALREADY_PAIRED("simple_guard_error_device_already_paired"),
+    ERROR_DEVICE_PLATFORM_MISMATCH("simple_guard_error_device_platform_mismatch"),
+    ERROR_PAIRING_SESSION_INVALID("simple_guard_error_pairing_session_invalid"),
     ERROR_PAIRING_SESSION_EXPIRED("simple_guard_error_pairing_session_expired"),
     ERROR_PAIRING_SESSION_ALREADY_USED("simple_guard_error_pairing_session_already_used"),
     ERROR_VALIDATION("simple_guard_error_validation"),

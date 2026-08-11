@@ -2,7 +2,7 @@ package simple.guard.api.devices;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import simple.guard.api.config.SimpleGuardPairingProperties;
+import simple.guard.api.config.properties.SimpleGuardPairingProperties;
 import simple.guard.api.devices.management.domain.Device;
 import simple.guard.api.devices.management.domain.DevicePairingStatus;
 import simple.guard.api.devices.management.domain.DevicePlatform;
@@ -80,7 +80,14 @@ class PairingSessionServiceTests {
         )).thenReturn(List.of(elapsedPrevious));
         when(codeGenerator.generate()).thenReturn("ABCD-2345");
         when(codeHasher.hash("ABCD-2345")).thenReturn("hashed-code");
-        when(pairingSessions.save(any(PairingSession.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(pairingSessions.save(any(PairingSession.class))).thenAnswer(invocation -> {
+            PairingSession session = invocation.getArgument(0);
+            session.setCreatedBy("administrator-subject");
+            session.setCreatedAt(NOW);
+            session.setUpdatedBy("administrator-subject");
+            session.setUpdatedAt(NOW);
+            return session;
+        });
 
         var response = service.generate(DEVICE_ID, account);
 
@@ -131,8 +138,6 @@ class PairingSessionServiceTests {
         assertThat(elapsed.getStatus()).isEqualTo(PairingSessionStatus.EXPIRED);
         assertThat(elapsed.getExpirationReason()).isEqualTo(PairingSessionExpirationReason.TIMEOUT);
         assertThat(elapsed.getExpiredAt()).isEqualTo(NOW);
-        assertThat(elapsed.getUpdatedBy()).isEqualTo("simpleguard-system");
-        assertThat(elapsed.getUpdatedAt()).isEqualTo(NOW);
         verify(pairingSessions).saveAll(List.of(elapsed));
     }
 

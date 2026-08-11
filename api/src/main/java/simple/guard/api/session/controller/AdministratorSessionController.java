@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import simple.guard.api.identity.domain.Account;
-import simple.guard.api.session.domain.AdministratorSessionResponse;
+import simple.guard.api.session.controller.response.AdministratorSessionResponse;
 
 @RestController
 @RequestMapping("/api/session")

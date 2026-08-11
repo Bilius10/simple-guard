@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface PairingSessionRepository extends JpaRepository<PairingSession, UUID> {
@@ -24,4 +25,6 @@ public interface PairingSessionRepository extends JpaRepository<PairingSession, 
             PairingSessionStatus status,
             OffsetDateTime expiresAt
     );
+
+    Optional<PairingSession> findByCodeHash(String codeHash);
 }

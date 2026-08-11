@@ -8,6 +8,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
+import simple.guard.api.config.properties.SimpleGuardOidcProperties;
 import simple.guard.api.error.config.ApiSecurityErrorHandler;
 import simple.guard.api.identity.config.AccountJwtAuthenticationConverter;
 
@@ -29,6 +30,7 @@ public class SecurityConfiguration {
                         "/livez",
                         "/readyz"
                 ).permitAll()
+                .requestMatchers("/api/agent/pairing/complete").permitAll()
                 .requestMatchers("/api/devices/**").hasRole("ADMIN")
                 .anyRequest()
                 .authenticated()

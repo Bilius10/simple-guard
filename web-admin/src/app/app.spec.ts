@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { vi } from 'vitest';
 
 import { App } from './app';
@@ -128,6 +128,29 @@ describe('AppTests', () => {
     expect(element.querySelector('[role="alert"]')).toBeNull();
     expect(notificationStub.error).toHaveBeenCalledWith('Falha ao emitir evento de confirmacao critica.');
     expect(fixture.componentInstance.criticalActionEvent()).toBeNull();
+  });
+
+  it('delegatesLoginAndLogoutToOidcClientTests', async () => {
+    const fixture = TestBed.createComponent(App);
+
+    await fixture.componentInstance.login();
+    await fixture.componentInstance.logout();
+
+    expect(authServiceStub.login).toHaveBeenCalledOnce();
+    expect(authServiceStub.logout).toHaveBeenCalledOnce();
+  });
+
+  it('showsSessionValidationFailureWhenAuthenticatedSessionFailsTests', async () => {
+    authServiceStub.state.set({ status: 'authenticated' });
+    sessionApiStub.me.mockReturnValueOnce(throwError(() => new Error('offline')));
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.session()).toBeNull();
+    expect(fixture.componentInstance.sessionError()).toBe('Nao foi possivel validar a sessao na API.');
+    expect(notificationStub.error).toHaveBeenCalledWith('Nao foi possivel validar a sessao na API.');
   });
 
   async function createAuthenticatedFixtureTests() {

@@ -10,6 +10,16 @@ web-admin/dist/
 web-admin/.angular/
 web-admin/coverage/
 api/.maven-local/
+api/.m2/
+
+# Local Wi-Fi deployment
+deploy-wifi/
+
+# Android output
+android-agent/.gradle/
+android-agent/build/
+android-agent/**/build/
+android-agent/local.properties
 
 # Operating system and IDE
 .DS_Store

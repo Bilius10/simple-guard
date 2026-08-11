@@ -16,7 +16,7 @@ Nao considerar pronta se houver implementacao parcial, comportamento apenas mock
 - [x] Exibir codigo/QR e expiracao na web.
 - [x] Auditar criacao e expiracao.
 - [x] Testes unitarios obrigatorios implementados e passando.
-- [ ] Cenarios de validacao manual executados e evidenciaveis pelo desenvolvedor.
+- [x] Cenarios de validacao manual executados e evidenciaveis pelo desenvolvedor.
 - [x] Erros, estados vazios, estados de falha e dados ausentes tratados explicitamente quando aplicavel.
 - [x] Nenhum comportamento fora do escopo desta task foi implementado sem nova task aprovada.
 
@@ -52,8 +52,8 @@ Notas tecnicas:
 
 ## Cenarios de Validacao Manual
 
-- [ ] Gerar codigo para dispositivo pendente.
-- [ ] Aguardar expiracao e confirmar que o codigo nao pode ser reutilizado.
+- [x] Gerar codigo para dispositivo pendente.
+- [x] Aguardar expiracao e confirmar que o codigo nao pode ser reutilizado.
 
 ## Criterio de Conclusao
 

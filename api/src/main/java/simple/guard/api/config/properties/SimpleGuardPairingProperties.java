@@ -1,10 +1,10 @@
-package simple.guard.api.config;
+package simple.guard.api.config.properties;
 
 import jakarta.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.time.DurationMin;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.validation.annotation.Validated;
-import org.hibernate.validator.constraints.time.DurationMin;
 
 import java.time.Duration;
 
