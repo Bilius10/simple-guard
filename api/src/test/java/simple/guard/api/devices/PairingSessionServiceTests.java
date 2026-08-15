@@ -3,18 +3,19 @@ package simple.guard.api.devices;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import simple.guard.api.config.properties.SimpleGuardPairingProperties;
-import simple.guard.api.devices.management.domain.Device;
-import simple.guard.api.devices.management.domain.DevicePairingStatus;
-import simple.guard.api.devices.management.domain.DevicePlatform;
-import simple.guard.api.devices.management.domain.DeviceType;
-import simple.guard.api.devices.management.service.DeviceService;
-import simple.guard.api.devices.pairing.domain.PairingSession;
-import simple.guard.api.devices.pairing.domain.PairingSessionExpirationReason;
-import simple.guard.api.devices.pairing.domain.PairingSessionRepository;
-import simple.guard.api.devices.pairing.domain.PairingSessionStatus;
-import simple.guard.api.devices.pairing.service.PairingCodeGenerator;
-import simple.guard.api.devices.pairing.service.PairingCodeHasher;
-import simple.guard.api.devices.pairing.service.PairingSessionService;
+import simple.guard.api.devices.device.domain.Device;
+import simple.guard.api.devices.device.domain.DevicePairingStatus;
+import simple.guard.api.devices.device.domain.DevicePlatform;
+import simple.guard.api.devices.device.domain.DeviceType;
+import simple.guard.api.devices.device.service.DeviceService;
+import simple.guard.api.devices.devicekey.service.DeviceKeyService;
+import simple.guard.api.devices.pairingsession.domain.PairingSession;
+import simple.guard.api.devices.pairingsession.domain.PairingSessionExpirationReason;
+import simple.guard.api.devices.pairingsession.domain.PairingSessionRepository;
+import simple.guard.api.devices.pairingsession.domain.PairingSessionStatus;
+import simple.guard.api.devices.pairingsession.service.PairingCodeGenerator;
+import simple.guard.api.devices.pairingsession.service.PairingCodeHasher;
+import simple.guard.api.devices.pairingsession.service.PairingSessionService;
 import simple.guard.api.error.domain.SimpleGuardErrorCode;
 import simple.guard.api.error.domain.SimpleGuardException;
 import simple.guard.api.identity.domain.Account;
@@ -46,6 +47,7 @@ class PairingSessionServiceTests {
     private PairingSessionRepository pairingSessions;
     private PairingCodeGenerator codeGenerator;
     private PairingCodeHasher codeHasher;
+    private DeviceKeyService deviceKeys;
     private PairingSessionService service;
 
     @BeforeEach
@@ -54,11 +56,13 @@ class PairingSessionServiceTests {
         pairingSessions = mock(PairingSessionRepository.class);
         codeGenerator = mock(PairingCodeGenerator.class);
         codeHasher = mock(PairingCodeHasher.class);
+        deviceKeys = mock(DeviceKeyService.class);
         service = new PairingSessionService(
                 deviceService,
                 pairingSessions,
                 codeGenerator,
                 codeHasher,
+                deviceKeys,
                 new SimpleGuardPairingProperties(Duration.ofMinutes(5)),
                 Clock.fixed(Instant.parse("2026-08-09T12:00:00Z"), ZoneOffset.UTC)
         );
@@ -190,3 +194,5 @@ class PairingSessionServiceTests {
         );
     }
 }
+
+

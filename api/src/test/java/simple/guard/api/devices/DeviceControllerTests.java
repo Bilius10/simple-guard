@@ -12,12 +12,12 @@ import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.web.servlet.MockMvc;
-import simple.guard.api.devices.keys.domain.DeviceKeyRepository;
-import simple.guard.api.devices.management.domain.DevicePairingStatus;
-import simple.guard.api.devices.management.domain.DeviceRepository;
-import simple.guard.api.devices.pairing.domain.PairingSessionExpirationReason;
-import simple.guard.api.devices.pairing.domain.PairingSessionRepository;
-import simple.guard.api.devices.pairing.domain.PairingSessionStatus;
+import simple.guard.api.devices.devicekey.domain.DeviceKeyRepository;
+import simple.guard.api.devices.device.domain.DevicePairingStatus;
+import simple.guard.api.devices.device.domain.DeviceRepository;
+import simple.guard.api.devices.pairingsession.domain.PairingSessionExpirationReason;
+import simple.guard.api.devices.pairingsession.domain.PairingSessionRepository;
+import simple.guard.api.devices.pairingsession.domain.PairingSessionStatus;
 import simple.guard.api.identity.domain.Account;
 import simple.guard.api.identity.domain.AccountRepository;
 
@@ -306,3 +306,5 @@ class DeviceControllerTests {
         }
     }
 }
+
+

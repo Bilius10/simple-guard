@@ -9,7 +9,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 import simple.guard.api.identity.domain.Account;
-import simple.guard.api.identity.domain.AccountRepository;
+import simple.guard.api.identity.service.AccountService;
 
 import java.util.List;
 
@@ -18,15 +18,15 @@ import static simple.guard.api.shared.i18n.SimpleGuardTranslation.ERROR_ACCOUNT_
 @Component
 public class AccountJwtAuthenticationConverter implements Converter<Jwt, JwtAuthenticationToken> {
 
-    private final AccountRepository accounts;
+    private final AccountService accounts;
 
-    public AccountJwtAuthenticationConverter(AccountRepository accounts) {
+    public AccountJwtAuthenticationConverter(AccountService accounts) {
         this.accounts = accounts;
     }
 
     @Override
     public JwtAuthenticationToken convert(Jwt jwt) {
-        Account account = accounts.findBySubjectAndActive(jwt.getSubject(), true)
+        Account account = accounts.findActiveBySubject(jwt.getSubject())
                 .orElseThrow(() -> new OAuth2AuthenticationException(
                         new OAuth2Error(OAuth2ErrorCodes.INVALID_TOKEN),
                         ERROR_ACCOUNT_NOT_FOUND.name()

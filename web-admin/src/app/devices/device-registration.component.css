@@ -130,7 +130,10 @@ select:focus {
 .register-action,
 .retry-action,
 .pairing-action,
-.close-pairing-action {
+.close-pairing-action,
+.unpair-action,
+.approve-unpair-request-action,
+.reject-unpair-request-action {
   min-height: 42px;
   border: 1px solid #3cc4df;
   border-radius: 2px;
@@ -183,10 +186,41 @@ select:focus {
 }
 
 .pairing-action,
-.close-pairing-action {
+.close-pairing-action,
+.unpair-action,
+.approve-unpair-request-action,
+.reject-unpair-request-action {
   padding: 0 12px;
   background: transparent;
   color: #d7f7ff;
+}
+
+.unpair-request-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.unpair-action {
+  border-color: #ff5b5b;
+  color: #ffd7d7;
+}
+
+.approve-unpair-request-action {
+  border-color: #55d69e;
+  color: #d9ffef;
+}
+
+.reject-unpair-request-action {
+  border-color: #896f35;
+  color: #ffe1a3;
+}
+
+.unpair-action:disabled,
+.approve-unpair-request-action:disabled,
+.reject-unpair-request-action:disabled {
+  cursor: wait;
+  opacity: 0.6;
 }
 
 .pairing-action:disabled {
@@ -236,6 +270,11 @@ select:focus {
 .paired-status {
   border-color: #39765f;
   color: #55d69e;
+}
+
+.unpairing-request-status {
+  border-color: #7f6430;
+  color: #ffd84d;
 }
 
 .pairing-console {
@@ -450,7 +489,9 @@ select:focus {
 .register-action,
 .retry-action,
 .pairing-action,
-.close-pairing-action {
+.close-pairing-action,
+.approve-unpair-request-action,
+.reject-unpair-request-action {
   min-height: 28px;
   border-color: #10b8d8;
   background: #053b55;
@@ -464,6 +505,10 @@ select:focus {
 
 .device-list {
   min-width: 0;
+  max-height: min(42vh, 420px);
+  overflow-y: auto;
+  scrollbar-color: #0d7188 #061923;
+  scrollbar-width: thin;
 }
 
 .system-state,
@@ -520,6 +565,24 @@ select:focus {
   color: #1affa9;
 }
 
+.unpairing-request-status {
+  color: #ffd84d;
+}
+
+.unpair-request-actions {
+  justify-content: flex-end;
+}
+
+.approve-unpair-request-action,
+.reject-unpair-request-action {
+  min-height: 24px;
+  padding: 0 8px;
+}
+
+.reject-unpair-request-action {
+  border-color: #7c6230;
+}
+
 .pairing-console {
   margin-top: 12px;
   border: 1px solid #124653;
@@ -549,6 +612,46 @@ select:focus {
 
 .pairing-code {
   font-size: 1rem;
+}
+
+.pairing-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 11;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0, 9, 17, 0.78);
+}
+
+.pairing-dialog-backdrop .pairing-console {
+  width: min(100%, 430px);
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  margin: 0;
+  border-color: #10b8d8;
+  padding: 18px;
+  background: #061923;
+}
+
+.pairing-dialog-backdrop .pairing-console.expired-state {
+  border-color: #ff5b5b;
+}
+
+.pairing-dialog-backdrop .pairing-code {
+  margin-top: 8px;
+  font-size: 1.35rem;
+}
+
+@media (max-width: 480px) {
+  .pairing-dialog-backdrop {
+    padding: 14px;
+  }
+
+  .pairing-dialog-backdrop .pairing-console {
+    max-height: calc(100vh - 28px);
+    padding: 14px;
+  }
 }
 
 @media (max-width: 840px) {

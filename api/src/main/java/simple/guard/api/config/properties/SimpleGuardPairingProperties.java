@@ -17,3 +17,5 @@ public record SimpleGuardPairingProperties(
         Duration sessionValidity
 ) {
 }
+
+

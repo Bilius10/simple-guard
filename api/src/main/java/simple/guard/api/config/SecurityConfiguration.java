@@ -2,6 +2,7 @@ package simple.guard.api.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -31,6 +32,7 @@ public class SecurityConfiguration {
                         "/readyz"
                 ).permitAll()
                 .requestMatchers("/api/agent/pairing/complete").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/api/agent/devices/*/pairing").permitAll()
                 .requestMatchers("/api/devices/**").hasRole("ADMIN")
                 .anyRequest()
                 .authenticated()

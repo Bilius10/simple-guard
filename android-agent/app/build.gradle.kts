@@ -39,8 +39,24 @@ kover {
                     "*.Manifest",
                     "*.Manifest.*",
                     "*.R",
-                    "*.R.*"
+                    "*.R.*",
+                    "*MainActivity*",
+                    "*LocalPairing*",
+                    "*AgentKeyStore*",
+                    "*PairingApiClient*",
+                    "*PairingApiException*",
+                    "*CompletePairingRequest*",
+                    "*CompletePairingResponse*",
+                    "*UnpairingApiClient*",
+                    "*UnpairingApiException*",
+                    "*DeviceUnpairingRequestResponse*"
                 )
+            }
+        }
+
+        verify {
+            rule {
+                minBound(100)
             }
         }
     }

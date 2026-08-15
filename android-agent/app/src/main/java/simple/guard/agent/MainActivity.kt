@@ -1,6 +1,7 @@
 package simple.guard.agent
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
@@ -21,12 +22,28 @@ import simple.guard.agent.pairing.PairingApiException
 import simple.guard.agent.pairing.PairingStage
 import simple.guard.agent.pairing.PairingUiController
 import simple.guard.agent.pairing.PairingUiState
+import simple.guard.agent.unpairing.UnpairingApiClient
+import simple.guard.agent.unpairing.UnpairingApiException
+import simple.guard.agent.unpairing.UnpairingRequestContract
+import simple.guard.agent.unpairing.UnpairingStage
+import simple.guard.agent.unpairing.UnpairingUiController
+import simple.guard.agent.unpairing.UnpairingUiState
+import java.io.IOException
+
+private data class LocalPairing(
+    val deviceId: String,
+    val deviceName: String,
+    val instanceUrl: String,
+    val pendingSynchronization: Boolean
+)
 
 class MainActivity : Activity() {
 
     private val uiController = PairingUiController()
     private val apiClient = PairingApiClient()
     private val keyStore = AgentKeyStore()
+    private val unpairingUiController = UnpairingUiController()
+    private val unpairingApiClient = UnpairingApiClient()
 
     private lateinit var instanceUrlField: EditText
     private lateinit var pairingCodeField: EditText
@@ -40,15 +57,45 @@ class MainActivity : Activity() {
     private lateinit var stateFailureValue: TextView
     private lateinit var footerStatus: TextView
     private lateinit var actionButton: Button
+    private lateinit var unpairingStatusBadge: TextView
+    private lateinit var unpairingRequestedValue: TextView
+    private lateinit var unpairedValue: TextView
+    private lateinit var unpairingFailureValue: TextView
+    private lateinit var unpairingPendingValue: TextView
+    private lateinit var unpairingDetailValue: TextView
+    private lateinit var unpairingFooterStatus: TextView
+    private lateinit var unpairingCancelButton: Button
+    private lateinit var unpairingActionButton: Button
+    private var currentPairing: LocalPairing? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        showInitialScreen()
+    }
+
+    private fun showInitialScreen() {
+        if (loadLocalPairing() == null) {
+            showPairingScreen()
+        } else {
+            showUnpairingScreen()
+        }
+    }
+
+    private fun showPairingScreen() {
         setContentView(buildContent())
         render(uiController.waiting())
 
         actionButton.setOnClickListener {
             submitPairing()
         }
+    }
+
+    private fun showPairedScreen(pairing: LocalPairing) {
+        setContentView(buildContent())
+        render(uiController.paired(pairing.deviceName))
+        actionButton.isEnabled = true
+        actionButton.text = "Ver vinculo"
+        actionButton.setOnClickListener { showUnpairingScreen() }
     }
 
     private fun buildContent(): ScrollView {
@@ -185,6 +232,8 @@ class MainActivity : Activity() {
                 runOnUiThread {
                     render(uiController.paired(response.deviceName.ifBlank { deviceName }))
                     actionButton.isEnabled = true
+                    actionButton.text = "Ver vinculo"
+                    actionButton.setOnClickListener { showUnpairingScreen() }
                 }
             } catch (exception: PairingApiException) {
                 runOnUiThread {
@@ -204,6 +253,241 @@ class MainActivity : Activity() {
                 }
             }
         }.start()
+    }
+
+    private fun showUnpairingScreen() {
+        val pairing = loadLocalPairing()
+        if (pairing == null) {
+            showPairingScreen()
+            return
+        }
+
+        currentPairing = pairing
+        setContentView(buildUnpairingContent(pairing))
+        if (pairing.pendingSynchronization) {
+            renderUnpairing(unpairingUiController.syncPending())
+            unpairingCancelButton.isEnabled = false
+            unpairingActionButton.setOnClickListener { requestUnpairing() }
+        } else {
+            renderUnpairing(unpairingUiController.confirmationRequired())
+            unpairingCancelButton.setOnClickListener { cancelUnpairing() }
+            unpairingActionButton.setOnClickListener { confirmUnpairing() }
+        }
+    }
+
+    private fun cancelUnpairing() {
+        val pairing = currentPairing ?: loadLocalPairing()
+        if (pairing == null) {
+            showPairingScreen()
+        } else {
+            showPairedScreen(pairing)
+        }
+    }
+
+    private fun confirmUnpairing() {
+        val pairing = currentPairing ?: return
+        AlertDialog.Builder(this)
+            .setTitle("Desparear ${pairing.deviceName}?")
+            .setMessage("As credenciais serao revogadas. O dispositivo deixara de enviar telemetria e receber comandos.")
+            .setNegativeButton("Cancelar", null)
+            .setPositiveButton("Desparear") { _, _ -> requestUnpairing() }
+            .show()
+    }
+
+    private fun requestUnpairing() {
+        val pairing = currentPairing ?: return
+        renderUnpairing(unpairingUiController.requested())
+        unpairingFooterStatus.text = "Enviando solicitacao"
+        unpairingActionButton.text = "Enviando..."
+        unpairingCancelButton.isEnabled = false
+        unpairingActionButton.isEnabled = false
+
+        Thread {
+            try {
+                val agentInstanceId = agentInstanceId()
+                val response = unpairingApiClient.unpair(
+                    instanceUrl = pairing.instanceUrl,
+                    deviceId = pairing.deviceId,
+                    agentInstanceId = agentInstanceId,
+                    signature = keyStore.signUnpairing(agentInstanceId, pairing.deviceId)
+                )
+                UnpairingRequestContract.requirePendingRequest(response)
+                runOnUiThread {
+                    renderUnpairing(unpairingUiController.requested())
+                    unpairingCancelButton.isEnabled = true
+                    unpairingActionButton.isEnabled = true
+                    unpairingActionButton.setOnClickListener { requestUnpairing() }
+                }
+            } catch (exception: UnpairingApiException) {
+                runOnUiThread {
+                    renderUnpairing(unpairingUiController.apiFailure(exception.userMessage))
+                    unpairingCancelButton.isEnabled = true
+                    unpairingActionButton.isEnabled = true
+                }
+            } catch (exception: IOException) {
+                persistPendingUnpairing(pairing)
+                runOnUiThread {
+                    renderUnpairing(unpairingUiController.syncPending())
+                    unpairingActionButton.isEnabled = true
+                    unpairingActionButton.setOnClickListener { requestUnpairing() }
+                }
+            } catch (exception: RuntimeException) {
+                runOnUiThread {
+                    renderUnpairing(
+                        unpairingUiController.apiFailure(
+                            exception.message ?: "Nao foi possivel usar a credencial local."
+                        )
+                    )
+                    unpairingCancelButton.isEnabled = true
+                    unpairingActionButton.isEnabled = true
+                }
+            }
+        }.start()
+    }
+
+    private fun buildUnpairingContent(pairing: LocalPairing): ScrollView {
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            minimumHeight = resources.displayMetrics.heightPixels
+            setBackgroundColor(SCREEN_BACKGROUND)
+        }
+        root.addView(header())
+
+        val content = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(22), dp(24), dp(22), dp(10))
+        }
+        root.addView(content, LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            0,
+            1f
+        ))
+
+        val summaryPanel = panel("Despareamento")
+        unpairingStatusBadge = badge("")
+        summaryPanel.addView(unpairingStatusBadge, wrapBottomMargin(dp(10)))
+        summaryPanel.addView(
+            valueRow("Dispositivo", pairing.deviceName, TEXT).parent as View,
+            bottomMargin(dp(7))
+        )
+        summaryPanel.addView(
+            valueRow("Instancia atual", pairing.instanceUrl, TEXT).parent as View,
+            bottomMargin(dp(7))
+        )
+        unpairingDetailValue = valueRow("Consequencia", "Para telemetria e comandos", TEXT)
+        summaryPanel.addView(unpairingDetailValue.parent as View)
+        content.addView(summaryPanel, bottomMargin(dp(18)))
+
+        val statePanel = panel("Remover vinculo")
+        unpairingRequestedValue = valueRow("Estado 1", "Solicitado", MUTED)
+        statePanel.addView(unpairingRequestedValue.parent as View, bottomMargin(dp(7)))
+        unpairedValue = valueRow("Estado 2", "Despareado", MUTED)
+        statePanel.addView(unpairedValue.parent as View, bottomMargin(dp(7)))
+        unpairingFailureValue = valueRow("Estado 3", "Falha API", MUTED)
+        statePanel.addView(unpairingFailureValue.parent as View, bottomMargin(dp(7)))
+        unpairingPendingValue = valueRow("Estado 4", "Sync pendente", MUTED)
+        statePanel.addView(unpairingPendingValue.parent as View)
+        content.addView(statePanel, bottomMargin(dp(18)))
+
+        content.addView(spacer())
+
+        unpairingCancelButton = commandButton("Cancelar").apply {
+            background = bordered(0xFF202B3F.toInt(), 0xFF647287.toInt(), dp(1), dp(2))
+        }
+        content.addView(unpairingCancelButton, bottomMargin(dp(8)))
+        unpairingActionButton = commandButton("Desparear dispositivo").apply {
+            background = bordered(0xFF471B28.toInt(), DANGER, dp(1), dp(2))
+            setTextColor(0xFFFFD7D7.toInt())
+        }
+        content.addView(unpairingActionButton)
+
+        unpairingFooterStatus = footer("Nenhuma alteracao aplicada")
+        root.addView(unpairingFooterStatus)
+
+        return ScrollView(this).apply {
+            setBackgroundColor(SCREEN_BACKGROUND)
+            isFillViewport = true
+            addView(root, ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            ))
+        }
+    }
+
+    private fun renderUnpairing(state: UnpairingUiState) {
+        unpairingStatusBadge.text = state.badge
+        unpairingStatusBadge.setTextColor(state.color)
+        unpairingStatusBadge.background = bordered(BADGE_BACKGROUND, state.color, dp(1), dp(1))
+        unpairingDetailValue.text = state.detail
+        unpairingDetailValue.setTextColor(state.color)
+        unpairingRequestedValue.setTextColor(if (state.stage == UnpairingStage.REQUESTED) WARNING else MUTED)
+        unpairedValue.setTextColor(if (state.stage == UnpairingStage.UNPAIRED) SUCCESS else MUTED)
+        unpairingFailureValue.setTextColor(if (state.stage == UnpairingStage.API_FAILURE) DANGER else MUTED)
+        unpairingPendingValue.setTextColor(if (state.stage == UnpairingStage.SYNC_PENDING) WARNING else MUTED)
+        unpairingFooterStatus.text = when (state.stage) {
+            UnpairingStage.CONFIRMATION_REQUIRED -> "Nenhuma alteracao aplicada"
+            UnpairingStage.REQUESTED -> "Solicitacao aguardando admin"
+            UnpairingStage.UNPAIRED -> "Vinculo removido"
+            UnpairingStage.API_FAILURE -> "Vinculo mantido"
+            UnpairingStage.SYNC_PENDING -> "Aguardando conexao"
+        }
+        unpairingActionButton.text = when (state.stage) {
+            UnpairingStage.REQUESTED -> "Reenviar solicitacao"
+            UnpairingStage.SYNC_PENDING -> "Tentar sincronizar"
+            UnpairingStage.API_FAILURE -> "Tentar novamente"
+            UnpairingStage.UNPAIRED -> "Iniciar novo pareamento"
+            UnpairingStage.CONFIRMATION_REQUIRED -> "Desparear dispositivo"
+        }
+    }
+
+    private fun loadLocalPairing(): LocalPairing? {
+        val preferences = getPreferences(MODE_PRIVATE)
+        val pendingDeviceId = preferences.getString("pending_unpair_device_id", null)
+        if (!pendingDeviceId.isNullOrBlank()) {
+            return LocalPairing(
+                deviceId = pendingDeviceId,
+                deviceName = preferences.getString("pending_unpair_device_name", "Dispositivo Android")
+                    ?: "Dispositivo Android",
+                instanceUrl = preferences.getString("pending_unpair_instance_url", "").orEmpty(),
+                pendingSynchronization = true
+            )
+        }
+
+        val pairedDeviceId = preferences.getString("paired_device_id", null)
+        if (pairedDeviceId.isNullOrBlank()) {
+            return null
+        }
+        return LocalPairing(
+            deviceId = pairedDeviceId,
+            deviceName = preferences.getString("paired_device_name", "Dispositivo Android")
+                ?: "Dispositivo Android",
+            instanceUrl = preferences.getString("paired_instance_url", "").orEmpty(),
+            pendingSynchronization = false
+        )
+    }
+
+    private fun persistPendingUnpairing(pairing: LocalPairing) {
+        getPreferences(MODE_PRIVATE).edit()
+            .putString("pending_unpair_device_id", pairing.deviceId)
+            .putString("pending_unpair_device_name", pairing.deviceName)
+            .putString("pending_unpair_instance_url", pairing.instanceUrl)
+            .remove("paired_device_id")
+            .remove("paired_device_name")
+            .remove("paired_instance_url")
+            .apply()
+        currentPairing = pairing.copy(pendingSynchronization = true)
+    }
+
+    private fun clearLocalPairing() {
+        getPreferences(MODE_PRIVATE).edit()
+            .remove("paired_device_id")
+            .remove("paired_device_name")
+            .remove("paired_instance_url")
+            .remove("pending_unpair_device_id")
+            .remove("pending_unpair_device_name")
+            .remove("pending_unpair_instance_url")
+            .apply()
+        currentPairing = null
     }
 
     private fun render(state: PairingUiState) {

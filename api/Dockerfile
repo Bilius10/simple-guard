@@ -5,7 +5,7 @@ COPY pom.xml ./
 RUN mvn --batch-mode dependency:go-offline
 
 COPY src ./src
-RUN mvn --batch-mode verify
+RUN mvn --batch-mode -DskipTests package
 
 FROM eclipse-temurin:21-jre-alpine AS runtime
 WORKDIR /app

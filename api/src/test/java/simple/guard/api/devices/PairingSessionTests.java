@@ -1,9 +1,9 @@
 package simple.guard.api.devices;
 
 import org.junit.jupiter.api.Test;
-import simple.guard.api.devices.pairing.domain.PairingSession;
-import simple.guard.api.devices.pairing.domain.PairingSessionExpirationReason;
-import simple.guard.api.devices.pairing.domain.PairingSessionStatus;
+import simple.guard.api.devices.pairingsession.domain.PairingSession;
+import simple.guard.api.devices.pairingsession.domain.PairingSessionExpirationReason;
+import simple.guard.api.devices.pairingsession.domain.PairingSessionStatus;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -59,3 +59,5 @@ class PairingSessionTests {
         );
     }
 }
+
+

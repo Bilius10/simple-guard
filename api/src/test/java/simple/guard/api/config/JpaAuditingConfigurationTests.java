@@ -19,3 +19,5 @@ class JpaAuditingConfigurationTests {
         assertThat(provider.getNow()).contains(OffsetDateTime.parse("2026-08-09T12:00:00Z"));
     }
 }
+
+

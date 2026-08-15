@@ -7,18 +7,18 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import simple.guard.api.devices.keys.domain.DeviceKeyRepository;
-import simple.guard.api.devices.keys.domain.DeviceKeyStatus;
-import simple.guard.api.devices.management.domain.Device;
-import simple.guard.api.devices.management.domain.DevicePairingStatus;
-import simple.guard.api.devices.management.domain.DevicePlatform;
-import simple.guard.api.devices.management.domain.DeviceRepository;
-import simple.guard.api.devices.management.domain.DeviceType;
-import simple.guard.api.devices.pairing.domain.PairingSession;
-import simple.guard.api.devices.pairing.domain.PairingSessionExpirationReason;
-import simple.guard.api.devices.pairing.domain.PairingSessionRepository;
-import simple.guard.api.devices.pairing.domain.PairingSessionStatus;
-import simple.guard.api.devices.pairing.service.PairingCodeHasher;
+import simple.guard.api.devices.devicekey.domain.DeviceKeyRepository;
+import simple.guard.api.devices.devicekey.domain.DeviceKeyStatus;
+import simple.guard.api.devices.device.domain.Device;
+import simple.guard.api.devices.device.domain.DevicePairingStatus;
+import simple.guard.api.devices.device.domain.DevicePlatform;
+import simple.guard.api.devices.device.domain.DeviceRepository;
+import simple.guard.api.devices.device.domain.DeviceType;
+import simple.guard.api.devices.pairingsession.domain.PairingSession;
+import simple.guard.api.devices.pairingsession.domain.PairingSessionExpirationReason;
+import simple.guard.api.devices.pairingsession.domain.PairingSessionRepository;
+import simple.guard.api.devices.pairingsession.domain.PairingSessionStatus;
+import simple.guard.api.devices.pairingsession.service.PairingCodeHasher;
 import simple.guard.api.identity.domain.Account;
 import simple.guard.api.identity.domain.AccountRepository;
 
@@ -449,3 +449,5 @@ class AgentPairingControllerTests {
         return "public-key-" + "A".repeat(80);
     }
 }
+
+

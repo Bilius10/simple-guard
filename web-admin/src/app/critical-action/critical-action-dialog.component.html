@@ -1,7 +1,7 @@
 <div class="dialog-backdrop">
   <section class="critical-dialog" role="dialog" aria-modal="true" aria-labelledby="critical-action-title">
     <p class="dialog-eyebrow">ACAO CRITICA</p>
-    <h2 id="critical-action-title">Confirmar comando</h2>
+    <h2 id="critical-action-title">{{ title() }}</h2>
 
     <dl class="action-details">
       <div>
@@ -12,14 +12,16 @@
         <dt>Alvo</dt>
         <dd>{{ action().targetName }}</dd>
       </div>
-      <div>
-        <dt>Ultima localizacao</dt>
-        <dd>{{ action().lastKnownLocation }}</dd>
-      </div>
-      <div>
-        <dt>Atualizacao</dt>
-        <dd>{{ action().lastUpdatedAt }}</dd>
-      </div>
+      @if (action().actionType !== 'UNPAIR_DEVICE') {
+        <div>
+          <dt>Ultima localizacao</dt>
+          <dd>{{ action().lastKnownLocation }}</dd>
+        </div>
+        <div>
+          <dt>Atualizacao</dt>
+          <dd>{{ action().lastUpdatedAt }}</dd>
+        </div>
+      }
       <div>
         <dt>Conectividade</dt>
         <dd>{{ action().connectivityState }}</dd>
@@ -37,8 +39,10 @@
     }
 
     <div class="dialog-actions">
-      <button type="button" class="secondary-action" (click)="cancel()">Cancelar</button>
-      <button type="button" class="danger-action" (click)="confirm()">Confirmar comando</button>
+      <button type="button" class="secondary-action" [disabled]="busy()" (click)="cancel()">Cancelar</button>
+      <button type="button" class="danger-action" [disabled]="busy()" (click)="confirm()">
+        {{ confirmLabel() }}
+      </button>
     </div>
   </section>
 </div>

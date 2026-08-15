@@ -36,6 +36,14 @@ class PairingUiControllerTests {
     }
 
     @Test
+    fun showsFailureStateWhenPairingCodeIsMissingTests() {
+        val state = controller.validating("https://simpleguard.local", "")
+
+        assertEquals(PairingStage.FAILURE, state.stage)
+        assertEquals("Informe a URL da instancia e o codigo de pareamento.", state.detail)
+    }
+
+    @Test
     fun showsExpiredStateForExpiredPairingCodeTests() {
         val state = controller.expired()
 

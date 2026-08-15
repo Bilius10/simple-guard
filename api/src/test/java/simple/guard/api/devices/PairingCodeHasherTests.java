@@ -2,7 +2,7 @@ package simple.guard.api.devices;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
-import simple.guard.api.devices.pairing.service.PairingCodeHasher;
+import simple.guard.api.devices.pairingsession.service.PairingCodeHasher;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -39,3 +39,5 @@ class PairingCodeHasherTests {
         }
     }
 }
+
+

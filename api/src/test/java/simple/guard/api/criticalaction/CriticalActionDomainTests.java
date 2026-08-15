@@ -73,3 +73,5 @@ class CriticalActionDomainTests {
         assertThat(decision.toString()).contains("CLOSE_INCIDENT", "incident-456", "true");
     }
 }
+
+

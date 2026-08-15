@@ -16,7 +16,11 @@ api/.m2/
 deploy-wifi/
 
 # Android output
+.gradle/
+.gradle-cache/
 android-agent/.gradle/
+android-agent/.gradle-codex-coverage/
+android-agent/.gradle-user/
 android-agent/build/
 android-agent/**/build/
 android-agent/local.properties

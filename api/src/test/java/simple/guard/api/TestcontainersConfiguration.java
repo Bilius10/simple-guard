@@ -17,3 +17,5 @@ class TestcontainersConfiguration {
         return new PostgreSQLContainer<>(image);
     }
 }
+
+

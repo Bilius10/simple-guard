@@ -13,3 +13,5 @@ public record SimpleGuardOidcProperties(
         String jwkSetUri
 ) {
 }
+
+

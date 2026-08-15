@@ -32,6 +32,9 @@ describe('AppTests', () => {
     list: vi.fn().mockReturnValue(of([])),
     create: vi.fn(),
     generatePairingSession: vi.fn(),
+    unpair: vi.fn(),
+    listUnpairingRequests: vi.fn().mockReturnValue(of([])),
+    decideUnpairingRequest: vi.fn(),
   };
 
   const notificationStub = {
@@ -67,6 +70,8 @@ describe('AppTests', () => {
 
     const element = fixture.nativeElement as HTMLElement;
     expect(element.querySelector('.brand')?.textContent).toContain('SIMPLEGUARD');
+    expect(element.querySelector('.status')?.textContent).toContain('NOT AUTHENTICATED');
+    expect(element.querySelector('.timestamp')).toBeNull();
     expect(element.querySelector('h1')?.textContent).toContain('Central operacional');
   });
 
@@ -130,6 +135,25 @@ describe('AppTests', () => {
     expect(fixture.componentInstance.criticalActionEvent()).toBeNull();
   });
 
+  it('expandsAndCollapsesOperatorPanelTests', async () => {
+    const fixture = await createAuthenticatedFixtureTests();
+    const element = fixture.nativeElement as HTMLElement;
+    const toggle = element.querySelector<HTMLButtonElement>('.operator-panel-toggle');
+
+    expect(fixture.componentInstance.operatorPanelExpanded()).toBe(true);
+    expect(toggle?.getAttribute('aria-expanded')).toBe('true');
+
+    toggle?.click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.operatorPanelExpanded()).toBe(false);
+    expect(element.querySelector('.workspace')?.classList).toContain('operator-panel-collapsed');
+    expect(toggle?.getAttribute('aria-expanded')).toBe('false');
+
+    toggle?.click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.operatorPanelExpanded()).toBe(true);
+  });
+
   it('delegatesLoginAndLogoutToOidcClientTests', async () => {
     const fixture = TestBed.createComponent(App);
 
@@ -151,6 +175,23 @@ describe('AppTests', () => {
     expect(fixture.componentInstance.session()).toBeNull();
     expect(fixture.componentInstance.sessionError()).toBe('Nao foi possivel validar a sessao na API.');
     expect(notificationStub.error).toHaveBeenCalledWith('Nao foi possivel validar a sessao na API.');
+  });
+
+  it('showsBackendMessageWhenSessionValidationFailsTests', async () => {
+    authServiceStub.state.set({ status: 'authenticated' });
+    sessionApiStub.me.mockReturnValueOnce(throwError(() => ({
+      error: {
+        erro_code: 'INVALID_TOKEN',
+        mensagem: 'Token invalido ou sessao expirada.',
+      },
+    })));
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.sessionError()).toBe('Token invalido ou sessao expirada.');
+    expect(notificationStub.error).toHaveBeenCalledWith('Token invalido ou sessao expirada.');
   });
 
   async function createAuthenticatedFixtureTests() {

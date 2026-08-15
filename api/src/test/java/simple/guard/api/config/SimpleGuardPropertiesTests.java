@@ -74,3 +74,5 @@ class SimpleGuardPropertiesTests {
     static class PropertiesTestConfiguration {
     }
 }
+
+

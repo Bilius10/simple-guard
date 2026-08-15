@@ -11,6 +11,7 @@ import { DeviceRegistrationComponent } from './devices/device-registration.compo
 import { NotificationContainerComponent } from './notifications/notification-container.component';
 import { NotificationService } from './notifications/notification.service';
 import { AdministratorSession, SessionApiService } from './session/session-api.service';
+import { apiErrorMessage } from './shared/api-error-message';
 
 @Component({
   selector: 'sg-root',
@@ -27,6 +28,7 @@ export class App implements OnInit {
   readonly criticalAction = signal<CriticalActionConfirmationRequest | null>(null);
   readonly criticalActionError = signal<string | null>(null);
   readonly criticalActionEvent = signal<CriticalActionConfirmationEvent | null>(null);
+  readonly operatorPanelExpanded = signal(true);
 
   private readonly notifications = inject(NotificationService);
   private readonly sessionApi = inject(SessionApiService);
@@ -45,6 +47,10 @@ export class App implements OnInit {
 
   async logout(): Promise<void> {
     await this.auth.logout();
+  }
+
+  toggleOperatorPanel(): void {
+    this.operatorPanelExpanded.update(expanded => !expanded);
   }
 
   openCriticalActionSimulation(): void {
@@ -83,10 +89,11 @@ export class App implements OnInit {
     try {
       this.session.set(await firstValueFrom(this.sessionApi.me()));
       this.sessionError.set(null);
-    } catch {
+    } catch (error) {
+      const message = apiErrorMessage(error, 'Nao foi possivel validar a sessao na API.');
       this.session.set(null);
-      this.sessionError.set('Nao foi possivel validar a sessao na API.');
-      this.notifications.error('Nao foi possivel validar a sessao na API.');
+      this.sessionError.set(message);
+      this.notifications.error(message);
     }
   }
 

@@ -3,7 +3,7 @@ title: "Constituicao do Projeto SimpleGuard"
 project_name: "SimpleGuard"
 status: "draft"
 created: "2026-08-08"
-updated: "2026-08-10"
+updated: "2026-08-12"
 source_material:
   - "contexto/project-context.md"
   - "produto/simpleguard-prd.md"
@@ -45,14 +45,17 @@ Se uma lacuna nao estiver coberta por estas fontes, registre a suposicao antes d
 - Metodos de teste terminam com `Tests`.
 - DTOs recebem sufixo `Request`, `Response`, `Dto` ou `Payload` conforme o papel.
 - Excecoes de sistema usam a base comum definida no backend.
-- Pacotes seguem dominio funcional, nao camada generica solta.
+- Pacotes seguem dominio funcional baseado na entidade/agregado dono do comportamento, nao camada generica solta.
 
 ## 4. Estrutura De Codigo
 
-- Backend organiza por dominio e caso de uso: `config`, `domain`, `controller`, `service`, `repository`, `error`, `shared`.
+- Backend organiza por entidade/agregado. O pacote do dominio deve usar o nome exato da entidade em formato de pacote Java, por exemplo `device`, `devicekey`, `pairingsession` e `deviceunpairingrequest`.
+- Dentro de cada pacote de entidade ficam seus `domain`, `controller`, `service`, `scheduler` quando aplicavel, DTOs e componentes auxiliares diretamente relacionados.
+- Cada entidade/agregado deve ter um service principal com o nome da entidade, como `DeviceService`, `DeviceKeyService`, `PairingSessionService` ou `DeviceUnpairingRequestService`. Nao criar services paralelos nomeados por caso de uso quando o comportamento pertence a uma dessas entidades.
 - Frontend organiza por feature: `auth`, `session`, `critical-action`, `map`, `incident`, ou equivalente.
 - Arquivos novos devem entrar no padrao existente antes de criar novos estilos.
 - Nao misturar responsabilidade de UI, dominio e infraestrutura no mesmo arquivo quando houver alternativa clara.
+- Repositories devem ser acessados somente pelo service do proprio dominio funcional. Quando um caso de uso precisar de dados ou mutacoes de outro dominio, deve chamar o service desse dominio, nao o repository diretamente.
 
 ## 5. Clean Code E Manutenibilidade
 
@@ -133,3 +136,4 @@ Se uma lacuna nao estiver coberta por estas fontes, registre a suposicao antes d
 - A documentacao da task foi atualizada.
 - Nao sobrou comportamento futuro implementado como se fosse definitivo.
 - Metodos alterados foram revisados contra as regras de clean code e nao concentram responsabilidades desnecessarias.
+- Services alterados respeitam a fronteira de dominio: repository local dentro do proprio service; dependencia entre dominios via service publico; nenhum service paralelo foi criado para caso de uso que pertence a uma entidade ja existente.

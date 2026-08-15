@@ -25,3 +25,28 @@ export interface PairingSession {
   readonly expiresAt: string;
   readonly createdAt: string;
 }
+
+export interface UnpairDeviceResponse {
+  readonly deviceId: string;
+  readonly pairingStatus: 'unpaired';
+  readonly revokedKeyCount: number;
+  readonly unpairedAt: string;
+}
+
+export interface DeviceUnpairingRequest {
+  readonly requestId: string;
+  readonly deviceId: string;
+  readonly deviceName: string;
+  readonly agentInstanceId: string;
+  readonly status: DeviceUnpairingRequestStatus;
+  readonly requestedAt: string;
+  readonly decidedAt: string | null;
+}
+
+export type DeviceUnpairingRequestStatus = 'pending' | 'approved' | 'rejected';
+export type DeviceUnpairingRequestTerminalStatus = Exclude<DeviceUnpairingRequestStatus, 'pending'>;
+
+export interface DeviceUnpairingDecisionResponse {
+  readonly request: DeviceUnpairingRequest;
+  readonly unpairing: UnpairDeviceResponse | null;
+}

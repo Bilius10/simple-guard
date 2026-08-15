@@ -1,8 +1,13 @@
 <main class="system-shell">
   <header class="status-bar">
     <span class="brand">SIMPLEGUARD</span>
-    <span class="status"><span class="status-light" aria-hidden="true"></span>{{ auth.state().status }}</span>
-    <span class="timestamp">14:32:31 BRT</span>
+    <span
+      class="status"
+      [class.status-authenticated]="auth.state().status === 'authenticated'"
+    >
+      <span class="status-light" aria-hidden="true"></span>
+      {{ auth.state().status === 'authenticated' ? 'AUTHENTICATED' : 'NOT AUTHENTICATED' }}
+    </span>
   </header>
 
   @switch (auth.state().status) {
@@ -64,7 +69,11 @@
       </section>
     }
     @case ('authenticated') {
-      <section class="workspace" aria-labelledby="workspace-title">
+      <section
+        class="workspace"
+        [class.operator-panel-collapsed]="!operatorPanelExpanded()"
+        aria-labelledby="workspace-title"
+      >
         <h1 id="workspace-title" class="visually-hidden">Hub administrativo</h1>
         <nav class="side-rail" aria-label="Modulos operacionais">
           <span>HC</span>
@@ -86,6 +95,20 @@
         </section>
 
         <aside class="operator-panel">
+          <header class="operator-panel-toolbar">
+            <span>PAINEL</span>
+            <button
+              type="button"
+              class="operator-panel-toggle"
+              [attr.aria-expanded]="operatorPanelExpanded()"
+              [attr.aria-label]="operatorPanelExpanded() ? 'Recolher painel lateral' : 'Expandir painel lateral'"
+              [title]="operatorPanelExpanded() ? 'Recolher painel lateral' : 'Expandir painel lateral'"
+              (click)="toggleOperatorPanel()"
+            >
+              {{ operatorPanelExpanded() ? '>' : '<' }}
+            </button>
+          </header>
+
           @if (session(); as administrator) {
             <section class="panel-card operator-meta">
               <h2>Dispositivo selecionado</h2>

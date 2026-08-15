@@ -8,6 +8,9 @@ Modulo Android Kotlin para pareamento inicial do agente.
 - Agente cria/recupera chave assimetrica no Android Keystore.
 - Agente envia `pairingCode`, `agentInstanceId`, `platform=ANDROID` e `publicKey` para `POST /api/agent/pairing/complete`.
 - UI mostra estados de pareamento: aguardando, validando, expirado, falha e pareado.
+- Dispositivo pareado abre a tela `Mobile Agent / 07 - Despareamento`.
+- Despareamento usa confirmacao explicita e assinatura ECDSA da chave no Android Keystore.
+- Falha HTTP mantem o vinculo; falha de rede remove o vinculo local e registra sincronizacao pendente.
 
 ## Validacao local
 
@@ -19,7 +22,6 @@ gradle test
 ```
 
 ## Pareamento com celular fisico em ambiente local
-
 Para parear usando a API local em containers, exponha a API para a rede local:
 
 ```bash
@@ -32,3 +34,12 @@ No app Android, use a URL da instancia com o IP do computador na rede Wi-Fi:
 ```text
 http://IP_DO_COMPUTADOR:8080
 ```
+
+## Despareamento
+
+O agente chama `DELETE /api/agent/devices/{deviceId}/pairing` com os headers:
+
+- `X-Agent-Instance-Id`
+- `X-Agent-Signature`
+
+A assinatura usa `SHA256withECDSA` sobre `UNPAIR_DEVICE\n{deviceId}\n{agentInstanceId}`. A chave privada nunca sai do Android Keystore.
