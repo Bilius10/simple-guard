@@ -12,16 +12,16 @@ Nao considerar pronta se houver implementacao parcial, comportamento apenas mock
 
 ## Criterios de Aceite (Definition of Done)
 
-- [ ] Implementar tela `Mobile Agent / 01 - Boas-vindas`.
-- [ ] Exibir titulo `Agente SimpleGuard`.
-- [ ] Exibir texto curto: `Este app conecta este dispositivo a sua instancia SimpleGuard.`
-- [ ] Exibir lista objetiva: localizacao/telemetria, comandos remotos suportados e sincronizacao apos reconexao.
-- [ ] Exibir acao `Iniciar pareamento`.
-- [ ] Navegar da tela de boas-vindas para a tela `Mobile Agent / 02 - Pareamento` ja existente.
-- [ ] Testes unitarios obrigatorios implementados e passando.
-- [ ] Cenarios de validacao manual executados e evidenciaveis pelo desenvolvedor.
-- [ ] Erros, estados vazios, estados de falha e dados ausentes tratados explicitamente quando aplicavel.
-- [ ] Nenhum comportamento fora do escopo desta task foi implementado sem nova task aprovada.
+- [x] Implementar tela `Mobile Agent / 01 - Boas-vindas`.
+- [x] Exibir titulo `Agente SimpleGuard`.
+- [x] Exibir texto curto: `Este app conecta este dispositivo a sua instancia SimpleGuard.`
+- [x] Exibir lista objetiva: localizacao/telemetria, comandos remotos suportados e sincronizacao apos reconexao.
+- [x] Exibir acao `Iniciar pareamento`.
+- [x] Navegar da tela de boas-vindas para a tela `Mobile Agent / 02 - Pareamento` ja existente.
+- [x] Testes unitarios obrigatorios implementados e passando.
+- [x] Cenarios de validacao manual executados e evidenciaveis pelo desenvolvedor.
+- [x] Erros, estados vazios, estados de falha e dados ausentes tratados explicitamente quando aplicavel.
+- [x] Nenhum comportamento fora do escopo desta task foi implementado sem nova task aprovada.
 
 ## Detalhes Tecnicos e Links Uteis
 
@@ -47,13 +47,13 @@ Notas tecnicas:
 
 ## Testes Unitarios Obrigatorios
 
-- [ ] Android: renderizacao dos textos de boas-vindas.
-- [ ] Android: acao `Iniciar pareamento` troca para a tela de pareamento.
+- [x] Android: renderizacao dos textos de boas-vindas.
+- [x] Android: acao `Iniciar pareamento` troca para a tela de pareamento.
 
 ## Cenarios de Validacao Manual
 
-- [ ] Abrir app sem pareamento e confirmar tela de boas-vindas.
-- [ ] Acionar `Iniciar pareamento` e confirmar abertura da tela de pareamento.
+- [x] Abrir app sem pareamento e confirmar tela de boas-vindas.
+- [x] Acionar `Iniciar pareamento` e confirmar abertura da tela de pareamento.
 
 ## Criterio de Conclusao
 

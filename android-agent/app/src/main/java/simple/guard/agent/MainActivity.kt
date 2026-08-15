@@ -28,6 +28,10 @@ import simple.guard.agent.unpairing.UnpairingRequestContract
 import simple.guard.agent.unpairing.UnpairingStage
 import simple.guard.agent.unpairing.UnpairingUiController
 import simple.guard.agent.unpairing.UnpairingUiState
+import simple.guard.agent.welcome.AgentScreen
+import simple.guard.agent.welcome.WelcomeSummaryItem
+import simple.guard.agent.welcome.WelcomeUiController
+import simple.guard.agent.welcome.WelcomeUiState
 import java.io.IOException
 
 private data class LocalPairing(
@@ -44,6 +48,7 @@ class MainActivity : Activity() {
     private val keyStore = AgentKeyStore()
     private val unpairingUiController = UnpairingUiController()
     private val unpairingApiClient = UnpairingApiClient()
+    private val welcomeUiController = WelcomeUiController()
 
     private lateinit var instanceUrlField: EditText
     private lateinit var pairingCodeField: EditText
@@ -74,10 +79,91 @@ class MainActivity : Activity() {
     }
 
     private fun showInitialScreen() {
-        if (loadLocalPairing() == null) {
-            showPairingScreen()
-        } else {
-            showUnpairingScreen()
+        when (welcomeUiController.initialScreen(loadLocalPairing() != null)) {
+            AgentScreen.WELCOME -> showWelcomeScreen()
+            AgentScreen.PAIRED -> showUnpairingScreen()
+            AgentScreen.PAIRING -> showPairingScreen()
+        }
+    }
+
+    private fun showWelcomeScreen() {
+        val state = welcomeUiController.welcome()
+        setContentView(buildWelcomeContent(state))
+    }
+
+    private fun buildWelcomeContent(state: WelcomeUiState): ScrollView {
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            minimumHeight = resources.displayMetrics.heightPixels
+            setBackgroundColor(SCREEN_BACKGROUND)
+        }
+        root.addView(header())
+
+        val content = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(22), dp(28), dp(22), dp(12))
+        }
+        root.addView(
+            content,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                0,
+                1f
+            )
+        )
+
+        val summaryPanel = panel(state.title)
+        summaryPanel.addView(welcomeStatusBadge(state.status), wrapBottomMargin(dp(10)))
+        state.summary.forEachIndexed { index, item ->
+            summaryPanel.addView(
+                welcomeSummaryRow(item),
+                if (index == state.summary.lastIndex) {
+                    bottomMargin(0)
+                } else {
+                    bottomMargin(dp(7))
+                }
+            )
+        }
+        content.addView(summaryPanel, bottomMargin(dp(22)))
+
+        val capabilitiesPanel = panel(state.capabilitiesTitle).apply {
+            minimumHeight = dp(320)
+        }
+        state.capabilities.forEachIndexed { index, capability ->
+            capabilitiesPanel.addView(
+                numberedCapabilityRow(index + 1, capability),
+                if (index == state.capabilities.lastIndex) {
+                    bottomMargin(0)
+                } else {
+                    bottomMargin(dp(7))
+                }
+            )
+        }
+        content.addView(capabilitiesPanel, bottomMargin(dp(20)))
+
+        val startPairingButton = commandButton(state.actionLabel).apply {
+            minimumHeight = dp(36)
+            setPadding(0, 0, 0, 0)
+        }
+        startPairingButton.setOnClickListener {
+            if (welcomeUiController.startPairing() == AgentScreen.PAIRING) {
+                showPairingScreen()
+            }
+        }
+        content.addView(startPairingButton)
+        content.addView(spacer())
+        root.addView(footer(state.footer))
+
+        return ScrollView(this).apply {
+            setBackgroundColor(SCREEN_BACKGROUND)
+            isFillViewport = true
+            addView(
+                root,
+                ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                )
+            )
         }
     }
 
@@ -582,6 +668,67 @@ class MainActivity : Activity() {
             textSize = 15f
             includeFontPadding = false
             setTextColor(TEXT)
+        }
+
+    private fun welcomeStatusBadge(value: String): TextView =
+        TextView(this).apply {
+            text = "\u25CF  $value"
+            typeface = Typeface.MONOSPACE
+            textSize = 10f
+            includeFontPadding = false
+            gravity = Gravity.CENTER_VERTICAL
+            setTextColor(LABEL)
+            background = bordered(0xFF263544.toInt(), 0xFF71808E.toInt(), dp(1), dp(2))
+            setPadding(dp(8), dp(5), dp(8), dp(5))
+        }
+
+    private fun welcomeSummaryRow(item: WelcomeSummaryItem): LinearLayout =
+        LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            minimumHeight = dp(36)
+            background = bordered(ROW_BACKGROUND, ROW_BORDER, dp(1), dp(1))
+            setPadding(dp(9), dp(4), dp(9), dp(4))
+            addView(
+                technicalText(item.label, LABEL, Gravity.START or Gravity.CENTER_VERTICAL),
+                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f)
+            )
+            addView(
+                technicalText(
+                    item.value,
+                    if (item.warning) WARNING else TEXT,
+                    Gravity.END or Gravity.CENTER_VERTICAL
+                ),
+                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.4f)
+            )
+        }
+
+    private fun numberedCapabilityRow(index: Int, value: String): LinearLayout =
+        LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            minimumHeight = dp(36)
+            background = bordered(ROW_BACKGROUND, ROW_BORDER, dp(1), dp(1))
+            setPadding(dp(9), dp(4), dp(9), dp(4))
+            addView(
+                technicalText(index.toString(), LABEL, Gravity.START or Gravity.CENTER_VERTICAL),
+                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 0.35f)
+            )
+            addView(
+                technicalText(value, TEXT, Gravity.END or Gravity.CENTER_VERTICAL),
+                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.65f)
+            )
+        }
+
+    private fun technicalText(value: String, color: Int, textGravity: Int): TextView =
+        TextView(this).apply {
+            text = value
+            typeface = Typeface.MONOSPACE
+            textSize = 10f
+            includeFontPadding = false
+            gravity = textGravity
+            setTextColor(color)
+            setPadding(0, 0, 0, 0)
         }
 
     private fun badge(text: String): TextView =

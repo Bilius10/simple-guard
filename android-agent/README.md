@@ -1,9 +1,11 @@
 # SimpleGuard Android Agent
 
-Modulo Android Kotlin para pareamento inicial do agente.
+Modulo Android Kotlin para boas-vindas, pareamento e gestao do vinculo do agente.
 
 ## Fluxo implementado
 
+- Dispositivo sem pareamento abre a tela de boas-vindas com o objetivo e as capacidades do agente.
+- Acao `Iniciar pareamento` abre a tela de pareamento.
 - Usuario informa URL da instancia e codigo de pareamento.
 - Agente cria/recupera chave assimetrica no Android Keystore.
 - Agente envia `pairingCode`, `agentInstanceId`, `platform=ANDROID` e `publicKey` para `POST /api/agent/pairing/complete`.
