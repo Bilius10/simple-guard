@@ -33,6 +33,7 @@ public class SecurityConfiguration {
                 ).permitAll()
                 .requestMatchers("/api/agent/pairing/complete").permitAll()
                 .requestMatchers(HttpMethod.DELETE, "/api/agent/devices/*/pairing").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/agent/devices/*/pairing").permitAll()
                 .requestMatchers("/api/devices/**").hasRole("ADMIN")
                 .anyRequest()
                 .authenticated()

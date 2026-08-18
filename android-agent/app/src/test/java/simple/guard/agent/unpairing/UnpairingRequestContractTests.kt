@@ -7,6 +7,17 @@ import kotlin.test.assertFailsWith
 class UnpairingRequestContractTests {
 
     @Test
+    fun parsesAgentPairingAndUnpairingStatusTests() {
+        val response = parseAgentPairingStatusResponse(
+            """{"deviceId":"device-001","pairingStatus":"unpaired","unpairingStatus":"approved"}"""
+        )
+
+        assertEquals("device-001", response.deviceId)
+        assertEquals("unpaired", response.pairingStatus)
+        assertEquals("approved", response.unpairingStatus)
+    }
+
+    @Test
     fun acceptsPendingUnpairingRequestAsSuccessfulAgentResponseTests() {
         val response = DeviceUnpairingRequestResponse(
             requestId = "request-001",

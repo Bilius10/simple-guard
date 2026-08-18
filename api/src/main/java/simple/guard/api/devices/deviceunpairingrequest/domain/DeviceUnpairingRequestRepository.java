@@ -23,6 +23,11 @@ public interface DeviceUnpairingRequestRepository extends JpaRepository<DeviceUn
             UUID deviceId,
             DeviceUnpairingRequestStatus status
     );
+
+    Optional<DeviceUnpairingRequest> findFirstByDeviceIdAndAgentInstanceIdOrderByRequestedAtDesc(
+            UUID deviceId,
+            String agentInstanceId
+    );
 }
 
 

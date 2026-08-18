@@ -12,16 +12,16 @@ Nao considerar pronta se houver implementacao parcial, tela sem contrato real, c
 
 ## Criterios de Aceite (Definition of Done)
 
-- [ ] Criar UI minima do agente desktop para `Desktop Agent / 01 - Boas-vindas`.
-- [ ] Criar UI minima do agente desktop para `Desktop Agent / 02 - Pareamento`.
-- [ ] Reutilizar o core Rust da task 2.4 para montar payload e validar configuracao.
-- [ ] Exibir URL da instancia, codigo de pareamento, nome do computador, usuario/SO detectado e estado de validacao.
-- [ ] Tratar estados: aguardando codigo, conectando, validando, pareado e falha.
-- [ ] Nao implementar tray, daemon, telemetria, comandos remotos, capacidades ou despareamento nesta task.
-- [ ] Testes unitarios obrigatorios implementados e passando.
-- [ ] Cenarios de validacao manual executados e evidenciaveis pelo desenvolvedor.
-- [ ] Erros, estados vazios, estados de falha e dados ausentes tratados explicitamente quando aplicavel.
-- [ ] Nenhum comportamento fora do escopo desta task foi implementado sem nova task aprovada.
+- [x] Criar UI minima do agente desktop para `Desktop Agent / 01 - Boas-vindas`.
+- [x] Criar UI minima do agente desktop para `Desktop Agent / 02 - Pareamento`.
+- [x] Reutilizar o core Rust da task 2.4 para montar payload e validar configuracao.
+- [x] Exibir URL da instancia, codigo de pareamento, nome do computador, usuario/SO detectado e estado de validacao.
+- [x] Tratar estados: aguardando codigo, conectando, validando, pareado e falha.
+- [x] Nao implementar tray, daemon, telemetria, comandos remotos, capacidades ou despareamento nesta task.
+- [x] Testes unitarios obrigatorios implementados e passando.
+- [x] Cenarios de validacao manual executados e evidenciaveis pelo desenvolvedor.
+- [x] Erros, estados vazios, estados de falha e dados ausentes tratados explicitamente quando aplicavel.
+- [x] Nenhum comportamento fora do escopo desta task foi implementado sem nova task aprovada.
 
 ## Detalhes Tecnicos e Links Uteis
 
@@ -50,15 +50,15 @@ Notas tecnicas:
 
 ## Testes Unitarios Obrigatorios
 
-- [ ] Rust: estados de UI de pareamento e validacao de entrada.
-- [ ] UI desktop: renderizacao dos campos e mensagens de falha quando aplicavel.
+- [x] Rust: estados de UI de pareamento e validacao de entrada.
+- [x] UI desktop: renderizacao dos campos e mensagens de falha quando aplicavel.
 
 ## Cenarios de Validacao Manual
 
-- [ ] Abrir UI desktop e confirmar tela de boas-vindas.
-- [ ] Informar URL/codigo/nome do computador e simular pareamento com API local.
-- [ ] Confirmar dispositivo desktop pareado na API.
-- [ ] Simular plataforma divergente ou chave ausente e validar mensagem de falha.
+- [x] Abrir UI desktop e confirmar tela de boas-vindas.
+- [x] Informar URL/codigo/nome do computador e simular pareamento com API local.
+- [x] Confirmar dispositivo desktop pareado na API.
+- [x] Simular plataforma divergente ou chave ausente e validar mensagem de falha.
 
 ## Criterio de Conclusao
 

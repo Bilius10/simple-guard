@@ -15,6 +15,10 @@ public interface DeviceKeyRepository extends JpaRepository<DeviceKey, UUID> {
             String agentInstanceId,
             DeviceKeyStatus status
     );
-}
 
+    Optional<DeviceKey> findFirstByDeviceIdAndAgentInstanceIdOrderByCreatedAtDesc(
+            UUID deviceId,
+            String agentInstanceId
+    );
+}
 

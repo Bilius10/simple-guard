@@ -72,6 +72,10 @@ class MainActivity : Activity() {
     private lateinit var unpairingCancelButton: Button
     private lateinit var unpairingActionButton: Button
     private var currentPairing: LocalPairing? = null
+    @Volatile
+    private var unpairingPolling = false
+    @Volatile
+    private var unpairingScreenActive = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -87,6 +91,8 @@ class MainActivity : Activity() {
     }
 
     private fun showWelcomeScreen() {
+        stopUnpairingPolling()
+        unpairingScreenActive = false
         val state = welcomeUiController.welcome()
         setContentView(buildWelcomeContent(state))
     }
@@ -168,6 +174,8 @@ class MainActivity : Activity() {
     }
 
     private fun showPairingScreen() {
+        stopUnpairingPolling()
+        unpairingScreenActive = false
         setContentView(buildContent())
         render(uiController.waiting())
 
@@ -177,6 +185,8 @@ class MainActivity : Activity() {
     }
 
     private fun showPairedScreen(pairing: LocalPairing) {
+        stopUnpairingPolling()
+        unpairingScreenActive = false
         setContentView(buildContent())
         render(uiController.paired(pairing.deviceName))
         actionButton.isEnabled = true
@@ -342,6 +352,8 @@ class MainActivity : Activity() {
     }
 
     private fun showUnpairingScreen() {
+        stopUnpairingPolling()
+        unpairingScreenActive = true
         val pairing = loadLocalPairing()
         if (pairing == null) {
             showPairingScreen()
@@ -359,6 +371,7 @@ class MainActivity : Activity() {
             unpairingCancelButton.setOnClickListener { cancelUnpairing() }
             unpairingActionButton.setOnClickListener { confirmUnpairing() }
         }
+        synchronizeUnpairingStatus(pairing)
     }
 
     private fun cancelUnpairing() {
@@ -400,9 +413,9 @@ class MainActivity : Activity() {
                 UnpairingRequestContract.requirePendingRequest(response)
                 runOnUiThread {
                     renderUnpairing(unpairingUiController.requested())
-                    unpairingCancelButton.isEnabled = true
-                    unpairingActionButton.isEnabled = true
-                    unpairingActionButton.setOnClickListener { requestUnpairing() }
+                    unpairingCancelButton.isEnabled = false
+                    unpairingActionButton.isEnabled = false
+                    startUnpairingPolling(pairing)
                 }
             } catch (exception: UnpairingApiException) {
                 runOnUiThread {
@@ -426,6 +439,77 @@ class MainActivity : Activity() {
                     )
                     unpairingCancelButton.isEnabled = true
                     unpairingActionButton.isEnabled = true
+                }
+            }
+        }.start()
+    }
+
+    private fun startUnpairingPolling(pairing: LocalPairing) {
+        unpairingPolling = true
+        unpairingStatusBadge.postDelayed(
+            {
+                if (unpairingPolling && unpairingScreenActive) {
+                    synchronizeUnpairingStatus(pairing)
+                }
+            },
+            UNPAIRING_POLL_INTERVAL_MS
+        )
+    }
+
+    private fun stopUnpairingPolling() {
+        unpairingPolling = false
+    }
+
+    private fun synchronizeUnpairingStatus(pairing: LocalPairing) {
+        Thread {
+            try {
+                val agentInstanceId = agentInstanceId()
+                val response = unpairingApiClient.pairingStatus(
+                    instanceUrl = pairing.instanceUrl,
+                    deviceId = pairing.deviceId,
+                    agentInstanceId = agentInstanceId,
+                    signature = keyStore.signUnpairing(agentInstanceId, pairing.deviceId)
+                )
+                runOnUiThread {
+                    if (!unpairingScreenActive || currentPairing?.deviceId != pairing.deviceId) {
+                        return@runOnUiThread
+                    }
+
+                    when {
+                        response.pairingStatus == "unpaired" -> {
+                            stopUnpairingPolling()
+                            runCatching { keyStore.delete(agentInstanceId) }
+                            clearLocalPairing()
+                            renderUnpairing(unpairingUiController.unpaired())
+                            unpairingCancelButton.isEnabled = false
+                            unpairingActionButton.isEnabled = true
+                            unpairingActionButton.setOnClickListener { showWelcomeScreen() }
+                        }
+                        response.unpairingStatus == "pending" -> {
+                            renderUnpairing(unpairingUiController.requested())
+                            unpairingCancelButton.isEnabled = false
+                            unpairingActionButton.isEnabled = false
+                            startUnpairingPolling(pairing)
+                        }
+                        response.unpairingStatus == "rejected" -> {
+                            stopUnpairingPolling()
+                            renderUnpairing(unpairingUiController.rejected())
+                            unpairingCancelButton.isEnabled = true
+                            unpairingActionButton.isEnabled = true
+                            unpairingActionButton.setOnClickListener { confirmUnpairing() }
+                        }
+                        else -> stopUnpairingPolling()
+                    }
+                }
+            } catch (exception: RuntimeException) {
+                runOnUiThread {
+                    if (!unpairingScreenActive || currentPairing?.deviceId != pairing.deviceId || !unpairingPolling) {
+                        return@runOnUiThread
+                    }
+                    renderUnpairing(unpairingUiController.apiFailure(
+                        exception.message ?: "Nao foi possivel consultar o despareamento."
+                    ))
+                    startUnpairingPolling(pairing)
                 }
             }
         }.start()
@@ -514,6 +598,7 @@ class MainActivity : Activity() {
             UnpairingStage.CONFIRMATION_REQUIRED -> "Nenhuma alteracao aplicada"
             UnpairingStage.REQUESTED -> "Solicitacao aguardando admin"
             UnpairingStage.UNPAIRED -> "Vinculo removido"
+            UnpairingStage.REJECTED -> "Vinculo mantido"
             UnpairingStage.API_FAILURE -> "Vinculo mantido"
             UnpairingStage.SYNC_PENDING -> "Aguardando conexao"
         }
@@ -522,6 +607,7 @@ class MainActivity : Activity() {
             UnpairingStage.SYNC_PENDING -> "Tentar sincronizar"
             UnpairingStage.API_FAILURE -> "Tentar novamente"
             UnpairingStage.UNPAIRED -> "Iniciar novo pareamento"
+            UnpairingStage.REJECTED -> "Solicitar novamente"
             UnpairingStage.CONFIRMATION_REQUIRED -> "Desparear dispositivo"
         }
     }
@@ -897,5 +983,6 @@ class MainActivity : Activity() {
         const val WARNING = 0xFFFFD84D.toInt()
         const val SUCCESS = 0xFF1AFFA9.toInt()
         const val DANGER = 0xFFFF5B5B.toInt()
+        const val UNPAIRING_POLL_INTERVAL_MS = 3_000L
     }
 }

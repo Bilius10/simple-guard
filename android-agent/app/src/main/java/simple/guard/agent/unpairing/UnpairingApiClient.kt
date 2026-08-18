@@ -12,6 +12,12 @@ data class DeviceUnpairingRequestResponse(
     val status: String
 )
 
+data class AgentPairingStatusResponse(
+    val deviceId: String,
+    val pairingStatus: String,
+    val unpairingStatus: String
+)
+
 class UnpairingApiClient {
 
     fun unpair(
@@ -40,6 +46,34 @@ class UnpairingApiClient {
 
         return parseUnpairingRequestResponse(body)
     }
+
+    fun pairingStatus(
+        instanceUrl: String,
+        deviceId: String,
+        agentInstanceId: String,
+        signature: String
+    ): AgentPairingStatusResponse {
+        val endpoint = URL("${instanceUrl.trimEnd('/')}/api/agent/devices/$deviceId/pairing")
+        val connection = endpoint.openConnection() as HttpURLConnection
+        connection.requestMethod = "GET"
+        connection.connectTimeout = 10_000
+        connection.readTimeout = 10_000
+        connection.setRequestProperty("Accept", "application/json")
+        connection.setRequestProperty("Cache-Control", "no-store")
+        connection.setRequestProperty("X-Agent-Instance-Id", agentInstanceId)
+        connection.setRequestProperty("X-Agent-Signature", signature)
+
+        val status = connection.responseCode
+        val body = when {
+            status in 200..299 -> connection.inputStream.bufferedReader().use { it.readText() }
+            else -> connection.errorStream?.bufferedReader()?.use { it.readText() }.orEmpty()
+        }
+        if (status !in 200..299) {
+            throw UnpairingApiException.from(status, body)
+        }
+
+        return parseAgentPairingStatusResponse(body)
+    }
 }
 
 internal fun parseUnpairingRequestResponse(body: String): DeviceUnpairingRequestResponse {
@@ -50,6 +84,15 @@ internal fun parseUnpairingRequestResponse(body: String): DeviceUnpairingRequest
         deviceName = json.optString("deviceName"),
         agentInstanceId = json.optString("agentInstanceId"),
         status = json.optString("status")
+    )
+}
+
+internal fun parseAgentPairingStatusResponse(body: String): AgentPairingStatusResponse {
+    val json = JSONObject(body)
+    return AgentPairingStatusResponse(
+        deviceId = json.optString("deviceId"),
+        pairingStatus = json.optString("pairingStatus"),
+        unpairingStatus = json.optString("unpairingStatus")
     )
 }
 

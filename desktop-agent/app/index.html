@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SimpleGuard Agent</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="agent-shell">
+      <header class="topbar">SimpleGuard Agent</header>
+
+      <section id="welcomeScreen" class="screen active" aria-label="Boas-vindas">
+        <div class="content">
+          <section class="panel summary-panel">
+            <h1>Agente SimpleGuard</h1>
+            <span class="badge neutral"><span class="dot"></span> NAO PAREADO</span>
+            <div class="rows compact">
+              <div class="data-row">
+                <span>Funcao</span>
+                <strong>Conectar este computador</strong>
+              </div>
+              <div class="data-row">
+                <span>Escopo</span>
+                <strong>Telemetria e comandos</strong>
+              </div>
+              <div class="data-row">
+                <span>Promessa</span>
+                <strong class="warning">Sem recuperacao garantida</strong>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel capability-panel">
+            <h2>Funcao do agente</h2>
+            <div class="rows">
+              <div class="data-row numbered">
+                <span>1</span>
+                <strong>Envia telemetria suportada</strong>
+              </div>
+              <div class="data-row numbered">
+                <span>2</span>
+                <strong>Recebe comandos suportados</strong>
+              </div>
+              <div class="data-row numbered">
+                <span>3</span>
+                <strong>Sincroniza eventos ao reconectar</strong>
+              </div>
+            </div>
+          </section>
+
+          <button id="startPairingButton" class="primary wide">Iniciar pareamento</button>
+        </div>
+        <footer>Pronto para iniciar pareamento</footer>
+      </section>
+
+      <section id="pairingScreen" class="screen" aria-label="Pareamento">
+        <div class="content">
+          <section class="panel summary-panel">
+            <h1>Pareamento</h1>
+            <span id="pairingBadge" class="badge active"><span class="dot"></span> VALIDANDO INSTANCIA</span>
+            <form id="pairingForm" class="rows compact">
+              <label class="data-row editable">
+                <span>URL instancia</span>
+                <input id="instanceUrlInput" autocomplete="url" placeholder="https://sg.local" />
+              </label>
+              <div class="data-row">
+                <span>API</span>
+                <strong id="pairingStateValue" class="warning">Aguardando codigo</strong>
+              </div>
+              <div class="data-row">
+                <span>QR code</span>
+                <strong>Leitor ativo</strong>
+              </div>
+            </form>
+          </section>
+
+          <section class="panel code-panel">
+            <h2>Codigo / QR</h2>
+            <div class="rows">
+              <div class="data-row">
+                <span>Nome sugerido</span>
+                <strong id="computerNameValue">Detectando</strong>
+              </div>
+              <label class="data-row editable">
+                <span>Codigo</span>
+                <input id="pairingCodeInput" autocomplete="off" placeholder="SG-DESK-77" />
+              </label>
+              <div class="data-row">
+                <span>Usuario/SO</span>
+                <strong id="userOsValue">Detectando</strong>
+              </div>
+              <div class="data-row">
+                <span>Estado</span>
+                <strong id="pairingResultValue">Aguardando codigo</strong>
+              </div>
+              <div class="data-row">
+                <span>Falha</span>
+                <strong id="pairingFailureValue" class="danger">-</strong>
+              </div>
+            </div>
+          </section>
+
+          <button id="pairButton" class="primary wide">Validar codigo</button>
+        </div>
+        <footer>Pareamento ainda nao concluido</footer>
+      </section>
+
+      <section id="unpairingScreen" class="screen" aria-label="Despareamento">
+        <div class="content">
+          <section class="panel summary-panel">
+            <h1>Despareamento</h1>
+            <span id="unpairingBadge" class="badge danger"><span class="dot"></span> CONFIRMACAO EXIGIDA</span>
+            <div class="rows compact">
+              <div class="data-row">
+                <span>Dispositivo</span>
+                <strong id="currentDeviceValue">-</strong>
+              </div>
+              <div class="data-row">
+                <span>Instancia atual</span>
+                <strong id="currentInstanceValue">-</strong>
+              </div>
+              <div class="data-row">
+                <span>Consequencia</span>
+                <strong>Para telemetria e comandos</strong>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel unpair-panel">
+            <h2>Remover vinculo</h2>
+            <div class="rows">
+              <div class="data-row">
+                <span>Estado 1</span>
+                <strong class="warning">Solicitado</strong>
+              </div>
+              <div class="data-row">
+                <span>Estado 2</span>
+                <strong class="success">Despareado</strong>
+              </div>
+              <div class="data-row">
+                <span>Estado 3</span>
+                <strong class="danger">Falha API</strong>
+              </div>
+              <div class="data-row">
+                <span>Estado 4</span>
+                <strong id="unpairingResultValue" class="warning">Sync pendente</strong>
+              </div>
+            </div>
+          </section>
+
+          <div class="button-stack">
+            <button id="cancelUnpairingButton" class="secondary wide">Cancelar</button>
+            <button id="unpairButton" class="destructive wide">Desparear dispositivo</button>
+          </div>
+        </div>
+        <footer>Nenhuma alteracao aplicada</footer>
+      </section>
+    </main>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

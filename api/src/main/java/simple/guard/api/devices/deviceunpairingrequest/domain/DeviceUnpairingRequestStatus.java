@@ -32,12 +32,11 @@ public enum DeviceUnpairingRequestStatus {
         }
 
         return Arrays.stream(values())
-                .filter(status -> status.apiValue.equalsIgnoreCase(value) || status.name().equalsIgnoreCase(value))
+                .filter(status -> status.apiValue.equalsIgnoreCase(value))
                 .findFirst()
                 .orElseThrow(() -> new SimpleGuardException(HttpStatus.BAD_REQUEST,
                         SimpleGuardErrorCode.VALIDATION_ERROR,
                         SimpleGuardTranslation.INVALID_STATUS_MESSAGE));
     }
 }
-
 

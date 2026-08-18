@@ -49,7 +49,8 @@ kover {
                     "*CompletePairingResponse*",
                     "*UnpairingApiClient*",
                     "*UnpairingApiException*",
-                    "*DeviceUnpairingRequestResponse*"
+                    "*DeviceUnpairingRequestResponse*",
+                    "*AgentPairingStatusResponse*"
                 )
             }
         }

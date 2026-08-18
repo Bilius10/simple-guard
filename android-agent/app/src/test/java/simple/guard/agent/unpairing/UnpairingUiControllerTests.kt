@@ -30,6 +30,15 @@ class UnpairingUiControllerTests {
     }
 
     @Test
+    fun rendersRejectedRequestWithoutRemovingPairingTests() {
+        val state = controller.rejected()
+
+        assertEquals(UnpairingStage.REJECTED, state.stage)
+        assertEquals("SOLICITACAO REJEITADA", state.badge)
+        assertTrue(state.detail.contains("rejeitou"))
+    }
+
+    @Test
     fun rendersApiFailureWithoutRemovingLocalPairingTests() {
         val state = controller.apiFailure("A instancia recusou a credencial.")
 

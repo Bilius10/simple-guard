@@ -18,6 +18,7 @@ import simple.guard.api.devices.deviceunpairingrequest.controller.response.Devic
 import simple.guard.api.devices.deviceunpairingrequest.domain.DeviceUnpairingRequest;
 import simple.guard.api.devices.deviceunpairingrequest.domain.DeviceUnpairingRequestRepository;
 import simple.guard.api.devices.deviceunpairingrequest.domain.DeviceUnpairingRequestStatus;
+import simple.guard.api.devices.pairingsession.controller.response.AgentPairingStatusResponse;
 
 import java.time.Clock;
 import java.time.OffsetDateTime;
@@ -57,6 +58,35 @@ public class DeviceUnpairingRequestService {
         }
 
         return createPendingRequest(deviceId, normalizedAgentInstanceId);
+    }
+
+    @Transactional(readOnly = true)
+    public AgentPairingStatusResponse statusForAgent(
+            UUID deviceId,
+            String agentInstanceId,
+            String signature
+    ) {
+        String normalizedAgentInstanceId = agentInstanceId.trim();
+        DeviceKey deviceKey = deviceKeys.requireForAgentPairingStatus(deviceId, normalizedAgentInstanceId);
+
+        if (!signatureVerifier.verifyUnpairing(deviceKey.getPublicKey(), deviceId, normalizedAgentInstanceId, signature)) {
+            throw invalidCredential();
+        }
+
+        Device device = deviceService.findDeviceById(deviceId);
+        String unpairingStatus = requests
+                .findFirstByDeviceIdAndAgentInstanceIdOrderByRequestedAtDesc(
+                        deviceId,
+                        normalizedAgentInstanceId
+                )
+                .map(request -> request.getStatus().apiValue())
+                .orElse(null);
+
+        return new AgentPairingStatusResponse(
+                deviceId,
+                device.getPairingStatus().apiValue(),
+                unpairingStatus
+        );
     }
 
     private DeviceUnpairingRequestResponse createPendingRequest(UUID deviceId, String agentInstanceId) {
@@ -132,4 +162,3 @@ public class DeviceUnpairingRequestService {
         );
     }
 }
-

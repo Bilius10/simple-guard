@@ -49,6 +49,18 @@ public class DeviceKeyService {
                 ));
     }
 
+    public DeviceKey requireForAgentPairingStatus(UUID deviceId, String agentInstanceId) {
+        return deviceKeys.findFirstByDeviceIdAndAgentInstanceIdOrderByCreatedAtDesc(
+                        deviceId,
+                        agentInstanceId
+                )
+                .orElseThrow(() -> new SimpleGuardException(
+                        HttpStatus.UNAUTHORIZED,
+                        SimpleGuardErrorCode.DEVICE_CREDENTIAL_INVALID,
+                        SimpleGuardTranslation.ERROR_DEVICE_CREDENTIAL_INVALID
+                ));
+    }
+
     public void registerActiveKey(
             Device device,
             UUID pairingSessionId,

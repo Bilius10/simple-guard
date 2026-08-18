@@ -11,6 +11,16 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class DeviceUnpairingRequestStatusTests {
 
     @Test
+    void parsesEveryApiValueIgnoringCaseTests() {
+        for (DeviceUnpairingRequestStatus status : DeviceUnpairingRequestStatus.values()) {
+            assertThat(DeviceUnpairingRequestStatus.fromApiValue(status.apiValue()))
+                    .isSameAs(status);
+            assertThat(DeviceUnpairingRequestStatus.fromApiValue(status.name()))
+                    .isSameAs(status);
+        }
+    }
+
+    @Test
     void returnsNullWhenApiValueIsNullTests() {
         assertThat(DeviceUnpairingRequestStatus.fromApiValue(null)).isNull();
     }

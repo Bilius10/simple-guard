@@ -18,6 +18,7 @@ import simple.guard.api.devices.pairingsession.domain.PairingSessionRepository;
 import simple.guard.api.devices.pairingsession.service.AgentSignatureVerifier;
 import simple.guard.api.devices.deviceunpairingrequest.domain.DeviceUnpairingRequestRepository;
 import simple.guard.api.devices.deviceunpairingrequest.domain.DeviceUnpairingRequestStatus;
+import simple.guard.api.devices.deviceunpairingrequest.service.DeviceUnpairingRequestService;
 import simple.guard.api.identity.domain.Account;
 import simple.guard.api.identity.domain.AccountRepository;
 
@@ -31,6 +32,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -67,6 +69,9 @@ class AgentUnpairingControllerTests {
 
     @Autowired
     private DeviceKeyRepository deviceKeys;
+
+    @Autowired
+    private DeviceUnpairingRequestService unpairingRequestService;
 
     private KeyPair keyPair;
 
@@ -132,6 +137,62 @@ class AgentUnpairingControllerTests {
         assertThat(unpairingRequests.findAll()).hasSize(1);
         assertThat(deviceKeys.findAll()).singleElement()
                 .satisfies(key -> assertThat(key.getStatus()).isEqualTo(DeviceKeyStatus.ACTIVE));
+    }
+
+    @Test
+    void reportsPendingAndApprovedUnpairingToAgentTests() throws Exception {
+        String signature = signatureTests();
+        unpairTests(signature);
+
+        mockMvc.perform(get("/api/agent/devices/{deviceId}/pairing", DEVICE_ID)
+                        .header("X-Agent-Instance-Id", AGENT_INSTANCE_ID)
+                        .header("X-Agent-Signature", signature))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Cache-Control", "no-store"))
+                .andExpect(jsonPath("$.pairingStatus").value("paired"))
+                .andExpect(jsonPath("$.unpairingStatus").value("pending"));
+
+        var request = unpairingRequests.findAll().getFirst();
+        unpairingRequestService.decide(
+                request.getId(),
+                accounts.findById(ACCOUNT_ID).orElseThrow(),
+                DeviceUnpairingRequestStatus.APPROVED
+        );
+
+        mockMvc.perform(get("/api/agent/devices/{deviceId}/pairing", DEVICE_ID)
+                        .header("X-Agent-Instance-Id", AGENT_INSTANCE_ID)
+                        .header("X-Agent-Signature", signature))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.pairingStatus").value("unpaired"))
+                .andExpect(jsonPath("$.unpairingStatus").value("approved"));
+    }
+
+    @Test
+    void reportsPairedStatusWithoutUnpairingRequestTests() throws Exception {
+        mockMvc.perform(get("/api/agent/devices/{deviceId}/pairing", DEVICE_ID)
+                        .header("X-Agent-Instance-Id", AGENT_INSTANCE_ID)
+                        .header("X-Agent-Signature", signatureTests()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.pairingStatus").value("paired"))
+                .andExpect(jsonPath("$.unpairingStatus").isEmpty());
+    }
+
+    @Test
+    void rejectsPairingStatusWithInvalidSignatureTests() throws Exception {
+        mockMvc.perform(get("/api/agent/devices/{deviceId}/pairing", DEVICE_ID)
+                        .header("X-Agent-Instance-Id", AGENT_INSTANCE_ID)
+                        .header("X-Agent-Signature", Base64.getEncoder().encodeToString("invalid".getBytes())))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.erro_code").value("DEVICE_CREDENTIAL_INVALID"));
+    }
+
+    @Test
+    void rejectsPairingStatusForUnknownAgentCredentialTests() throws Exception {
+        mockMvc.perform(get("/api/agent/devices/{deviceId}/pairing", DEVICE_ID)
+                        .header("X-Agent-Instance-Id", "unknown-agent")
+                        .header("X-Agent-Signature", signatureTests()))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.erro_code").value("DEVICE_CREDENTIAL_INVALID"));
     }
 
     @Test

@@ -27,6 +27,8 @@ android-agent/local.properties
 
 # Rust output
 desktop-agent/target/
+desktop-agent/gen/
+desktop-agent/simpleguard-desktop-agent.local.json
 
 # Operating system and IDE
 .DS_Store

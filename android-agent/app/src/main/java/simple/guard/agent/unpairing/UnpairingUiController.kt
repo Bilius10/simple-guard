@@ -4,6 +4,7 @@ enum class UnpairingStage {
     CONFIRMATION_REQUIRED,
     REQUESTED,
     UNPAIRED,
+    REJECTED,
     API_FAILURE,
     SYNC_PENDING
 }
@@ -40,6 +41,14 @@ class UnpairingUiController {
         primaryState = "Despareado",
         detail = "O vinculo e as credenciais locais foram removidos.",
         color = 0xFF1AFFA9.toInt()
+    )
+
+    fun rejected(): UnpairingUiState = UnpairingUiState(
+        stage = UnpairingStage.REJECTED,
+        badge = "SOLICITACAO REJEITADA",
+        primaryState = "Vinculo mantido",
+        detail = "O administrador rejeitou a solicitacao de despareamento.",
+        color = 0xFFFF5B5B.toInt()
     )
 
     fun apiFailure(message: String): UnpairingUiState = UnpairingUiState(
