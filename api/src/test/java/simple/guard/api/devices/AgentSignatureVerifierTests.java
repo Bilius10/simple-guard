@@ -6,6 +6,9 @@ import simple.guard.api.devices.pairingsession.service.AgentSignatureVerifier;
 import java.security.KeyPairGenerator;
 import java.security.Signature;
 import java.security.spec.ECGenParameterSpec;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.time.OffsetDateTime;
 import java.util.Base64;
 import java.util.UUID;
 
@@ -51,6 +54,41 @@ class AgentSignatureVerifierTests {
         )).isFalse();
     }
 
+    @Test
+    void validatesCanonicalLocationSignatureTests() throws Exception {
+        var keyPair = keyPairTests();
+        OffsetDateTime collectedAt = OffsetDateTime.parse("2026-08-17T09:00:00-03:00");
+        byte[] payload = AgentSignatureVerifier.locationPayload(
+                DEVICE_ID,
+                AGENT_INSTANCE_ID,
+                collectedAt,
+                new BigDecimal("-23.55052000"),
+                new BigDecimal("-46.63330800"),
+                new BigDecimal("4.500"),
+                null,
+                BigDecimal.ZERO,
+                "GPS"
+        );
+
+        assertThat(new String(payload, StandardCharsets.UTF_8)).isEqualTo(
+                "INGEST_LOCATION\n" + DEVICE_ID + "\n" + AGENT_INSTANCE_ID
+                        + "\n2026-08-17T12:00:00Z\n-23.55052\n-46.633308\n4.5\n\n0\nGPS"
+        );
+        assertThat(verifier.verifyLocation(
+                Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded()),
+                DEVICE_ID,
+                AGENT_INSTANCE_ID,
+                collectedAt,
+                new BigDecimal("-23.55052000"),
+                new BigDecimal("-46.63330800"),
+                new BigDecimal("4.500"),
+                null,
+                BigDecimal.ZERO,
+                "GPS",
+                signatureTests(keyPair.getPrivate(), payload)
+        )).isTrue();
+    }
+
     private static java.security.KeyPair keyPairTests() throws Exception {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("EC");
         generator.initialize(new ECGenParameterSpec("secp256r1"));
@@ -58,9 +96,16 @@ class AgentSignatureVerifierTests {
     }
 
     private static String signatureTests(java.security.PrivateKey privateKey) throws Exception {
+        return signatureTests(
+                privateKey,
+                AgentSignatureVerifier.unpairingPayload(DEVICE_ID, AGENT_INSTANCE_ID)
+        );
+    }
+
+    private static String signatureTests(java.security.PrivateKey privateKey, byte[] payload) throws Exception {
         Signature signature = Signature.getInstance("SHA256withECDSA");
         signature.initSign(privateKey);
-        signature.update(AgentSignatureVerifier.unpairingPayload(DEVICE_ID, AGENT_INSTANCE_ID));
+        signature.update(payload);
         return Base64.getEncoder().encodeToString(signature.sign());
     }
 }

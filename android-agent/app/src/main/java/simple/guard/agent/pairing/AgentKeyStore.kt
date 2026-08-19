@@ -3,6 +3,8 @@ package simple.guard.agent.pairing
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
+import simple.guard.agent.location.LocationReading
+import simple.guard.agent.location.LocationSignaturePayload
 import java.security.KeyPairGenerator
 import java.security.KeyStore
 import java.security.PrivateKey
@@ -36,12 +38,19 @@ class AgentKeyStore {
     }
 
     fun signUnpairing(agentInstanceId: String, deviceId: String): String {
+        return sign(agentInstanceId, "UNPAIR_DEVICE\n$deviceId\n$agentInstanceId".toByteArray(Charsets.UTF_8))
+    }
+
+    fun signLocation(agentInstanceId: String, deviceId: String, reading: LocationReading): String {
+        return sign(agentInstanceId, LocationSignaturePayload.bytes(deviceId, agentInstanceId, reading))
+    }
+
+    private fun sign(agentInstanceId: String, payload: ByteArray): String {
         val keyStore = KeyStore.getInstance("AndroidKeyStore").apply {
             load(null)
         }
         val privateKey = keyStore.getKey(alias(agentInstanceId), null) as? PrivateKey
             ?: error("A chave local do agente nao foi encontrada.")
-        val payload = "UNPAIR_DEVICE\n$deviceId\n$agentInstanceId".toByteArray(Charsets.UTF_8)
         val signature = Signature.getInstance("SHA256withECDSA").apply {
             initSign(privateKey)
             update(payload)

@@ -1,11 +1,15 @@
 package simple.guard.agent
 
+import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -15,6 +19,11 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import android.widget.Toast
+import simple.guard.agent.location.LocationDiagnosticStatus
+import simple.guard.agent.location.LocationDiagnosticsStore
+import simple.guard.agent.location.LocationDiagnosticsSnapshot
+import simple.guard.agent.location.LocationTrackingService
 import simple.guard.agent.pairing.AgentKeyStore
 import simple.guard.agent.pairing.CompletePairingRequest
 import simple.guard.agent.pairing.PairingApiClient
@@ -33,6 +42,8 @@ import simple.guard.agent.welcome.WelcomeSummaryItem
 import simple.guard.agent.welcome.WelcomeUiController
 import simple.guard.agent.welcome.WelcomeUiState
 import java.io.IOException
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 private data class LocalPairing(
     val deviceId: String,
@@ -49,6 +60,7 @@ class MainActivity : Activity() {
     private val unpairingUiController = UnpairingUiController()
     private val unpairingApiClient = UnpairingApiClient()
     private val welcomeUiController = WelcomeUiController()
+    private lateinit var diagnosticsStore: LocationDiagnosticsStore
 
     private lateinit var instanceUrlField: EditText
     private lateinit var pairingCodeField: EditText
@@ -71,6 +83,17 @@ class MainActivity : Activity() {
     private lateinit var unpairingFooterStatus: TextView
     private lateinit var unpairingCancelButton: Button
     private lateinit var unpairingActionButton: Button
+    private lateinit var unpairingDiagnosticsButton: Button
+    private lateinit var diagnosticsAttemptValue: TextView
+    private lateinit var diagnosticsSuccessValue: TextView
+    private lateinit var diagnosticsStatusValue: TextView
+    private lateinit var diagnosticsProviderValue: TextView
+    private lateinit var diagnosticsFailureValue: TextView
+    private lateinit var diagnosticsInstanceValue: TextView
+    private lateinit var diagnosticsDeviceValue: TextView
+    private lateinit var diagnosticsRefreshButton: Button
+    private lateinit var diagnosticsBackButton: Button
+    private lateinit var diagnosticsFooterStatus: TextView
     private var currentPairing: LocalPairing? = null
     @Volatile
     private var unpairingPolling = false
@@ -79,7 +102,27 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        diagnosticsStore = LocationDiagnosticsStore(this)
         showInitialScreen()
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode != LOCATION_PERMISSION_REQUEST_CODE) {
+            return
+        }
+
+        val pairing = loadLocalPairing() ?: return
+        if (grantResults.any { it == PackageManager.PERMISSION_GRANTED }) {
+            startLocationTracking(pairing)
+        } else {
+            diagnosticsStore.recordPermissionDenied("Permissao de localizacao negada pelo usuario.")
+            Toast.makeText(this, "Permissao de localizacao negada.", Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun showInitialScreen() {
@@ -309,6 +352,7 @@ class MainActivity : Activity() {
         actionButton.isEnabled = false
         Thread {
             try {
+                Log.i(TAG, "Iniciando pareamento com a instancia informada pelo usuario.")
                 val agentInstanceId = agentInstanceId()
                 val response = apiClient.complete(
                     instanceUrl,
@@ -330,8 +374,15 @@ class MainActivity : Activity() {
                     actionButton.isEnabled = true
                     actionButton.text = "Ver vinculo"
                     actionButton.setOnClickListener { showUnpairingScreen() }
+                    startLocationTracking(LocalPairing(
+                        deviceId = response.deviceId,
+                        deviceName = response.deviceName.ifBlank { deviceName },
+                        instanceUrl = instanceUrl,
+                        pendingSynchronization = false
+                    ))
                 }
             } catch (exception: PairingApiException) {
+                Log.w(TAG, "Pareamento recusado pela instancia: ${exception.userMessage}")
                 runOnUiThread {
                     render(
                         if (exception.expired) {
@@ -342,7 +393,16 @@ class MainActivity : Activity() {
                     )
                     actionButton.isEnabled = true
                 }
+            } catch (exception: IOException) {
+                Log.e(TAG, "Falha de rede ao parear com a instancia.", exception)
+                runOnUiThread {
+                    render(
+                        uiController.failed("Nao foi possivel conectar com a instancia.")
+                    )
+                    actionButton.isEnabled = true
+                }
             } catch (exception: RuntimeException) {
+                Log.e(TAG, "Falha inesperada ao concluir o pareamento.", exception)
                 runOnUiThread {
                     render(uiController.failed("Nao foi possivel conectar com a instancia."))
                     actionButton.isEnabled = true
@@ -372,6 +432,47 @@ class MainActivity : Activity() {
             unpairingActionButton.setOnClickListener { confirmUnpairing() }
         }
         synchronizeUnpairingStatus(pairing)
+        if (!pairing.pendingSynchronization) {
+            startLocationTracking(pairing)
+        }
+        unpairingDiagnosticsButton.setOnClickListener { showDiagnosticsScreen(pairing) }
+    }
+
+    private fun showDiagnosticsScreen(pairing: LocalPairing) {
+        stopUnpairingPolling()
+        unpairingScreenActive = false
+        currentPairing = pairing
+        setContentView(buildDiagnosticsContent(pairing))
+        renderDiagnostics(diagnosticsStore.snapshot(), pairing)
+        diagnosticsRefreshButton.setOnClickListener { renderDiagnostics(diagnosticsStore.snapshot(), pairing) }
+        diagnosticsBackButton.setOnClickListener { showUnpairingScreen() }
+    }
+
+    private fun startLocationTracking(pairing: LocalPairing) {
+        if (!hasLocationPermission()) {
+            Log.i(TAG, "Solicitando permissao de localizacao para iniciar o rastreamento.")
+            requestPermissions(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ),
+                LOCATION_PERMISSION_REQUEST_CODE
+            )
+            return
+        }
+
+        Log.i(TAG, "Iniciando servico de rastreamento de localizacao para a instancia pareada.")
+        startForegroundService(LocationTrackingService.intent(
+            context = this,
+            instanceUrl = pairing.instanceUrl,
+            deviceId = pairing.deviceId,
+            agentInstanceId = agentInstanceId()
+        ))
+    }
+
+    private fun hasLocationPermission(): Boolean {
+        return checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+            checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
     }
 
     private fun cancelUnpairing() {
@@ -478,6 +579,7 @@ class MainActivity : Activity() {
                     when {
                         response.pairingStatus == "unpaired" -> {
                             stopUnpairingPolling()
+                            stopService(Intent(this, LocationTrackingService::class.java))
                             runCatching { keyStore.delete(agentInstanceId) }
                             clearLocalPairing()
                             renderUnpairing(unpairingUiController.unpaired())
@@ -569,7 +671,11 @@ class MainActivity : Activity() {
             background = bordered(0xFF471B28.toInt(), DANGER, dp(1), dp(2))
             setTextColor(0xFFFFD7D7.toInt())
         }
-        content.addView(unpairingActionButton)
+        content.addView(unpairingActionButton, bottomMargin(dp(8)))
+        unpairingDiagnosticsButton = commandButton("Abrir diagnostico").apply {
+            background = bordered(0xFF1C3248.toInt(), 0xFF7CC7F7.toInt(), dp(1), dp(2))
+        }
+        content.addView(unpairingDiagnosticsButton, bottomMargin(dp(8)))
 
         unpairingFooterStatus = footer("Nenhuma alteracao aplicada")
         root.addView(unpairingFooterStatus)
@@ -581,6 +687,89 @@ class MainActivity : Activity() {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
             ))
+        }
+    }
+
+    private fun buildDiagnosticsContent(pairing: LocalPairing): ScrollView {
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            minimumHeight = resources.displayMetrics.heightPixels
+            setBackgroundColor(SCREEN_BACKGROUND)
+        }
+        root.addView(header())
+
+        val content = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(22), dp(24), dp(22), dp(10))
+        }
+        root.addView(content, LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            0,
+            1f
+        ))
+
+        val summaryPanel = panel("Diagnostico do agente")
+        diagnosticsDeviceValue = valueRow("Dispositivo", pairing.deviceName, TEXT)
+        summaryPanel.addView(diagnosticsDeviceValue.parent as View, bottomMargin(dp(7)))
+        diagnosticsInstanceValue = valueRow("Instancia", pairing.instanceUrl, TEXT)
+        summaryPanel.addView(diagnosticsInstanceValue.parent as View)
+        content.addView(summaryPanel, bottomMargin(dp(18)))
+
+        val locationPanel = panel("Sincronizacao de localizacao")
+        diagnosticsAttemptValue = valueRow("Ultima tentativa", "-", MUTED)
+        locationPanel.addView(diagnosticsAttemptValue.parent as View, bottomMargin(dp(7)))
+        diagnosticsSuccessValue = valueRow("Ultimo sucesso", "-", MUTED)
+        locationPanel.addView(diagnosticsSuccessValue.parent as View, bottomMargin(dp(7)))
+        diagnosticsStatusValue = valueRow("Status atual", "Aguardando coleta", TEXT)
+        locationPanel.addView(diagnosticsStatusValue.parent as View, bottomMargin(dp(7)))
+        diagnosticsProviderValue = valueRow("Ultimo provedor", "-", MUTED)
+        locationPanel.addView(diagnosticsProviderValue.parent as View, bottomMargin(dp(7)))
+        diagnosticsFailureValue = valueRow("Motivo da falha", "-", MUTED)
+        locationPanel.addView(diagnosticsFailureValue.parent as View)
+        content.addView(locationPanel, bottomMargin(dp(18)))
+
+        content.addView(spacer())
+
+        diagnosticsRefreshButton = commandButton("Atualizar diagnostico")
+        content.addView(diagnosticsRefreshButton, bottomMargin(dp(8)))
+        diagnosticsBackButton = commandButton("Voltar").apply {
+            background = bordered(0xFF202B3F.toInt(), 0xFF647287.toInt(), dp(1), dp(2))
+        }
+        content.addView(diagnosticsBackButton)
+
+        diagnosticsFooterStatus = footer("Ultimo estado persistido localmente")
+        root.addView(diagnosticsFooterStatus)
+
+        return ScrollView(this).apply {
+            setBackgroundColor(SCREEN_BACKGROUND)
+            isFillViewport = true
+            addView(root, ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            ))
+        }
+    }
+
+    private fun renderDiagnostics(snapshot: LocationDiagnosticsSnapshot, pairing: LocalPairing) {
+        diagnosticsDeviceValue.text = pairing.deviceName
+        diagnosticsInstanceValue.text = pairing.instanceUrl
+        diagnosticsAttemptValue.text = formatInstant(snapshot.lastAttemptAt)
+        diagnosticsSuccessValue.text = formatInstant(snapshot.lastSuccessAt)
+        diagnosticsStatusValue.text = snapshot.status.label
+        diagnosticsStatusValue.setTextColor(diagnosticStatusColor(snapshot.status))
+        diagnosticsProviderValue.text = snapshot.provider ?: "-"
+        diagnosticsProviderValue.setTextColor(if (snapshot.provider.isNullOrBlank()) MUTED else TEXT)
+        diagnosticsFailureValue.text = snapshot.failureReason ?: "-"
+        diagnosticsFailureValue.setTextColor(
+            if (snapshot.failureReason.isNullOrBlank()) MUTED else diagnosticStatusColor(snapshot.status)
+        )
+        diagnosticsFooterStatus.text = when (snapshot.status) {
+            LocationDiagnosticStatus.SENT -> "Ultimo envio aceito pela API"
+            LocationDiagnosticStatus.SEND_FAILURE -> "Ultimo envio falhou apos coletar localizacao"
+            LocationDiagnosticStatus.LOCATION_UNAVAILABLE -> "Agente nao conseguiu obter um ponto valido"
+            LocationDiagnosticStatus.PROVIDER_UNAVAILABLE -> "Nenhum provedor de localizacao disponivel"
+            LocationDiagnosticStatus.PERMISSION_DENIED -> "Permissao de localizacao ausente no dispositivo"
+            LocationDiagnosticStatus.IDLE -> "Aguardando a primeira sincronizacao do servico"
         }
     }
 
@@ -639,6 +828,7 @@ class MainActivity : Activity() {
     }
 
     private fun persistPendingUnpairing(pairing: LocalPairing) {
+        stopService(Intent(this, LocationTrackingService::class.java))
         getPreferences(MODE_PRIVATE).edit()
             .putString("pending_unpair_device_id", pairing.deviceId)
             .putString("pending_unpair_device_name", pairing.deviceName)
@@ -930,6 +1120,21 @@ class MainActivity : Activity() {
             )
         }
 
+    private fun formatInstant(value: java.time.Instant?): String {
+        return value?.atZone(ZoneId.systemDefault())?.format(DIAGNOSTIC_DATE_TIME_FORMATTER) ?: "-"
+    }
+
+    private fun diagnosticStatusColor(status: LocationDiagnosticStatus): Int {
+        return when (status) {
+            LocationDiagnosticStatus.SENT -> SUCCESS
+            LocationDiagnosticStatus.SEND_FAILURE,
+            LocationDiagnosticStatus.LOCATION_UNAVAILABLE,
+            LocationDiagnosticStatus.PROVIDER_UNAVAILABLE,
+            LocationDiagnosticStatus.PERMISSION_DENIED -> DANGER
+            LocationDiagnosticStatus.IDLE -> MUTED
+        }
+    }
+
     private fun statusColor(state: PairingUiState): Int =
         when (state.stage) {
             PairingStage.PAIRED -> SUCCESS
@@ -968,6 +1173,7 @@ class MainActivity : Activity() {
         (value * resources.displayMetrics.density).toInt()
 
     private companion object {
+        const val TAG = "SimpleGuardAgent"
         const val SCREEN_BACKGROUND = 0xFF001021.toInt()
         const val HEADER_BACKGROUND = 0xFF000911.toInt()
         const val PANEL_BACKGROUND = 0xFF061923.toInt()
@@ -983,6 +1189,9 @@ class MainActivity : Activity() {
         const val WARNING = 0xFFFFD84D.toInt()
         const val SUCCESS = 0xFF1AFFA9.toInt()
         const val DANGER = 0xFFFF5B5B.toInt()
+        const val LOCATION_PERMISSION_REQUEST_CODE = 3101
         const val UNPAIRING_POLL_INTERVAL_MS = 3_000L
+        val DIAGNOSTIC_DATE_TIME_FORMATTER: DateTimeFormatter =
+            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
     }
 }

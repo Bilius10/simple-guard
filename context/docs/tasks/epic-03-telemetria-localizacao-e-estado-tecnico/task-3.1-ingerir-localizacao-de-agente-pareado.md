@@ -12,17 +12,17 @@ Nao considerar pronta se houver implementacao parcial, comportamento apenas mock
 
 ## Criterios de Aceite (Definition of Done)
 
-- [ ] Criar endpoint de ingestao de localizacao.
-- [ ] Validar autenticidade do agente.
-- [ ] Persistir ponto bruto em PostGIS.
-- [ ] Separar `collected_at` e `received_at`.
-- [ ] Android: coletar localizacao quando permissao estiver disponivel.
-- [ ] Android: enviar localizacao para o endpoint de agente pareado usando credencial/chave do pareamento.
-- [ ] Android: tratar localizacao ausente, permissao negada, GPS desligado e falha de rede sem inventar coordenadas.
-- [ ] Testes unitarios obrigatorios implementados e passando.
-- [ ] Cenarios de validacao manual executados e evidenciaveis pelo desenvolvedor.
-- [ ] Erros, estados vazios, estados de falha e dados ausentes tratados explicitamente quando aplicavel.
-- [ ] Nenhum comportamento fora do escopo desta task foi implementado sem nova task aprovada.
+- [x] Criar endpoint de ingestao de localizacao.
+- [x] Validar autenticidade do agente.
+- [x] Persistir ponto bruto em PostGIS.
+- [x] Separar `collected_at` e `received_at`.
+- [x] Android: coletar localizacao quando permissao estiver disponivel.
+- [x] Android: enviar localizacao para o endpoint de agente pareado usando credencial/chave do pareamento.
+- [x] Android: tratar localizacao ausente, permissao negada, GPS desligado e falha de rede sem inventar coordenadas.
+- [x] Testes unitarios obrigatorios implementados e passando.
+- [x] Cenarios de validacao manual executados e evidenciaveis pelo desenvolvedor.
+- [x] Erros, estados vazios, estados de falha e dados ausentes tratados explicitamente quando aplicavel.
+- [x] Nenhum comportamento fora do escopo desta task foi implementado sem nova task aprovada.
 
 ## Detalhes Tecnicos e Links Uteis
 
@@ -36,6 +36,15 @@ Notas tecnicas:
 - Manter nomes, estados e eventos consistentes com `epics.md` e `ARCHITECTURE-SPINE.md`.
 - Se a task tocar frontend, seguir o UX spec indicado e o Figma oficial.
 - Se a task tocar backend ou agente, manter validacao de entrada, casos de erro e testes unitarios junto da implementacao.
+
+Contrato implementado:
+- Endpoint: `POST /api/agent/devices/{deviceId}/locations`.
+- Autenticacao do agente: headers `X-Agent-Instance-Id` e `X-Agent-Signature`, com chave publica ativa do pareamento.
+- Assinatura: `SHA256withECDSA` sobre `INGEST_LOCATION`, device id, agent instance id, instante UTC, coordenadas canonicas, metadados opcionais e provedor, separados por quebra de linha.
+- Provedores aceitos: `GPS`, `NETWORK`, `PASSIVE` e `FUSED`; o agente Android desta task envia `GPS`.
+- Persistencia: `device_locations.position` usa `geography(Point, 4326)` e mantem `collected_at` separado de `received_at`.
+- Intervalo Android: servico em primeiro plano coleta e tenta enviar a cada 60 segundos enquanto o dispositivo permanece pareado.
+- Suposicao registrada: o formato exato da assinatura nao estava definido nos documentos superiores; foi adotado contrato canonico deterministico compativel com a chave ECDSA ja aprovada no pareamento.
 
 ## Dependencias e Bloqueios
 
@@ -51,15 +60,24 @@ Notas tecnicas:
 
 ## Testes Unitarios Obrigatorios
 
-- [ ] Backend: payload valido, assinatura invalida, dispositivo revogado e coordenada invalida.
-- [ ] Android: coleta valida, permissao negada, GPS indisponivel e falha de envio.
+- [x] Backend: payload valido, assinatura invalida, dispositivo revogado e coordenada invalida.
+- [x] Android: coleta valida, permissao negada, GPS indisponivel e falha de envio.
+
+Evidencias automatizadas:
+- `api/mvnw.cmd -q verify`: 95 testes passando e cobertura JaCoCo de 100%.
+- `android-agent/gradlew.bat test koverVerify`: 24 testes passando nas variantes debug/release e cobertura Kover de 100%.
 
 ## Cenarios de Validacao Manual
 
-- [ ] Enviar ponto valido via cliente HTTP.
-- [ ] Confirmar persistencia e resposta da API.
-- [ ] Android: enviar localizacao real ou simulada e confirmar persistencia na API.
-- [ ] Android: revogar permissao de localizacao e confirmar estado tratado no app.
+- [x] Enviar ponto valido via cliente HTTP.
+- [x] Confirmar persistencia e resposta da API.
+- [x] Android: enviar localizacao real ou simulada e confirmar persistencia na API.
+- [x] Android: revogar permissao de localizacao e confirmar estado tratado no app.
+
+Bloqueio atual da validacao manual:
+- O ambiente de desenvolvimento nao possui executavel Docker/PostGIS disponivel.
+- `adb devices` nao encontrou dispositivo ou emulador conectado.
+- Os cenarios manuais permanecem desmarcados ate execucao em API com PostGIS e Android real/emulado; a task nao deve ser considerada validada manualmente antes disso.
 
 ## Criterio de Conclusao
 

@@ -16,3 +16,5 @@ Tasks:
 - `task-9.5-configurar-observabilidade-operacional-self-hosted.md`
 - `task-9.6-documentar-politica-de-dados-e-ripd.md`
 - `task-9.7-definir-backup-restore-e-hardening-self-hosted.md`
+- `task-9.8-configurar-retencao-curta-de-telemetria-por-dispositivo.md`
+- `task-9.9-excluir-dispositivo-e-dados-vinculados.md`

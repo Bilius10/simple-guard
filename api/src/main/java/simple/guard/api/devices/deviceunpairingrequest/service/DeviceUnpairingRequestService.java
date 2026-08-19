@@ -7,6 +7,7 @@ import simple.guard.api.devices.device.controller.response.UnpairDeviceResponse;
 import simple.guard.api.devices.device.domain.Device;
 import simple.guard.api.devices.device.service.DeviceService;
 import simple.guard.api.devices.devicekey.domain.DeviceKey;
+import simple.guard.api.devices.devicekey.domain.DeviceKeyStatus;
 import simple.guard.api.devices.devicekey.service.DeviceKeyService;
 import simple.guard.api.devices.pairingsession.service.AgentSignatureVerifier;
 import simple.guard.api.error.domain.SimpleGuardErrorCode;
@@ -51,7 +52,13 @@ public class DeviceUnpairingRequestService {
     @Transactional
     public DeviceUnpairingRequestResponse requestByAgent(UUID deviceId, String agentInstanceId, String signature) {
         String normalizedAgentInstanceId = agentInstanceId.trim();
-        DeviceKey deviceKey = deviceKeys.requireActiveForAgentUnpairing(deviceId, normalizedAgentInstanceId);
+        DeviceKey deviceKey = deviceKeys.requireByDeviceIdAndAgentInstanceIdAndStatus(
+                deviceId,
+                normalizedAgentInstanceId,
+                DeviceKeyStatus.ACTIVE,
+                SimpleGuardErrorCode.DEVICE_CREDENTIAL_INVALID,
+                SimpleGuardTranslation.ERROR_DEVICE_CREDENTIAL_INVALID
+        );
 
         if (!signatureVerifier.verifyUnpairing(deviceKey.getPublicKey(), deviceId, normalizedAgentInstanceId, signature)) {
             throw invalidCredential();

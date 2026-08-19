@@ -9,6 +9,7 @@ web-admin/node_modules/
 web-admin/dist/
 web-admin/.angular/
 web-admin/coverage/
+/.m2/
 api/.maven-local/
 api/.m2/
 
@@ -18,6 +19,11 @@ deploy-wifi/
 # Android output
 .gradle/
 .gradle-cache/
+/.gradle-user/
+/.gradle-project-cache/
+/.gradle-project-cache-temp/
+/.android-user-home/
+/.android-cov-temp/
 android-agent/.gradle/
 android-agent/.gradle-codex-coverage/
 android-agent/.gradle-user/

@@ -52,7 +52,13 @@ class DeviceKeyRevocationTests {
 
         DeviceKeyService service = new DeviceKeyService(deviceKeys);
 
-        assertThat(service.requireActiveForTelemetry(DEVICE_ID, AGENT_INSTANCE_ID)).isSameAs(key);
+        assertThat(service.requireByDeviceIdAndAgentInstanceIdAndStatus(
+                DEVICE_ID,
+                AGENT_INSTANCE_ID,
+                DeviceKeyStatus.ACTIVE,
+                SimpleGuardErrorCode.DEVICE_CREDENTIAL_REVOKED,
+                simple.guard.api.shared.i18n.SimpleGuardTranslation.ERROR_DEVICE_CREDENTIAL_REVOKED
+        )).isSameAs(key);
     }
 
     @Test
@@ -63,7 +69,13 @@ class DeviceKeyRevocationTests {
 
         DeviceKeyService service = new DeviceKeyService(deviceKeys);
 
-        assertThatThrownBy(() -> service.requireActiveForTelemetry(DEVICE_ID, AGENT_INSTANCE_ID))
+        assertThatThrownBy(() -> service.requireByDeviceIdAndAgentInstanceIdAndStatus(
+                DEVICE_ID,
+                AGENT_INSTANCE_ID,
+                DeviceKeyStatus.ACTIVE,
+                SimpleGuardErrorCode.DEVICE_CREDENTIAL_REVOKED,
+                simple.guard.api.shared.i18n.SimpleGuardTranslation.ERROR_DEVICE_CREDENTIAL_REVOKED
+        ))
                 .isInstanceOf(SimpleGuardException.class)
                 .satisfies(exception -> assertThat(((SimpleGuardException) exception).errorCode())
                         .isEqualTo(SimpleGuardErrorCode.DEVICE_CREDENTIAL_REVOKED));

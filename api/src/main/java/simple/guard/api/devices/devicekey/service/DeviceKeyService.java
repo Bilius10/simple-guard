@@ -23,29 +23,22 @@ public class DeviceKeyService {
         this.deviceKeys = deviceKeys;
     }
 
-    public DeviceKey requireActiveForTelemetry(UUID deviceId, String agentInstanceId) {
+    public DeviceKey requireByDeviceIdAndAgentInstanceIdAndStatus(
+            UUID deviceId,
+            String agentInstanceId,
+            DeviceKeyStatus deviceKeyStatus,
+            SimpleGuardErrorCode errorCode,
+            SimpleGuardTranslation translation
+    ) {
         return deviceKeys.findByDeviceIdAndAgentInstanceIdAndStatus(
                         deviceId,
                         agentInstanceId,
-                        DeviceKeyStatus.ACTIVE
+                        deviceKeyStatus
                 )
                 .orElseThrow(() -> new SimpleGuardException(
                         HttpStatus.UNAUTHORIZED,
-                        SimpleGuardErrorCode.DEVICE_CREDENTIAL_REVOKED,
-                        SimpleGuardTranslation.ERROR_DEVICE_CREDENTIAL_REVOKED
-                ));
-    }
-
-    public DeviceKey requireActiveForAgentUnpairing(UUID deviceId, String agentInstanceId) {
-        return deviceKeys.findByDeviceIdAndAgentInstanceIdAndStatus(
-                        deviceId,
-                        agentInstanceId,
-                        DeviceKeyStatus.ACTIVE
-                )
-                .orElseThrow(() -> new SimpleGuardException(
-                        HttpStatus.UNAUTHORIZED,
-                        SimpleGuardErrorCode.DEVICE_CREDENTIAL_INVALID,
-                        SimpleGuardTranslation.ERROR_DEVICE_CREDENTIAL_INVALID
+                        errorCode,
+                        translation
                 ));
     }
 
@@ -90,5 +83,4 @@ public class DeviceKeyService {
         return revokedKeyCount;
     }
 }
-
 

@@ -28,6 +28,7 @@ kotlin {
 
 dependencies {
     testImplementation(kotlin("test"))
+    testImplementation("org.json:json:20240303")
 }
 
 kover {
@@ -45,12 +46,18 @@ kover {
                     "*AgentKeyStore*",
                     "*PairingApiClient*",
                     "*PairingApiException*",
-                    "*CompletePairingRequest*",
-                    "*CompletePairingResponse*",
                     "*UnpairingApiClient*",
                     "*UnpairingApiException*",
                     "*DeviceUnpairingRequestResponse*",
-                    "*AgentPairingStatusResponse*"
+                    "*AgentPairingStatusResponse*",
+                    "*AndroidLocationCollector*",
+                    "*LocationApiClient*",
+                    "*LocationApiException*",
+                    "*LocationApiSender*",
+                    "*LocationTrackingService*",
+                    "*LocationDiagnosticsStore*",
+                    "*LocationDiagnosticStatus*",
+                    "*LocationDiagnosticsSnapshot*"
                 )
             }
         }
