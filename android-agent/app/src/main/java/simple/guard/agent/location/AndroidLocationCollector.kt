@@ -1,6 +1,7 @@
 package simple.guard.agent.location
 
 import android.Manifest
+import android.annotation.TargetApi
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
@@ -78,6 +79,7 @@ class AndroidLocationCollector(context: Context) : LocationCollector {
         requestLegacyLocation(providers, index, callback)
     }
 
+    @TargetApi(Build.VERSION_CODES.R)
     private fun requestModernLocation(
         providers: List<LocationProviderCandidate>,
         index: Int,

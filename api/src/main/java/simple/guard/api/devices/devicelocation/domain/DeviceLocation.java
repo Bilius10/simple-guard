@@ -13,6 +13,7 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.PrecisionModel;
+import simple.guard.api.devices.devicetelemetry.controller.request.TelemetryLocationRequest;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -56,26 +57,17 @@ public class DeviceLocation {
     private OffsetDateTime receivedAt;
 
     public static DeviceLocation collected(
-            UUID id,
-            UUID deviceId,
-            BigDecimal latitude,
-            BigDecimal longitude,
-            BigDecimal accuracyMeters,
-            BigDecimal altitudeMeters,
-            BigDecimal speedMetersPerSecond,
-            String provider,
-            OffsetDateTime collectedAt,
-            OffsetDateTime receivedAt
+            UUID deviceId, UUID eventId, TelemetryLocationRequest request, OffsetDateTime receivedAt
     ) {
         return new DeviceLocation(
-                id,
+                eventId,
                 deviceId,
-                GEOMETRY_FACTORY.createPoint(new Coordinate(longitude.doubleValue(), latitude.doubleValue())),
-                accuracyMeters,
-                altitudeMeters,
-                speedMetersPerSecond,
-                provider,
-                collectedAt,
+                GEOMETRY_FACTORY.createPoint(new Coordinate(request.longitude().doubleValue(), request.latitude().doubleValue())),
+                request.accuracyMeters(),
+                request.altitudeMeters(),
+                request.speedMetersPerSecond(),
+                request.provider(),
+                request.collectedAt(),
                 receivedAt
         );
     }

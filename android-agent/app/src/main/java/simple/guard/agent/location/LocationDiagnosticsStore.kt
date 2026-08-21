@@ -17,7 +17,14 @@ data class LocationDiagnosticsSnapshot(
     val lastSuccessAt: Instant?,
     val status: LocationDiagnosticStatus,
     val provider: String?,
-    val failureReason: String?
+    val failureReason: String?,
+    val locationStatus: LocationCollectionStatus?,
+    val batteryLevelPercentage: Int?,
+    val batteryCharging: Boolean?,
+    val networkType: NetworkType?,
+    val signalStrengthDbm: Int?,
+    val fineLocationPermission: PermissionState?,
+    val coarseLocationPermission: PermissionState?
 )
 
 class LocationDiagnosticsStore(context: Context) {
@@ -42,17 +49,23 @@ class LocationDiagnosticsStore(context: Context) {
         updateStatus(LocationDiagnosticStatus.LOCATION_UNAVAILABLE, provider = provider, failureReason = reason)
     }
 
-    fun recordSendSuccess(provider: String, at: Instant = Instant.now()) {
-        preferences.edit()
+    fun recordSendSuccess(envelope: TelemetryEnvelope, at: Instant = Instant.now()) {
+        val editor = preferences.edit()
             .putLong(KEY_LAST_SUCCESS_AT, at.toEpochMilli())
             .putString(KEY_STATUS, LocationDiagnosticStatus.SENT.name)
-            .putString(KEY_PROVIDER, provider)
+            .putString(KEY_PROVIDER, envelope.location?.provider)
+            .putString(KEY_LOCATION_STATUS, envelope.locationStatus.name)
             .remove(KEY_FAILURE_REASON)
-            .apply()
+        putTechnical(editor, envelope.technical).apply()
     }
 
-    fun recordSendFailure(provider: String, reason: String) {
-        updateStatus(LocationDiagnosticStatus.SEND_FAILURE, provider = provider, failureReason = reason)
+    fun recordSendFailure(envelope: TelemetryEnvelope, reason: String) {
+        val editor = preferences.edit()
+            .putString(KEY_STATUS, LocationDiagnosticStatus.SEND_FAILURE.name)
+            .putString(KEY_PROVIDER, envelope.location?.provider)
+            .putString(KEY_LOCATION_STATUS, envelope.locationStatus.name)
+            .putString(KEY_FAILURE_REASON, reason)
+        putTechnical(editor, envelope.technical).apply()
     }
 
     fun snapshot(): LocationDiagnosticsSnapshot {
@@ -63,8 +76,28 @@ class LocationDiagnosticsStore(context: Context) {
                 ?.let { runCatching { LocationDiagnosticStatus.valueOf(it) }.getOrNull() }
                 ?: LocationDiagnosticStatus.IDLE,
             provider = preferences.getString(KEY_PROVIDER, null),
-            failureReason = preferences.getString(KEY_FAILURE_REASON, null)
+            failureReason = preferences.getString(KEY_FAILURE_REASON, null),
+            locationStatus = preferences.enumValue<LocationCollectionStatus>(KEY_LOCATION_STATUS),
+            batteryLevelPercentage = preferences.intValue(KEY_BATTERY_LEVEL),
+            batteryCharging = preferences.booleanValue(KEY_BATTERY_CHARGING),
+            networkType = preferences.enumValue<NetworkType>(KEY_NETWORK_TYPE),
+            signalStrengthDbm = preferences.intValue(KEY_SIGNAL_STRENGTH),
+            fineLocationPermission = preferences.enumValue<PermissionState>(KEY_FINE_LOCATION_PERMISSION),
+            coarseLocationPermission = preferences.enumValue<PermissionState>(KEY_COARSE_LOCATION_PERMISSION)
         )
+    }
+
+    private fun putTechnical(
+        editor: android.content.SharedPreferences.Editor,
+        technical: TechnicalTelemetryReading
+    ): android.content.SharedPreferences.Editor {
+        editor.putNullableInt(KEY_BATTERY_LEVEL, technical.batteryLevelPercentage)
+        editor.putNullableBoolean(KEY_BATTERY_CHARGING, technical.batteryCharging)
+        editor.putString(KEY_NETWORK_TYPE, technical.networkType?.name)
+        editor.putNullableInt(KEY_SIGNAL_STRENGTH, technical.signalStrengthDbm)
+        editor.putString(KEY_FINE_LOCATION_PERMISSION, technical.permissions?.fineLocation?.name)
+        editor.putString(KEY_COARSE_LOCATION_PERMISSION, technical.permissions?.coarseLocation?.name)
+        return editor
     }
 
     private fun updateStatus(
@@ -83,6 +116,32 @@ class LocationDiagnosticsStore(context: Context) {
         return if (contains(key)) Instant.ofEpochMilli(getLong(key, 0L)) else null
     }
 
+    private fun android.content.SharedPreferences.intValue(key: String): Int? {
+        return if (contains(key)) getInt(key, 0) else null
+    }
+
+    private fun android.content.SharedPreferences.booleanValue(key: String): Boolean? {
+        return if (contains(key)) getBoolean(key, false) else null
+    }
+
+    private inline fun <reified T : Enum<T>> android.content.SharedPreferences.enumValue(key: String): T? {
+        return getString(key, null)?.let { runCatching { enumValueOf<T>(it) }.getOrNull() }
+    }
+
+    private fun android.content.SharedPreferences.Editor.putNullableInt(
+        key: String,
+        value: Int?
+    ): android.content.SharedPreferences.Editor {
+        return if (value == null) remove(key) else putInt(key, value)
+    }
+
+    private fun android.content.SharedPreferences.Editor.putNullableBoolean(
+        key: String,
+        value: Boolean?
+    ): android.content.SharedPreferences.Editor {
+        return if (value == null) remove(key) else putBoolean(key, value)
+    }
+
     private companion object {
         const val PREFERENCES_NAME = "simpleguard-location-diagnostics"
         const val KEY_LAST_ATTEMPT_AT = "last_attempt_at"
@@ -90,5 +149,12 @@ class LocationDiagnosticsStore(context: Context) {
         const val KEY_STATUS = "status"
         const val KEY_PROVIDER = "provider"
         const val KEY_FAILURE_REASON = "failure_reason"
+        const val KEY_LOCATION_STATUS = "location_status"
+        const val KEY_BATTERY_LEVEL = "battery_level"
+        const val KEY_BATTERY_CHARGING = "battery_charging"
+        const val KEY_NETWORK_TYPE = "network_type"
+        const val KEY_SIGNAL_STRENGTH = "signal_strength"
+        const val KEY_FINE_LOCATION_PERMISSION = "fine_location_permission"
+        const val KEY_COARSE_LOCATION_PERMISSION = "coarse_location_permission"
     }
 }

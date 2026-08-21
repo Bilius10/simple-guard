@@ -1,97 +1,41 @@
 package simple.guard.api.devices.devicelocation.service;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import simple.guard.api.devices.devicekey.domain.DeviceKeyStatus;
-import simple.guard.api.devices.devicelocation.controller.request.CreateDeviceLocationRequest;
-import simple.guard.api.devices.devicelocation.controller.response.DeviceLocationResponse;
 import simple.guard.api.devices.devicelocation.domain.DeviceLocation;
 import simple.guard.api.devices.devicelocation.domain.DeviceLocationRepository;
-import simple.guard.api.devices.devicekey.domain.DeviceKey;
-import simple.guard.api.devices.devicekey.service.DeviceKeyService;
-import simple.guard.api.devices.pairingsession.service.AgentSignatureVerifier;
-import simple.guard.api.error.domain.SimpleGuardErrorCode;
-import simple.guard.api.error.domain.SimpleGuardException;
-import simple.guard.api.shared.i18n.SimpleGuardTranslation;
+import simple.guard.api.devices.devicelocation.domain.DeviceLocationResolution;
+import simple.guard.api.devices.devicetelemetry.controller.request.TelemetryLocationRequest;
 
-import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Service
 public class DeviceLocationService {
 
-    private final DeviceLocationRepository deviceLocations;
-    private final DeviceKeyService deviceKeys;
-    private final AgentSignatureVerifier signatureVerifier;
-    private final Clock clock;
+    private final DeviceLocationRepository locations;
 
-    public DeviceLocationService(
-            DeviceLocationRepository deviceLocations,
-            DeviceKeyService deviceKeys,
-            AgentSignatureVerifier signatureVerifier,
-            Clock clock
-    ) {
-        this.deviceLocations = deviceLocations;
-        this.deviceKeys = deviceKeys;
-        this.signatureVerifier = signatureVerifier;
-        this.clock = clock;
+    public DeviceLocationService(DeviceLocationRepository locations) {
+        this.locations = locations;
     }
 
-    @Transactional
-    public DeviceLocationResponse ingest(UUID deviceId, String agentInstanceId, String signature, CreateDeviceLocationRequest request
-    ) {
-        DeviceKey deviceKey = deviceKeys.requireByDeviceIdAndAgentInstanceIdAndStatus(
-                deviceId, agentInstanceId, DeviceKeyStatus.ACTIVE,
-                SimpleGuardErrorCode.DEVICE_CREDENTIAL_REVOKED, SimpleGuardTranslation.ERROR_DEVICE_CREDENTIAL_REVOKED
-        );
-        validateSignature(deviceKey, deviceId, agentInstanceId, signature, request);
-        DeviceLocation location = createLocation(deviceId, request);
-        return DeviceLocationResponse.from(deviceLocations.saveAndFlush(location));
-    }
-
-    private void validateSignature(
-            DeviceKey deviceKey,
+    public DeviceLocationResolution resolveLocation(
             UUID deviceId,
-            String agentInstanceId,
-            String signature,
-            CreateDeviceLocationRequest request
+            UUID eventId,
+            TelemetryLocationRequest request,
+            OffsetDateTime receivedAt
     ) {
-        boolean valid = signatureVerifier.verifyLocation(
-                deviceKey.getPublicKey(),
-                deviceId,
-                agentInstanceId,
-                request.collectedAt(),
-                request.latitude(),
-                request.longitude(),
-                request.accuracyMeters(),
-                request.altitudeMeters(),
-                request.speedMetersPerSecond(),
-                request.provider(),
-                signature
-        );
-        if (!valid) {
-            throw new SimpleGuardException(
-                    HttpStatus.UNAUTHORIZED,
-                    SimpleGuardErrorCode.DEVICE_CREDENTIAL_INVALID,
-                    SimpleGuardTranslation.ERROR_DEVICE_CREDENTIAL_INVALID
-            );
+        if (request == null) {
+            return new DeviceLocationResolution(null, false);
         }
-    }
 
-    private DeviceLocation createLocation(UUID deviceId, CreateDeviceLocationRequest request) {
-        return DeviceLocation.collected(
-                UUID.randomUUID(),
-                deviceId,
-                request.latitude(),
-                request.longitude(),
-                request.accuracyMeters(),
-                request.altitudeMeters(),
-                request.speedMetersPerSecond(),
-                request.provider(),
-                request.collectedAt(),
-                OffsetDateTime.now(clock)
+        DeviceLocation existing = locations.findById(eventId).orElse(null);
+        if (existing != null) {
+            return new DeviceLocationResolution(existing, false);
+        }
+
+        return new DeviceLocationResolution(
+                locations.saveAndFlush(DeviceLocation.collected(deviceId, eventId, request, receivedAt)),
+                true
         );
     }
 }

@@ -34,7 +34,7 @@ public class SecurityConfiguration {
                 .requestMatchers("/api/agent/pairing/complete").permitAll()
                 .requestMatchers(HttpMethod.DELETE, "/api/agent/devices/*/pairing").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/agent/devices/*/pairing").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/agent/devices/*/locations").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/agent/devices/*/telemetry").permitAll()
                 .requestMatchers("/api/devices/**").hasRole("ADMIN")
                 .anyRequest()
                 .authenticated()

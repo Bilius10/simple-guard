@@ -13,6 +13,48 @@ data class LocationReading(
     val collectedAt: Instant
 )
 
+enum class NetworkType {
+    NONE,
+    WIFI,
+    CELLULAR,
+    ETHERNET,
+    VPN,
+    OTHER
+}
+
+enum class PermissionState {
+    GRANTED,
+    DENIED
+}
+
+data class TelemetryPermissions(
+    val fineLocation: PermissionState?,
+    val coarseLocation: PermissionState?
+)
+
+data class TechnicalTelemetryReading(
+    val batteryLevelPercentage: Int?,
+    val batteryCharging: Boolean?,
+    val networkType: NetworkType?,
+    val signalStrengthDbm: Int?,
+    val permissions: TelemetryPermissions?,
+    val collectedAt: Instant
+)
+
+enum class LocationCollectionStatus {
+    COLLECTED,
+    PERMISSION_DENIED,
+    PROVIDER_UNAVAILABLE,
+    LOCATION_UNAVAILABLE
+}
+
+data class TelemetryEnvelope(
+    val eventId: String,
+    val location: LocationReading?,
+    val technical: TechnicalTelemetryReading,
+    val locationStatus: LocationCollectionStatus
+)
+
 sealed interface LocationCollectionResult {
     data class Collected(val reading: LocationReading) : LocationCollectionResult
     data object PermissionDenied : LocationCollectionResult
@@ -20,41 +62,54 @@ sealed interface LocationCollectionResult {
     data object LocationUnavailable : LocationCollectionResult
 }
 
-sealed interface LocationSendResult {
-    data object Sent : LocationSendResult
-    data object Failed : LocationSendResult
+sealed interface TelemetrySendResult {
+    data object Sent : TelemetrySendResult
+    data object Failed : TelemetrySendResult
 }
 
 sealed interface LocationSynchronizationResult {
-    data object Sent : LocationSynchronizationResult
-    data object PermissionDenied : LocationSynchronizationResult
-    data object ProviderUnavailable : LocationSynchronizationResult
-    data object LocationUnavailable : LocationSynchronizationResult
-    data object SendFailure : LocationSynchronizationResult
+    data class Sent(val locationStatus: LocationCollectionStatus) : LocationSynchronizationResult
+    data class SendFailure(val locationStatus: LocationCollectionStatus) : LocationSynchronizationResult
 }
 
 fun interface LocationCollector {
     fun collect(callback: (LocationCollectionResult) -> Unit)
 }
 
-fun interface LocationSender {
-    fun send(reading: LocationReading, callback: (LocationSendResult) -> Unit)
+fun interface TechnicalTelemetryCollector {
+    fun collect(): TechnicalTelemetryReading
 }
 
-object LocationSignaturePayload {
+fun interface LocationSender {
+    fun send(envelope: TelemetryEnvelope, callback: (TelemetrySendResult) -> Unit)
+}
 
-    fun bytes(deviceId: String, agentInstanceId: String, reading: LocationReading): ByteArray {
+object TelemetrySignaturePayload {
+
+    fun bytes(deviceId: String, agentInstanceId: String, envelope: TelemetryEnvelope): ByteArray {
+        val location = envelope.location
+        val technical = envelope.technical
         return listOf(
-            "INGEST_LOCATION",
+            "INGEST_TELEMETRY",
             deviceId,
             agentInstanceId,
-            reading.collectedAt.toString(),
-            canonical(reading.latitude),
-            canonical(reading.longitude),
-            canonical(reading.accuracyMeters),
-            canonical(reading.altitudeMeters),
-            canonical(reading.speedMetersPerSecond),
-            reading.provider
+            envelope.eventId,
+            if (location == null) "0" else "1",
+            location?.collectedAt?.toString().orEmpty(),
+            canonical(location?.latitude),
+            canonical(location?.longitude),
+            canonical(location?.accuracyMeters),
+            canonical(location?.altitudeMeters),
+            canonical(location?.speedMetersPerSecond),
+            location?.provider.orEmpty(),
+            "1",
+            technical.collectedAt.toString(),
+            technical.batteryLevelPercentage?.toString().orEmpty(),
+            technical.batteryCharging?.toString().orEmpty(),
+            technical.networkType?.name.orEmpty(),
+            technical.signalStrengthDbm?.toString().orEmpty(),
+            technical.permissions?.fineLocation?.name.orEmpty(),
+            technical.permissions?.coarseLocation?.name.orEmpty()
         ).joinToString("\n").toByteArray(Charsets.UTF_8)
     }
 

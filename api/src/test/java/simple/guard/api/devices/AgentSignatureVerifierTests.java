@@ -1,6 +1,10 @@
 package simple.guard.api.devices;
 
 import org.junit.jupiter.api.Test;
+import simple.guard.api.devices.devicetelemetry.controller.request.CreateDeviceTelemetryRequest;
+import simple.guard.api.devices.devicetelemetry.controller.request.TechnicalTelemetryRequest;
+import simple.guard.api.devices.devicetelemetry.controller.request.TelemetryLocationRequest;
+import simple.guard.api.devices.devicetelemetry.controller.request.TelemetryPermissionsRequest;
 import simple.guard.api.devices.pairingsession.service.AgentSignatureVerifier;
 
 import java.security.KeyPairGenerator;
@@ -55,38 +59,69 @@ class AgentSignatureVerifierTests {
     }
 
     @Test
-    void validatesCanonicalLocationSignatureTests() throws Exception {
+    void validatesCanonicalTelemetrySignatureTests() throws Exception {
         var keyPair = keyPairTests();
         OffsetDateTime collectedAt = OffsetDateTime.parse("2026-08-17T09:00:00-03:00");
-        byte[] payload = AgentSignatureVerifier.locationPayload(
-                DEVICE_ID,
-                AGENT_INSTANCE_ID,
-                collectedAt,
-                new BigDecimal("-23.55052000"),
-                new BigDecimal("-46.63330800"),
-                new BigDecimal("4.500"),
-                null,
-                BigDecimal.ZERO,
-                "GPS"
+        UUID eventId = UUID.fromString("00000000-0000-0000-0000-000000000602");
+        CreateDeviceTelemetryRequest request = new CreateDeviceTelemetryRequest(
+                eventId,
+                new TelemetryLocationRequest(
+                        new BigDecimal("-23.55052000"),
+                        new BigDecimal("-46.63330800"),
+                        new BigDecimal("4.500"),
+                        null,
+                        BigDecimal.ZERO,
+                        "GPS",
+                        collectedAt
+                ),
+                new TechnicalTelemetryRequest(
+                        0,
+                        false,
+                        "CELLULAR",
+                        -95,
+                        new TelemetryPermissionsRequest("GRANTED", null),
+                        collectedAt.plusSeconds(1)
+                )
         );
+        byte[] payload = AgentSignatureVerifier.telemetryPayload(DEVICE_ID, AGENT_INSTANCE_ID, request);
 
         assertThat(new String(payload, StandardCharsets.UTF_8)).isEqualTo(
-                "INGEST_LOCATION\n" + DEVICE_ID + "\n" + AGENT_INSTANCE_ID
-                        + "\n2026-08-17T12:00:00Z\n-23.55052\n-46.633308\n4.5\n\n0\nGPS"
+                "INGEST_TELEMETRY\n" + DEVICE_ID + "\n" + AGENT_INSTANCE_ID + "\n" + eventId
+                        + "\n1\n2026-08-17T12:00:00Z\n-23.55052\n-46.633308\n4.5\n\n0\nGPS"
+                        + "\n1\n2026-08-17T12:00:01Z\n0\nfalse\nCELLULAR\n-95\nGRANTED\n"
         );
-        assertThat(verifier.verifyLocation(
+        assertThat(verifier.verifyTelemetry(
                 Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded()),
                 DEVICE_ID,
                 AGENT_INSTANCE_ID,
-                collectedAt,
-                new BigDecimal("-23.55052000"),
-                new BigDecimal("-46.63330800"),
-                new BigDecimal("4.500"),
-                null,
-                BigDecimal.ZERO,
-                "GPS",
+                request,
                 signatureTests(keyPair.getPrivate(), payload)
         )).isTrue();
+    }
+
+    @Test
+    void canonicalizesMissingTelemetryBlocksAndValuesTests() {
+        UUID eventId = UUID.fromString("00000000-0000-0000-0000-000000000603");
+        CreateDeviceTelemetryRequest request = new CreateDeviceTelemetryRequest(
+                eventId,
+                null,
+                new TechnicalTelemetryRequest(
+                        null,
+                        null,
+                        null,
+                        null,
+                        new TelemetryPermissionsRequest(null, "DENIED"),
+                        OffsetDateTime.parse("2026-08-17T12:00:00Z")
+                )
+        );
+
+        assertThat(new String(
+                AgentSignatureVerifier.telemetryPayload(DEVICE_ID, AGENT_INSTANCE_ID, request),
+                StandardCharsets.UTF_8
+        )).isEqualTo(
+                "INGEST_TELEMETRY\n" + DEVICE_ID + "\n" + AGENT_INSTANCE_ID + "\n" + eventId
+                        + "\n0\n\n\n\n\n\n\n\n1\n2026-08-17T12:00:00Z\n\n\n\n\n\nDENIED"
+        );
     }
 
     private static java.security.KeyPair keyPairTests() throws Exception {

@@ -7,11 +7,16 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.pm.ServiceInfo
+import android.Manifest
+import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.util.Log
 import java.time.Instant
+import java.util.UUID
 import simple.guard.agent.MainActivity
 import simple.guard.agent.pairing.AgentKeyStore
 
@@ -37,10 +42,11 @@ class LocationTrackingService : Service() {
             return START_NOT_STICKY
         }
 
-        Log.i(TAG, "Servico de localizacao iniciado para dispositivo pareado.")
-        startForeground(NOTIFICATION_ID, notification("Preparando coleta de localizacao."))
+        Log.i(TAG, "Servico de telemetria iniciado para dispositivo pareado.")
+        startAsForeground("Preparando coleta de telemetria.")
         synchronizationService = LocationSynchronizationService(
             collector = AndroidLocationCollector(this),
+            technicalCollector = AndroidTechnicalTelemetryCollector(this),
             sender = LocationApiSender(
                 instanceUrl = instanceUrl,
                 deviceId = deviceId,
@@ -48,7 +54,8 @@ class LocationTrackingService : Service() {
                 keyStore = AgentKeyStore(),
                 apiClient = LocationApiClient(),
                 diagnosticsStore = diagnosticsStore
-            )
+            ),
+            eventIdProvider = { UUID.randomUUID().toString() }
         )
         handler.removeCallbacksAndMessages(null)
         synchronize()
@@ -70,7 +77,7 @@ class LocationTrackingService : Service() {
             if (synchronizationService !== service) {
                 return@result
             }
-            Log.i(TAG, "Resultado da sincronizacao de localizacao: $result")
+            Log.i(TAG, "Resultado da sincronizacao de telemetria: $result")
             updateNotification(statusMessage(result))
             handler.postDelayed(::synchronize, LOCATION_INTERVAL_MS)
         }
@@ -78,19 +85,39 @@ class LocationTrackingService : Service() {
 
     private fun statusMessage(result: LocationSynchronizationResult): String {
         return when (result) {
-            LocationSynchronizationResult.Sent -> "Localizacao enviada. Proxima coleta em 1 minuto."
-            LocationSynchronizationResult.PermissionDenied -> "Permissao de localizacao negada."
-            LocationSynchronizationResult.ProviderUnavailable -> "Provedores de localizacao desligados ou indisponiveis."
-            LocationSynchronizationResult.LocationUnavailable -> "Localizacao ainda indisponivel."
-            LocationSynchronizationResult.SendFailure -> "Falha de rede ao enviar localizacao. Nova tentativa em 1 minuto."
+            is LocationSynchronizationResult.Sent -> when (result.locationStatus) {
+                LocationCollectionStatus.COLLECTED -> "Telemetria e localizacao enviadas. Proxima coleta em 1 minuto."
+                else -> "Telemetria enviada sem localizacao. Proxima coleta em 1 minuto."
+            }
+            is LocationSynchronizationResult.SendFailure ->
+                "Falha de rede ao enviar telemetria. Nova tentativa em 1 minuto."
         }
     }
 
     private fun updateNotification(message: String) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
         getSystemService(NotificationManager::class.java).notify(
             NOTIFICATION_ID,
             notification(message)
         )
+    }
+
+    private fun startAsForeground(message: String) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            startForeground(NOTIFICATION_ID, notification(message))
+            return
+        }
+        var serviceTypes = ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+            checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        ) {
+            serviceTypes = serviceTypes or ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+        }
+        startForeground(NOTIFICATION_ID, notification(message), serviceTypes)
     }
 
     private fun notification(message: String): Notification {
@@ -112,10 +139,10 @@ class LocationTrackingService : Service() {
     private fun createNotificationChannel() {
         val channel = NotificationChannel(
             NOTIFICATION_CHANNEL_ID,
-            "Rastreamento de localizacao",
+            "Sincronizacao de telemetria",
             NotificationManager.IMPORTANCE_LOW
         )
-        channel.description = "Estado da coleta e envio de localizacao do agente pareado."
+        channel.description = "Estado da coleta e envio de telemetria do agente pareado."
         getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
     }
 

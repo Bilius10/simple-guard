@@ -1,6 +1,10 @@
 package simple.guard.api.devices.pairingsession.service;
 
 import org.springframework.stereotype.Component;
+import simple.guard.api.devices.devicetelemetry.controller.request.CreateDeviceTelemetryRequest;
+import simple.guard.api.devices.devicetelemetry.controller.request.TechnicalTelemetryRequest;
+import simple.guard.api.devices.devicetelemetry.controller.request.TelemetryLocationRequest;
+import simple.guard.api.devices.devicetelemetry.controller.request.TelemetryPermissionsRequest;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -24,60 +28,59 @@ public class AgentSignatureVerifier {
                 .getBytes(StandardCharsets.UTF_8);
     }
 
-    public boolean verifyLocation(
+    public boolean verifyTelemetry(
             String encodedPublicKey,
             UUID deviceId,
             String agentInstanceId,
-            OffsetDateTime collectedAt,
-            BigDecimal latitude,
-            BigDecimal longitude,
-            BigDecimal accuracyMeters,
-            BigDecimal altitudeMeters,
-            BigDecimal speedMetersPerSecond,
-            String provider,
+            CreateDeviceTelemetryRequest request,
             String encodedSignature
     ) {
-        return verify(encodedPublicKey, locationPayload(
-                deviceId,
-                agentInstanceId,
-                collectedAt,
-                latitude,
-                longitude,
-                accuracyMeters,
-                altitudeMeters,
-                speedMetersPerSecond,
-                provider
-        ), encodedSignature);
+        return verify(encodedPublicKey, telemetryPayload(deviceId, agentInstanceId, request), encodedSignature);
     }
 
-    public static byte[] locationPayload(
+    public static byte[] telemetryPayload(
             UUID deviceId,
             String agentInstanceId,
-            OffsetDateTime collectedAt,
-            BigDecimal latitude,
-            BigDecimal longitude,
-            BigDecimal accuracyMeters,
-            BigDecimal altitudeMeters,
-            BigDecimal speedMetersPerSecond,
-            String provider
+            CreateDeviceTelemetryRequest request
     ) {
+        TelemetryLocationRequest location = request.location();
+        TechnicalTelemetryRequest technical = request.technical();
+        TelemetryPermissionsRequest permissions = technical == null ? null : technical.permissions();
         return String.join(
                 "\n",
-                "INGEST_LOCATION",
+                "INGEST_TELEMETRY",
                 deviceId.toString(),
                 agentInstanceId,
-                collectedAt.toInstant().toString(),
-                canonicalNumber(latitude),
-                canonicalNumber(longitude),
-                canonicalNumber(accuracyMeters),
-                canonicalNumber(altitudeMeters),
-                canonicalNumber(speedMetersPerSecond),
-                provider
+                request.eventId().toString(),
+                location == null ? "0" : "1",
+                canonicalTimestamp(location == null ? null : location.collectedAt()),
+                canonicalNumber(location == null ? null : location.latitude()),
+                canonicalNumber(location == null ? null : location.longitude()),
+                canonicalNumber(location == null ? null : location.accuracyMeters()),
+                canonicalNumber(location == null ? null : location.altitudeMeters()),
+                canonicalNumber(location == null ? null : location.speedMetersPerSecond()),
+                location == null ? "" : location.provider(),
+                technical == null ? "0" : "1",
+                canonicalTimestamp(technical == null ? null : technical.collectedAt()),
+                canonicalValue(technical == null ? null : technical.batteryLevelPercentage()),
+                canonicalValue(technical == null ? null : technical.batteryCharging()),
+                technical == null || technical.networkType() == null ? "" : technical.networkType(),
+                canonicalValue(technical == null ? null : technical.signalStrengthDbm()),
+                permissions == null || permissions.fineLocation() == null ? "" : permissions.fineLocation(),
+                permissions == null || permissions.coarseLocation() == null ? "" : permissions.coarseLocation()
         ).getBytes(StandardCharsets.UTF_8);
+    }
+
+    private static String canonicalTimestamp(OffsetDateTime value) {
+        return value == null ? "" : value.toInstant().toString();
     }
 
     private static String canonicalNumber(BigDecimal value) {
         return value == null ? "" : value.stripTrailingZeros().toPlainString();
+    }
+
+    private static String canonicalValue(Object value) {
+        return value == null ? "" : value.toString().toLowerCase();
     }
 
     private boolean verify(String encodedPublicKey, byte[] payload, String encodedSignature) {
@@ -94,5 +97,4 @@ public class AgentSignatureVerifier {
         }
     }
 }
-
 

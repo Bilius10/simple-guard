@@ -51,6 +51,7 @@ kover {
                     "*DeviceUnpairingRequestResponse*",
                     "*AgentPairingStatusResponse*",
                     "*AndroidLocationCollector*",
+                    "*AndroidTechnicalTelemetryCollector*",
                     "*LocationApiClient*",
                     "*LocationApiException*",
                     "*LocationApiSender*",

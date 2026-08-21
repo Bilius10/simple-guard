@@ -284,6 +284,9 @@ O PDF deve separar:
 - Persistir payload bruto validado quando necessario para auditoria.
 - Dados ausentes devem ser `null`, nao `0` ou valor inventado.
 - Eventos criticos devem ser append-only.
+- A ingestao do agente deve usar um unico envelope por ciclo, identificado por `eventId`, aceitando os blocos opcionais `location` e `technical`.
+- O mesmo `eventId` deve garantir idempotencia em `device_locations` e `device_telemetry` sem misturar dados geoespaciais e tecnicos na mesma tabela.
+- Ao menos um bloco do envelope deve estar presente; falha de localizacao nao deve impedir a ingestao do estado tecnico.
 
 ## 9. API Inicial
 
@@ -309,7 +312,7 @@ O PDF deve separar:
 ### Agente Android
 
 - `POST /api/agent/pairing/complete`
-- `POST /api/agent/telemetry`
+- `POST /api/agent/devices/{deviceId}/telemetry`
 - `GET /api/agent/commands/pending`
 - `POST /api/agent/commands/{commandId}/events`
 - `POST /api/agent/health`

@@ -3,8 +3,8 @@ package simple.guard.agent.pairing
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
-import simple.guard.agent.location.LocationReading
-import simple.guard.agent.location.LocationSignaturePayload
+import simple.guard.agent.location.TelemetryEnvelope
+import simple.guard.agent.location.TelemetrySignaturePayload
 import java.security.KeyPairGenerator
 import java.security.KeyStore
 import java.security.PrivateKey
@@ -41,8 +41,8 @@ class AgentKeyStore {
         return sign(agentInstanceId, "UNPAIR_DEVICE\n$deviceId\n$agentInstanceId".toByteArray(Charsets.UTF_8))
     }
 
-    fun signLocation(agentInstanceId: String, deviceId: String, reading: LocationReading): String {
-        return sign(agentInstanceId, LocationSignaturePayload.bytes(deviceId, agentInstanceId, reading))
+    fun signTelemetry(agentInstanceId: String, deviceId: String, envelope: TelemetryEnvelope): String {
+        return sign(agentInstanceId, TelemetrySignaturePayload.bytes(deviceId, agentInstanceId, envelope))
     }
 
     private fun sign(agentInstanceId: String, payload: ByteArray): String {

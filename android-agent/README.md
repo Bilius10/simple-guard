@@ -49,26 +49,36 @@ O agente chama `DELETE /api/agent/devices/{deviceId}/pairing` com os headers:
 
 A assinatura usa `SHA256withECDSA` sobre `UNPAIR_DEVICE\n{deviceId}\n{agentInstanceId}`. A chave privada nunca sai do Android Keystore.
 
-## Envio de localizacao
+## Envio de telemetria
 
-O agente chama `POST /api/agent/devices/{deviceId}/locations` com os headers:
+O agente chama `POST /api/agent/devices/{deviceId}/telemetry` uma vez por ciclo, com os headers:
 
 - `X-Agent-Instance-Id`
 - `X-Agent-Signature`
 
-O corpo contem latitude, longitude, precisao, altitude e velocidade quando disponiveis, provedor e `collectedAt`. Campos ausentes nao recebem valores artificiais.
+O corpo usa um `eventId` idempotente e blocos `location` e `technical`. O bloco tecnico contem bateria, estado de carregamento, tipo de rede, sinal em dBm, permissoes de localizacao e `collectedAt`. Campos indisponiveis sao enviados explicitamente como `null`; bateria em `0%` permanece um valor valido. A ausencia de localizacao nao impede o envio tecnico.
 
 A assinatura usa `SHA256withECDSA` sobre o payload canonico:
 
 ```text
-INGEST_LOCATION
+INGEST_TELEMETRY
 {deviceId}
 {agentInstanceId}
-{collectedAt em UTC}
+{eventId}
+{1 se location existe; 0 caso contrario}
+{location.collectedAt em UTC ou vazio}
 {latitude canonica}
 {longitude canonica}
 {accuracyMeters ou vazio}
 {altitudeMeters ou vazio}
 {speedMetersPerSecond ou vazio}
-{provider}
+{provider ou vazio}
+{1 se technical existe; 0 caso contrario}
+{technical.collectedAt em UTC ou vazio}
+{batteryLevelPercentage ou vazio}
+{batteryCharging ou vazio}
+{networkType ou vazio}
+{signalStrengthDbm ou vazio}
+{fineLocationPermission ou vazio}
+{coarseLocationPermission ou vazio}
 ```

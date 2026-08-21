@@ -87,8 +87,15 @@ class MainActivity : Activity() {
     private lateinit var diagnosticsAttemptValue: TextView
     private lateinit var diagnosticsSuccessValue: TextView
     private lateinit var diagnosticsStatusValue: TextView
+    private lateinit var diagnosticsLocationStatusValue: TextView
     private lateinit var diagnosticsProviderValue: TextView
     private lateinit var diagnosticsFailureValue: TextView
+    private lateinit var diagnosticsBatteryValue: TextView
+    private lateinit var diagnosticsChargingValue: TextView
+    private lateinit var diagnosticsNetworkValue: TextView
+    private lateinit var diagnosticsSignalValue: TextView
+    private lateinit var diagnosticsFinePermissionValue: TextView
+    private lateinit var diagnosticsCoarsePermissionValue: TextView
     private lateinit var diagnosticsInstanceValue: TextView
     private lateinit var diagnosticsDeviceValue: TextView
     private lateinit var diagnosticsRefreshButton: Button
@@ -121,6 +128,7 @@ class MainActivity : Activity() {
             startLocationTracking(pairing)
         } else {
             diagnosticsStore.recordPermissionDenied("Permissao de localizacao negada pelo usuario.")
+            launchTelemetryTracking(pairing)
             Toast.makeText(this, "Permissao de localizacao negada.", Toast.LENGTH_LONG).show()
         }
     }
@@ -461,7 +469,11 @@ class MainActivity : Activity() {
             return
         }
 
-        Log.i(TAG, "Iniciando servico de rastreamento de localizacao para a instancia pareada.")
+        launchTelemetryTracking(pairing)
+    }
+
+    private fun launchTelemetryTracking(pairing: LocalPairing) {
+        Log.i(TAG, "Iniciando servico de telemetria para a instancia pareada.")
         startForegroundService(LocationTrackingService.intent(
             context = this,
             instanceUrl = pairing.instanceUrl,
@@ -672,7 +684,7 @@ class MainActivity : Activity() {
             setTextColor(0xFFFFD7D7.toInt())
         }
         content.addView(unpairingActionButton, bottomMargin(dp(8)))
-        unpairingDiagnosticsButton = commandButton("Abrir diagnostico").apply {
+        unpairingDiagnosticsButton = commandButton("Abrir telemetria").apply {
             background = bordered(0xFF1C3248.toInt(), 0xFF7CC7F7.toInt(), dp(1), dp(2))
         }
         content.addView(unpairingDiagnosticsButton, bottomMargin(dp(8)))
@@ -708,29 +720,46 @@ class MainActivity : Activity() {
             1f
         ))
 
-        val summaryPanel = panel("Diagnostico do agente")
+        val summaryPanel = panel("Telemetria do agente")
         diagnosticsDeviceValue = valueRow("Dispositivo", pairing.deviceName, TEXT)
         summaryPanel.addView(diagnosticsDeviceValue.parent as View, bottomMargin(dp(7)))
         diagnosticsInstanceValue = valueRow("Instancia", pairing.instanceUrl, TEXT)
         summaryPanel.addView(diagnosticsInstanceValue.parent as View)
         content.addView(summaryPanel, bottomMargin(dp(18)))
 
-        val locationPanel = panel("Sincronizacao de localizacao")
+        val locationPanel = panel("Sincronizacao")
         diagnosticsAttemptValue = valueRow("Ultima tentativa", "-", MUTED)
         locationPanel.addView(diagnosticsAttemptValue.parent as View, bottomMargin(dp(7)))
         diagnosticsSuccessValue = valueRow("Ultimo sucesso", "-", MUTED)
         locationPanel.addView(diagnosticsSuccessValue.parent as View, bottomMargin(dp(7)))
         diagnosticsStatusValue = valueRow("Status atual", "Aguardando coleta", TEXT)
         locationPanel.addView(diagnosticsStatusValue.parent as View, bottomMargin(dp(7)))
+        diagnosticsLocationStatusValue = valueRow("Localizacao", "-", MUTED)
+        locationPanel.addView(diagnosticsLocationStatusValue.parent as View, bottomMargin(dp(7)))
         diagnosticsProviderValue = valueRow("Ultimo provedor", "-", MUTED)
         locationPanel.addView(diagnosticsProviderValue.parent as View, bottomMargin(dp(7)))
         diagnosticsFailureValue = valueRow("Motivo da falha", "-", MUTED)
         locationPanel.addView(diagnosticsFailureValue.parent as View)
         content.addView(locationPanel, bottomMargin(dp(18)))
 
+        val technicalPanel = panel("Estado tecnico")
+        diagnosticsBatteryValue = valueRow("Bateria", "-", MUTED)
+        technicalPanel.addView(diagnosticsBatteryValue.parent as View, bottomMargin(dp(7)))
+        diagnosticsChargingValue = valueRow("Carregamento", "-", MUTED)
+        technicalPanel.addView(diagnosticsChargingValue.parent as View, bottomMargin(dp(7)))
+        diagnosticsNetworkValue = valueRow("Rede", "-", MUTED)
+        technicalPanel.addView(diagnosticsNetworkValue.parent as View, bottomMargin(dp(7)))
+        diagnosticsSignalValue = valueRow("Sinal", "-", MUTED)
+        technicalPanel.addView(diagnosticsSignalValue.parent as View, bottomMargin(dp(7)))
+        diagnosticsFinePermissionValue = valueRow("Localizacao precisa", "-", MUTED)
+        technicalPanel.addView(diagnosticsFinePermissionValue.parent as View, bottomMargin(dp(7)))
+        diagnosticsCoarsePermissionValue = valueRow("Localizacao aproximada", "-", MUTED)
+        technicalPanel.addView(diagnosticsCoarsePermissionValue.parent as View)
+        content.addView(technicalPanel, bottomMargin(dp(18)))
+
         content.addView(spacer())
 
-        diagnosticsRefreshButton = commandButton("Atualizar diagnostico")
+        diagnosticsRefreshButton = commandButton("Atualizar telemetria")
         content.addView(diagnosticsRefreshButton, bottomMargin(dp(8)))
         diagnosticsBackButton = commandButton("Voltar").apply {
             background = bordered(0xFF202B3F.toInt(), 0xFF647287.toInt(), dp(1), dp(2))
@@ -757,15 +786,33 @@ class MainActivity : Activity() {
         diagnosticsSuccessValue.text = formatInstant(snapshot.lastSuccessAt)
         diagnosticsStatusValue.text = snapshot.status.label
         diagnosticsStatusValue.setTextColor(diagnosticStatusColor(snapshot.status))
+        diagnosticsLocationStatusValue.text = snapshot.locationStatus?.name ?: "-"
+        diagnosticsLocationStatusValue.setTextColor(if (snapshot.locationStatus == null) MUTED else TEXT)
         diagnosticsProviderValue.text = snapshot.provider ?: "-"
         diagnosticsProviderValue.setTextColor(if (snapshot.provider.isNullOrBlank()) MUTED else TEXT)
         diagnosticsFailureValue.text = snapshot.failureReason ?: "-"
         diagnosticsFailureValue.setTextColor(
             if (snapshot.failureReason.isNullOrBlank()) MUTED else diagnosticStatusColor(snapshot.status)
         )
+        diagnosticsBatteryValue.text = snapshot.batteryLevelPercentage?.let { "$it%" } ?: "-"
+        diagnosticsBatteryValue.setTextColor(when {
+            snapshot.batteryLevelPercentage == null -> MUTED
+            snapshot.batteryLevelPercentage <= 15 -> WARNING
+            else -> TEXT
+        })
+        diagnosticsChargingValue.text = snapshot.batteryCharging?.let { if (it) "Carregando" else "Descarregando" } ?: "-"
+        diagnosticsChargingValue.setTextColor(if (snapshot.batteryCharging == null) MUTED else TEXT)
+        diagnosticsNetworkValue.text = snapshot.networkType?.name ?: "-"
+        diagnosticsNetworkValue.setTextColor(if (snapshot.networkType == null) MUTED else TEXT)
+        diagnosticsSignalValue.text = snapshot.signalStrengthDbm?.let { "$it dBm" } ?: "-"
+        diagnosticsSignalValue.setTextColor(if (snapshot.signalStrengthDbm == null) MUTED else TEXT)
+        diagnosticsFinePermissionValue.text = snapshot.fineLocationPermission?.name ?: "-"
+        diagnosticsFinePermissionValue.setTextColor(if (snapshot.fineLocationPermission == null) MUTED else TEXT)
+        diagnosticsCoarsePermissionValue.text = snapshot.coarseLocationPermission?.name ?: "-"
+        diagnosticsCoarsePermissionValue.setTextColor(if (snapshot.coarseLocationPermission == null) MUTED else TEXT)
         diagnosticsFooterStatus.text = when (snapshot.status) {
             LocationDiagnosticStatus.SENT -> "Ultimo envio aceito pela API"
-            LocationDiagnosticStatus.SEND_FAILURE -> "Ultimo envio falhou apos coletar localizacao"
+            LocationDiagnosticStatus.SEND_FAILURE -> "Ultimo envio de telemetria falhou"
             LocationDiagnosticStatus.LOCATION_UNAVAILABLE -> "Agente nao conseguiu obter um ponto valido"
             LocationDiagnosticStatus.PROVIDER_UNAVAILABLE -> "Nenhum provedor de localizacao disponivel"
             LocationDiagnosticStatus.PERMISSION_DENIED -> "Permissao de localizacao ausente no dispositivo"

@@ -39,6 +39,7 @@ Notas tecnicas:
 
 Contrato implementado:
 - Endpoint: `POST /api/agent/devices/{deviceId}/locations`.
+- Evolucao posterior: a task 3.2 substituiu esta rota pelo envelope unificado `POST /api/agent/devices/{deviceId}/telemetry`, mantendo a persistencia em `device_locations`.
 - Autenticacao do agente: headers `X-Agent-Instance-Id` e `X-Agent-Signature`, com chave publica ativa do pareamento.
 - Assinatura: `SHA256withECDSA` sobre `INGEST_LOCATION`, device id, agent instance id, instante UTC, coordenadas canonicas, metadados opcionais e provedor, separados por quebra de linha.
 - Provedores aceitos: `GPS`, `NETWORK`, `PASSIVE` e `FUSED`; o agente Android desta task envia `GPS`.
