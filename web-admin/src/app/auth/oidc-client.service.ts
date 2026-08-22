@@ -3,7 +3,7 @@ import { inject, Injectable, signal } from '@angular/core';
 import { sha256 } from 'js-sha256';
 
 import { SIMPLEGUARD_AUTH_CONFIG } from './auth.config';
-import {
+import type {
   AuthState,
   OidcDiscoveryDocument,
   StoredTokenSet,

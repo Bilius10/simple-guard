@@ -5,7 +5,7 @@ import { vi } from 'vitest';
 import { NotificationService } from '../notifications/notification.service';
 import { DeviceApiService } from './device-api.service';
 import { DeviceRegistrationComponent } from './device-registration.component';
-import {
+import type {
   Device,
   DeviceUnpairingRequest,
   PairingSession,

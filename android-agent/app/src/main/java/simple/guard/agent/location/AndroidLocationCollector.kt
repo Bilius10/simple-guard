@@ -1,6 +1,7 @@
 package simple.guard.agent.location
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.content.Context
 import android.content.pm.PackageManager
@@ -88,41 +89,19 @@ class AndroidLocationCollector(context: Context) : LocationCollector {
         val handler = Handler(Looper.getMainLooper())
         val delivered = AtomicBoolean(false)
         val cancellation = CancellationSignal()
-        val timeout =
-            Runnable {
-                if (delivered.compareAndSet(false, true)) {
-                    cancellation.cancel()
-                    continueWithFallback(
-                        providers,
-                        index,
-                        callback,
-                        provider,
-                        "tempo limite de ${LOCATION_TIMEOUT_MS / 1000}s excedido",
-                    )
-                }
-            }
+        val timeout = modernLocationTimeout(providers, index, callback, provider, delivered, cancellation)
         handler.postDelayed(timeout, LOCATION_TIMEOUT_MS)
         try {
-            Log.i(TAG, "Tentando coletar localizacao via ${provider.contractName}.")
-            locationManager.getCurrentLocation(
-                provider.systemName,
-                cancellation,
-                applicationContext.mainExecutor,
-            ) { location ->
-                if (delivered.compareAndSet(false, true)) {
-                    handler.removeCallbacks(timeout)
-                    location?.let {
-                        Log.i(TAG, "Localizacao obtida via ${provider.contractName}.")
-                        callback(LocationCollectionResult.Collected(it.toReading(provider.contractName)))
-                    } ?: continueWithFallback(
-                        providers,
-                        index,
-                        callback,
-                        provider,
-                        "provedor retornou localizacao nula",
-                    )
-                }
-            }
+            requestModernProviderLocation(
+                providers = providers,
+                index = index,
+                callback = callback,
+                provider = provider,
+                delivered = delivered,
+                cancellation = cancellation,
+                handler = handler,
+                timeout = timeout,
+            )
         } catch (_: IllegalArgumentException) {
             handler.removeCallbacks(timeout)
             continueWithFallback(providers, index, callback, provider, "provedor nao suportado neste dispositivo")
@@ -132,6 +111,60 @@ class AndroidLocationCollector(context: Context) : LocationCollector {
         } catch (exception: RuntimeException) {
             handler.removeCallbacks(timeout)
             continueWithFallback(providers, index, callback, provider, exception.javaClass.simpleName)
+        }
+    }
+
+    private fun modernLocationTimeout(
+        providers: List<LocationProviderCandidate>,
+        index: Int,
+        callback: (LocationCollectionResult) -> Unit,
+        provider: LocationProviderCandidate,
+        delivered: AtomicBoolean,
+        cancellation: CancellationSignal,
+    ) = Runnable {
+        if (delivered.compareAndSet(false, true)) {
+            cancellation.cancel()
+            continueWithFallback(
+                providers,
+                index,
+                callback,
+                provider,
+                "tempo limite de ${LOCATION_TIMEOUT_MS / 1000}s excedido",
+            )
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.R)
+    @SuppressLint("MissingPermission")
+    private fun requestModernProviderLocation(
+        providers: List<LocationProviderCandidate>,
+        index: Int,
+        callback: (LocationCollectionResult) -> Unit,
+        provider: LocationProviderCandidate,
+        delivered: AtomicBoolean,
+        cancellation: CancellationSignal,
+        handler: Handler,
+        timeout: Runnable,
+    ) {
+        Log.i(TAG, "Tentando coletar localizacao via ${provider.contractName}.")
+        locationManager.getCurrentLocation(
+            provider.systemName,
+            cancellation,
+            applicationContext.mainExecutor,
+        ) { location ->
+            if (delivered.compareAndSet(false, true)) {
+                handler.removeCallbacks(timeout)
+                location?.let {
+                    Log.i(TAG, "Localizacao obtida via ${provider.contractName}.")
+                    callback(LocationCollectionResult.Collected(it.toReading(provider.contractName)))
+                } ?: continueWithFallback(
+                    providers,
+                    index,
+                    callback,
+                    provider,
+                    "provedor retornou localizacao nula",
+                )
+            }
         }
     }
 

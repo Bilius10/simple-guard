@@ -1,16 +1,4 @@
 {
-  "name": "simpleguard-web-admin",
-  "version": "0.0.1",
-  "private": true,
-  "scripts": {
-    "start": "ng serve",
-    "build": "ng build",
-    "test": "ng test --watch=false",
-    "test:coverage": "ng test --watch=false --coverage",
-    "lint": "eslint .",
-    "format:check": "prettier . --check",
-    "format:write": "prettier . --write"
-  },
   "dependencies": {
     "@angular/common": "22.0.8",
     "@angular/compiler": "22.0.8",
@@ -40,5 +28,17 @@
   "engines": {
     "node": "^22.22.3 || >=24.15.0 <25 || >=26.0.0",
     "npm": ">=11.0.0"
-  }
+  },
+  "name": "simpleguard-web-admin",
+  "private": true,
+  "scripts": {
+    "build": "ng build",
+    "format:check": "prettier . --check",
+    "format:write": "prettier . --write",
+    "lint": "eslint .",
+    "start": "ng serve",
+    "test": "ng test --watch=false",
+    "test:coverage": "ng test --watch=false --coverage"
+  },
+  "version": "0.0.1"
 }

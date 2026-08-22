@@ -35,8 +35,12 @@
               }
             ],
             "browser": "src/main.ts",
-            "polyfills": ["zone.js"],
-            "styles": ["src/styles.css"],
+            "polyfills": [
+              "zone.js"
+            ],
+            "styles": [
+              "src/styles.css"
+            ],
             "tsConfig": "tsconfig.app.json"
           }
         },
@@ -61,8 +65,14 @@
               "src/app/**/*.config.ts",
               "src/app/**/*.routes.ts"
             ],
-            "coverageInclude": ["src/app/**/*.ts"],
-            "coverageReporters": ["html", "lcov", "text-summary"],
+            "coverageInclude": [
+              "src/app/**/*.ts"
+            ],
+            "coverageReporters": [
+              "html",
+              "lcov",
+              "text-summary"
+            ],
             "coverageThresholds": {
               "branches": 100,
               "functions": 100,

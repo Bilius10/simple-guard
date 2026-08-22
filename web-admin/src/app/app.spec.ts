@@ -4,7 +4,7 @@ import { of, throwError } from 'rxjs';
 import { vi } from 'vitest';
 
 import { App } from './app';
-import { AuthState } from './auth/auth.models';
+import type { AuthState } from './auth/auth.models';
 import { OidcClientService } from './auth/oidc-client.service';
 import { DeviceApiService } from './devices/device-api.service';
 import { NotificationService } from './notifications/notification.service';

@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
 
-import { CriticalActionConfirmationRequest } from './critical-action.models';
+import type { CriticalActionConfirmationRequest } from './critical-action.models';
 import { CriticalActionDialogComponent } from './critical-action-dialog.component';
 
 describe('CriticalActionDialogComponentTests', () => {

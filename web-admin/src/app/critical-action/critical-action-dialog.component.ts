@@ -5,7 +5,7 @@ import {
   output,
 } from '@angular/core';
 
-import { CriticalActionConfirmationRequest } from './critical-action.models';
+import type { CriticalActionConfirmationRequest } from './critical-action.models';
 
 @Component({
   selector: 'sg-critical-action-dialog',

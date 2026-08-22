@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { of, tap } from 'rxjs';
 
 import { SIMPLEGUARD_AUTH_CONFIG } from '../auth/auth.config';
-import {
+import type {
   CreateDeviceRequest,
   Device,
   DeviceUnpairingDecisionResponse,

@@ -8,13 +8,13 @@ repos:
         stages: [pre-push]
       - id: end-of-file-fixer
         stages: [pre-push]
-      - id: mixed-line-ending
-        args: ["--fix=lf"]
-        stages: [pre-push]
       - id: check-json
         stages: [pre-push]
       - id: pretty-format-json
         args: ["--autofix", "--indent", "2"]
+        stages: [pre-push]
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
         stages: [pre-push]
       - id: check-yaml
         stages: [pre-push]

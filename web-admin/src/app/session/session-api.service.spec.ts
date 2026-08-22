@@ -6,7 +6,8 @@ import {
 import { TestBed } from '@angular/core/testing';
 
 import { SIMPLEGUARD_AUTH_CONFIG } from '../auth/auth.config';
-import { AdministratorSession, SessionApiService } from './session-api.service';
+import type { AdministratorSession } from './session-api.service';
+import { SessionApiService } from './session-api.service';
 
 describe('SessionApiServiceTests', () => {
   let http: HttpTestingController;

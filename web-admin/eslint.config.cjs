@@ -5,7 +5,7 @@ const eslintConfigPrettier = require('eslint-config-prettier');
 
 module.exports = tseslint.config(
   {
-    ignores: ['dist/**', 'coverage/**'],
+    ignores: ['dist/**', 'coverage/**', '.angular/**'],
   },
   {
     files: ['**/*.ts'],
@@ -32,7 +32,24 @@ module.exports = tseslint.config(
           style: 'camelCase',
         },
       ],
-      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        {
+          prefer: 'type-imports',
+          fixStyle: 'separate-type-imports',
+        },
+      ],
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
+      curly: ['error', 'all'],
+      eqeqeq: ['error', 'always'],
+      'no-console': ['error', { allow: ['warn', 'error'] }],
     },
   },
   {

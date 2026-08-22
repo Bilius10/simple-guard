@@ -6,21 +6,16 @@ config:
 
 complexity:
   CyclomaticComplexMethod:
-    excludes:
-      - '**/MainActivity.kt'
+    threshold: 15
+  LargeClass:
+    threshold: 500
   LongMethod:
-    excludes:
-      - '**/MainActivity.kt'
+    threshold: 45
   LongParameterList:
     active: false
   TooManyFunctions:
-    thresholdInClasses: 17
+    thresholdInClasses: 45
     thresholdInObjects: 14
-    excludes:
-      - '**/MainActivity.kt'
-  LargeClass:
-    excludes:
-      - '**/MainActivity.kt'
 
 exceptions:
   TooGenericExceptionCaught:

@@ -1,7 +1,7 @@
+import type { OnInit } from '@angular/core';
 import {
   ChangeDetectionStrategy,
   Component,
-  OnInit,
   inject,
   signal,
 } from '@angular/core';
@@ -9,17 +9,15 @@ import { firstValueFrom } from 'rxjs';
 
 import { OidcClientService } from './auth/oidc-client.service';
 import { CriticalActionDialogComponent } from './critical-action/critical-action-dialog.component';
-import {
+import type {
   CriticalActionConfirmationEvent,
   CriticalActionConfirmationRequest,
 } from './critical-action/critical-action.models';
 import { DeviceRegistrationComponent } from './devices/device-registration.component';
 import { NotificationContainerComponent } from './notifications/notification-container.component';
 import { NotificationService } from './notifications/notification.service';
-import {
-  AdministratorSession,
-  SessionApiService,
-} from './session/session-api.service';
+import type { AdministratorSession } from './session/session-api.service';
+import { SessionApiService } from './session/session-api.service';
 import { apiErrorMessage } from './shared/api-error-message';
 
 @Component({

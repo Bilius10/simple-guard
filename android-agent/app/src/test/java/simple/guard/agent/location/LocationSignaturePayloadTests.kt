@@ -96,7 +96,18 @@ class LocationSignaturePayloadTests {
 
         val signed = SignedTelemetryEnvelope("signature", envelope)
 
+        val copy = signed.copy(signature = "other-signature")
+        val (signature, copiedEnvelope) = signed
+
         assertEquals("signature", signed.signature)
         assertEquals(envelope, signed.envelope)
+        assertEquals("signature", signature)
+        assertEquals(envelope, copiedEnvelope)
+        assertEquals("other-signature", copy.signature)
+        assertEquals(envelope, copy.envelope)
+        assertEquals(
+            "SignedTelemetryEnvelope(signature=signature, envelope=$envelope)",
+            signed.toString(),
+        )
     }
 }

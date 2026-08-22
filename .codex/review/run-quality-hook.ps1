@@ -120,4 +120,3 @@ switch ("${WorkingDirectory}:${Check}") {
         exit 1
     }
 }
-

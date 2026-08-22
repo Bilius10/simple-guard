@@ -47,41 +47,56 @@ dependencies {
 
 kover {
     reports {
-        filters {
-            excludes {
-                classes(
-                    "*.BuildConfig",
-                    "*.Manifest",
-                    "*.Manifest.*",
-                    "*.R",
-                    "*.R.*",
-                    "*MainActivity*",
-                    "*LocalPairing*",
-                    "*AgentKeyStore*",
-                    "*PairingApiClient*",
-                    "*PairingApiException*",
-                    "*UnpairingApiClient*",
-                    "*UnpairingApiException*",
-                    "*DeviceUnpairingRequestResponse*",
-                    "*AgentPairingStatusResponse*",
-                    "*AndroidLocationCollector*",
-                    "*AndroidTechnicalTelemetryCollector*",
-                    "*LocationApiClient*",
-                    "*LocationApiException*",
-                    "*LocationApiSender*",
-                    "*FileTelemetryOfflineQueue*",
-                    "*TelemetryJsonCodec*",
-                    "*LocationTrackingService*",
-                    "*LocationDiagnosticsStore*",
-                    "*LocationDiagnosticStatus*",
-                    "*LocationDiagnosticsSnapshot*",
-                )
+        variant("debug") {
+            filters {
+                excludes {
+                    classes(
+                        "*.BuildConfig",
+                        "*.Manifest",
+                        "*.Manifest.*",
+                        "*.R",
+                        "*.R.*",
+                        "*MainActivity*",
+                        "*LocalPairing*",
+                        "*AgentKeyStore*",
+                        "*PairingApiClient*",
+                        "*PairingApiException*",
+                        "*UnpairingApiClient*",
+                        "*UnpairingApiException*",
+                        "*DeviceUnpairingRequestResponse*",
+                        "*AgentPairingStatusResponse*",
+                        "*AndroidLocationCollector*",
+                        "*AndroidTechnicalTelemetryCollector*",
+                        "*LocationApiClient*",
+                        "*LocationApiException*",
+                        "*LocationApiSender*",
+                        "*FileTelemetryOfflineQueue*",
+                        "*TelemetryJsonCodec*",
+                        "*LocationTrackingService*",
+                        "*LocationDiagnosticsStore*",
+                        "*LocationDiagnosticStatus*",
+                        "*LocationDiagnosticsSnapshot*",
+                        "*AgentPreferencesStore*",
+                        "*AgentScreenTheme*",
+                        "*BaseScreenFactory*",
+                        "*WelcomeScreenFactory*",
+                        "*PairingScreenFactory*",
+                        "*PairingScreenRenderer*",
+                        "*PairingScreenViews*",
+                        "*UnpairingScreenFactory*",
+                        "*UnpairingScreenRenderer*",
+                        "*UnpairingScreenViews*",
+                        "*DiagnosticsScreenFactory*",
+                        "*DiagnosticsScreenRenderer*",
+                        "*DiagnosticsScreenViews*",
+                    )
+                }
             }
-        }
 
-        verify {
-            rule {
-                minBound(100)
+            verify {
+                rule {
+                    minBound(100)
+                }
             }
         }
     }

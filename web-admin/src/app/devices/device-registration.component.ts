@@ -1,9 +1,8 @@
 import { DatePipe } from '@angular/common';
+import type { OnDestroy, OnInit } from '@angular/core';
 import {
   ChangeDetectionStrategy,
   Component,
-  OnDestroy,
-  OnInit,
   inject,
   signal,
 } from '@angular/core';
@@ -16,11 +15,11 @@ import {
 import { firstValueFrom } from 'rxjs';
 
 import { CriticalActionDialogComponent } from '../critical-action/critical-action-dialog.component';
-import { CriticalActionConfirmationRequest } from '../critical-action/critical-action.models';
+import type { CriticalActionConfirmationRequest } from '../critical-action/critical-action.models';
 import { NotificationService } from '../notifications/notification.service';
 import { apiErrorMessage } from '../shared/api-error-message';
 import { DeviceApiService } from './device-api.service';
-import {
+import type {
   CreateDeviceRequest,
   Device,
   DevicePlatform,

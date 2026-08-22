@@ -7,7 +7,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { SIMPLEGUARD_AUTH_CONFIG } from '../auth/auth.config';
 import { DeviceApiService } from './device-api.service';
-import {
+import type {
   CreateDeviceRequest,
   Device,
   DeviceUnpairingRequest,

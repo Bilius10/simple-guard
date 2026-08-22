@@ -16,10 +16,14 @@ class TestNamingConventionTests {
   private static final Path TEST_SOURCE_ROOT = Path.of("src", "test", "java");
   private static final Pattern TYPE_DECLARATION =
       Pattern.compile(
-          "\\b(?:public\\s+|protected\\s+|private\\s+)?(?:final\\s+|abstract\\s+)?(?:class|interface|enum|record)\\s+(\\w+)");
+          "\\b(?:public\\s+|protected\\s+|private\\s+)?"
+              + "(?:final\\s+|abstract\\s+)?"
+              + "(?:class|interface|enum|record)\\s+(\\w+)");
   private static final Pattern TEST_METHOD_DECLARATION =
       Pattern.compile(
-          "@Test\\s+(?:\\R\\s*)+(?:public\\s+|protected\\s+|private\\s+)?(?:final\\s+)?(?:void|[\\w<>?,\\s]+)\\s+(\\w+)\\s*\\(");
+          "@Test\\s+(?:\\R\\s*)+"
+              + "(?:public\\s+|protected\\s+|private\\s+)?"
+              + "(?:final\\s+)?(?:void|[\\w<>?,\\s]+)\\s+(\\w+)\\s*\\(");
 
   @Test
   void testClassesAndMethodsEndWithTestsTests() throws IOException {

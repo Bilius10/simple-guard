@@ -47,7 +47,7 @@ class DeviceLocationServiceTests {
     DeviceLocationResolution resolution =
         service.resolveLocation(DEVICE_ID, EVENT_ID, request, RECEIVED_AT);
 
-    assertThat(resolution.location()).isSameAs(existing);
+    assertThat(resolution.location()).isEqualTo(existing);
     assertThat(resolution.created()).isFalse();
     verify(locations).findById(EVENT_ID);
   }
