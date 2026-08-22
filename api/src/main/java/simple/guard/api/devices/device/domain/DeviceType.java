@@ -6,5 +6,3 @@ public enum DeviceType {
     DESKTOP,
     OTHER
 }
-
-

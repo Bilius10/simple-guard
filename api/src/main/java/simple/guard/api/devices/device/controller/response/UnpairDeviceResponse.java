@@ -10,5 +10,3 @@ public record UnpairDeviceResponse(
         OffsetDateTime unpairedAt
 ) {
 }
-
-

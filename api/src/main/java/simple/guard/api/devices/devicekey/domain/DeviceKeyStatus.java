@@ -4,5 +4,3 @@ public enum DeviceKeyStatus {
     ACTIVE,
     REVOKED
 }
-
-

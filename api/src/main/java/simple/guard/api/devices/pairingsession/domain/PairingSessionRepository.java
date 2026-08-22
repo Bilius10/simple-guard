@@ -28,5 +28,3 @@ public interface PairingSessionRepository extends JpaRepository<PairingSession, 
 
     Optional<PairingSession> findByCodeHash(String codeHash);
 }
-
-

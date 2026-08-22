@@ -65,5 +65,3 @@ class ApiSecurityErrorHandlerTests {
         assertThat(body.get("data").asText()).isNotBlank();
     }
 }
-
-

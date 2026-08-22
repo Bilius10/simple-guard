@@ -26,5 +26,3 @@ public class PairingCodeHasher {
         return pairingCode.trim().replace("-", "").toUpperCase(Locale.ROOT);
     }
 }
-
-

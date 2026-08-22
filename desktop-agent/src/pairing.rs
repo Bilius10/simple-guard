@@ -278,13 +278,14 @@ mod tests {
 
     #[test]
     fn creates_local_identity_from_platform_and_machine_seed_tests() {
-        let identity = DesktopAgentIdentity::from_local_seed(
-            DesktopPlatform::Macos,
-            "Joao Vitor MacBook Pro",
-        )
-        .expect("valid identity");
+        let identity =
+            DesktopAgentIdentity::from_local_seed(DesktopPlatform::Macos, "Joao Vitor MacBook Pro")
+                .expect("valid identity");
 
-        assert_eq!("desktop-macos-joao-vitor-macbook-pro", identity.agent_instance_id());
+        assert_eq!(
+            "desktop-macos-joao-vitor-macbook-pro",
+            identity.agent_instance_id()
+        );
     }
 
     #[test]

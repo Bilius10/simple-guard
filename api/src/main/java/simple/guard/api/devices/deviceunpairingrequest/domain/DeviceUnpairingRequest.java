@@ -80,5 +80,3 @@ public class DeviceUnpairingRequest {
         this.decidedAt = decidedAt;
     }
 }
-
-

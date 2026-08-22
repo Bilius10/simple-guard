@@ -23,5 +23,3 @@ public class PairingCodeGenerator {
         return code.toString();
     }
 }
-
-

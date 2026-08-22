@@ -16,5 +16,3 @@ public record CreateDeviceRequest(
         DevicePlatform platform
 ) {
 }
-
-

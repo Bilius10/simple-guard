@@ -14,5 +14,3 @@ public enum DevicePairingStatus {
         return apiValue;
     }
 }
-
-

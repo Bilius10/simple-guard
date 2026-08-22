@@ -139,7 +139,9 @@ fn user_message_from_api_error(status: u16, body: &str) -> String {
         }
         Some("PAIRING_CODE_INVALID") => "Codigo de pareamento invalido.".to_owned(),
         Some("PAIRING_CODE_EXPIRED") => "Codigo de pareamento expirado.".to_owned(),
-        Some("DEVICE_CREDENTIAL_INVALID") => "A instancia recusou a credencial deste agente.".to_owned(),
+        Some("DEVICE_CREDENTIAL_INVALID") => {
+            "A instancia recusou a credencial deste agente.".to_owned()
+        }
         _ => extract_json_string_field(body, "mensagem")
             .or_else(|| extract_json_string_field(body, "message"))
             .unwrap_or_else(|| format!("API retornou HTTP {}", status)),

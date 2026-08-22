@@ -46,5 +46,3 @@ public class DeviceUnpairingRequestController {
         return (Account) authentication.getDetails();
     }
 }
-
-

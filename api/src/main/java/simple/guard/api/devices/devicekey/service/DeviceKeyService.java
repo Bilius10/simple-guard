@@ -83,4 +83,3 @@ public class DeviceKeyService {
         return revokedKeyCount;
     }
 }
-

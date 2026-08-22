@@ -21,4 +21,3 @@ public interface DeviceKeyRepository extends JpaRepository<DeviceKey, UUID> {
             String agentInstanceId
     );
 }
-

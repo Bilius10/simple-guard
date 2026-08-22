@@ -144,5 +144,3 @@ class AgentSignatureVerifierTests {
         return Base64.getEncoder().encodeToString(signature.sign());
     }
 }
-
-

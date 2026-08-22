@@ -19,5 +19,3 @@ public class AccountService {
         return accounts.findBySubjectAndActive(subject, true);
     }
 }
-
-

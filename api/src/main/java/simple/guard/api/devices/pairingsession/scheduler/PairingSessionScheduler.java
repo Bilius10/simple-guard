@@ -18,5 +18,3 @@ public class PairingSessionScheduler {
         pairingSessionService.expireElapsedSessions();
     }
 }
-
-

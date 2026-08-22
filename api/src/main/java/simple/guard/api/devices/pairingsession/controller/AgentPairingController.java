@@ -30,5 +30,3 @@ public class AgentPairingController {
                 .body(pairingSessionService.complete(request));
     }
 }
-
-

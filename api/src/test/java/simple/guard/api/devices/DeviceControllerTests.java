@@ -306,5 +306,3 @@ class DeviceControllerTests {
         }
     }
 }
-
-

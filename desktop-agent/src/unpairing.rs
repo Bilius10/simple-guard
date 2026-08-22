@@ -139,7 +139,10 @@ mod tests {
         );
         assert_eq!(
             b"UNPAIR_DEVICE\ndevice-001\ndesktop-agent-001",
-            identity.signature_payload().expect("valid payload").as_slice()
+            identity
+                .signature_payload()
+                .expect("valid payload")
+                .as_slice()
         );
     }
 
@@ -168,15 +171,24 @@ mod tests {
     fn rejects_incomplete_desktop_pairing_identity_tests() {
         let mut identity = valid_identity_tests();
         identity.device_id = " ".to_owned();
-        assert_eq!(DesktopUnpairingError::MissingDeviceId, identity.validate().unwrap_err());
+        assert_eq!(
+            DesktopUnpairingError::MissingDeviceId,
+            identity.validate().unwrap_err()
+        );
 
         identity = valid_identity_tests();
         identity.device_name = "".to_owned();
-        assert_eq!(DesktopUnpairingError::MissingDeviceName, identity.validate().unwrap_err());
+        assert_eq!(
+            DesktopUnpairingError::MissingDeviceName,
+            identity.validate().unwrap_err()
+        );
 
         identity = valid_identity_tests();
         identity.instance_url = "simpleguard.local".to_owned();
-        assert_eq!(DesktopUnpairingError::InvalidInstanceUrl, identity.validate().unwrap_err());
+        assert_eq!(
+            DesktopUnpairingError::InvalidInstanceUrl,
+            identity.validate().unwrap_err()
+        );
 
         identity = valid_identity_tests();
         identity.agent_instance_id = "".to_owned();

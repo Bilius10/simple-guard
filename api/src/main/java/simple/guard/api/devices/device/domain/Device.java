@@ -80,5 +80,3 @@ public class Device {
         this.pairingStatus = pairingStatus;
     }
 }
-
-

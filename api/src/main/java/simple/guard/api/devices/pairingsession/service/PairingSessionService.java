@@ -223,5 +223,3 @@ public class PairingSessionService {
         pairingSessions.saveAndFlush(session);
     }
 }
-
-

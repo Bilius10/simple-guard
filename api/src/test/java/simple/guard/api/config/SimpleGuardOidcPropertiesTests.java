@@ -60,5 +60,3 @@ class SimpleGuardOidcPropertiesTests {
     static class OidcPropertiesTestConfiguration {
     }
 }
-
-

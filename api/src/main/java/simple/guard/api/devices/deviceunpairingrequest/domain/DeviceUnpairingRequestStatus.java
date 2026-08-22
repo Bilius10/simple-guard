@@ -39,4 +39,3 @@ public enum DeviceUnpairingRequestStatus {
                         SimpleGuardTranslation.INVALID_STATUS_MESSAGE));
     }
 }
-

@@ -449,5 +449,3 @@ class AgentPairingControllerTests {
         return "public-key-" + "A".repeat(80);
     }
 }
-
-

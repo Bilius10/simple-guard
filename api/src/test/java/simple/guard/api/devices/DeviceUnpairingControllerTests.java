@@ -338,5 +338,3 @@ class DeviceUnpairingControllerTests {
         }
     }
 }
-
-

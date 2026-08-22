@@ -17,5 +17,3 @@ public record DecideDeviceUnpairingRequest(
         return status == null || status == APPROVED || status == REJECTED;
     }
 }
-
-

@@ -108,5 +108,3 @@ public class PairingSession {
         this.expiredAt = expiredAt;
     }
 }
-
-

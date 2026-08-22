@@ -18,5 +18,3 @@ public record SimpleGuardProperties(
         String publicUrl
 ) {
 }
-
-

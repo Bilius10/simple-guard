@@ -59,5 +59,3 @@ public class DeviceController {
         return (Account) authentication.getDetails();
     }
 }
-
-

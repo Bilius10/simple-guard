@@ -29,5 +29,3 @@ public interface DeviceUnpairingRequestRepository extends JpaRepository<DeviceUn
             String agentInstanceId
     );
 }
-
-

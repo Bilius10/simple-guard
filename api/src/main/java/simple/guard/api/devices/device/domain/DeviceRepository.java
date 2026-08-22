@@ -12,5 +12,3 @@ public interface DeviceRepository extends JpaRepository<Device, UUID> {
 
     Optional<Device> findByIdAndAccountId(UUID id, UUID accountId);
 }
-
-

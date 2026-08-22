@@ -46,5 +46,3 @@ public class AgentUnpairingController {
                 .body(deviceUnpairingRequests.statusForAgent(deviceId, agentInstanceId, signature));
     }
 }
-
-

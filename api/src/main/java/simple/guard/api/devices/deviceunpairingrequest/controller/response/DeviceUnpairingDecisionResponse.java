@@ -7,5 +7,3 @@ public record DeviceUnpairingDecisionResponse(
         UnpairDeviceResponse unpairing
 ) {
 }
-
-

@@ -15,5 +15,3 @@ public enum PairingSessionStatus {
         return apiValue;
     }
 }
-
-

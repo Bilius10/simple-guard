@@ -50,5 +50,3 @@ class SimpleGuardPairingPropertiesTests {
     static class PairingPropertiesTestConfigurationTests {
     }
 }
-
-
