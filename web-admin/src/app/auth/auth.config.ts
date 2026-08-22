@@ -7,12 +7,13 @@ export interface SimpleGuardAuthConfig {
   readonly apiBaseUrl: string;
 }
 
-export const SIMPLEGUARD_AUTH_CONFIG = new InjectionToken<SimpleGuardAuthConfig>('SIMPLEGUARD_AUTH_CONFIG', {
-  providedIn: 'root',
-  factory: () => ({
-    issuer: 'https://idp.localhost/realms/simpleguard',
-    clientId: 'web-admin',
-    scope: 'openid profile email',
-    apiBaseUrl: '/api',
-  }),
-});
+export const SIMPLEGUARD_AUTH_CONFIG =
+  new InjectionToken<SimpleGuardAuthConfig>('SIMPLEGUARD_AUTH_CONFIG', {
+    providedIn: 'root',
+    factory: () => ({
+      issuer: 'https://idp.localhost/realms/simpleguard',
+      clientId: 'web-admin',
+      scope: 'openid profile email',
+      apiBaseUrl: '/api',
+    }),
+  });

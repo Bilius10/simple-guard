@@ -1,4 +1,9 @@
-export type AuthStatus = 'loading' | 'login_required' | 'authenticated' | 'auth_error' | 'session_expired';
+export type AuthStatus =
+  | 'loading'
+  | 'login_required'
+  | 'authenticated'
+  | 'auth_error'
+  | 'session_expired';
 
 export interface AuthState {
   readonly status: AuthStatus;

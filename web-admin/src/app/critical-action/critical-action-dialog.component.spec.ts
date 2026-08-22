@@ -22,8 +22,12 @@ describe('CriticalActionDialogComponentTests', () => {
     fixture.detectChanges();
 
     expect(fixture.componentInstance.title()).toBe('Desparear dispositivo');
-    expect(fixture.componentInstance.confirmLabel()).toBe('Desparear dispositivo');
-    expect((fixture.nativeElement as HTMLElement).textContent).not.toContain('Ultima localizacao');
+    expect(fixture.componentInstance.confirmLabel()).toBe(
+      'Desparear dispositivo',
+    );
+    expect((fixture.nativeElement as HTMLElement).textContent).not.toContain(
+      'Ultima localizacao',
+    );
 
     fixture.componentInstance.confirm();
     fixture.componentInstance.cancel();
@@ -39,12 +43,19 @@ describe('CriticalActionDialogComponentTests', () => {
 
     expect(fixture.componentInstance.title()).toBe('Confirmar comando');
     expect(fixture.componentInstance.confirmLabel()).toBe('Processando...');
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Ultima localizacao');
-    expect((fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('.danger-action')?.disabled)
-      .toBe(true);
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain(
+      'Ultima localizacao',
+    );
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>(
+        '.danger-action',
+      )?.disabled,
+    ).toBe(true);
   });
 
-  function actionTests(actionType: CriticalActionConfirmationRequest['actionType']): CriticalActionConfirmationRequest {
+  function actionTests(
+    actionType: CriticalActionConfirmationRequest['actionType'],
+  ): CriticalActionConfirmationRequest {
     return {
       actionType,
       targetId: 'device-001',

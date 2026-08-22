@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  input,
+  output,
+} from '@angular/core';
 
 import { CriticalActionConfirmationRequest } from './critical-action.models';
 
@@ -9,7 +14,6 @@ import { CriticalActionConfirmationRequest } from './critical-action.models';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CriticalActionDialogComponent {
-
   readonly action = input.required<CriticalActionConfirmationRequest>();
   readonly errorMessage = input<string | null>(null);
   readonly busy = input(false);

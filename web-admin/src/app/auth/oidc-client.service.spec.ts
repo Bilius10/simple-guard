@@ -23,21 +23,33 @@ describe('OidcClientServiceTests', () => {
   it('loginValidoViaCallbackOidcTests', async () => {
     sessionStorage.setItem(STATE_STORAGE_KEY, 'expected-state');
     sessionStorage.setItem(VERIFIER_STORAGE_KEY, 'expected-verifier');
-    history.pushState({}, '', '/auth/callback?code=valid-code&state=expected-state');
+    history.pushState(
+      {},
+      '',
+      '/auth/callback?code=valid-code&state=expected-state',
+    );
 
-    vi.stubGlobal('fetch', vi.fn()
-      .mockResolvedValueOnce(jsonResponseTests({
-        authorization_endpoint: 'https://idp.localhost/auth',
-        token_endpoint: 'https://idp.localhost/token',
-        end_session_endpoint: 'https://idp.localhost/logout',
-      }))
-      .mockResolvedValueOnce(jsonResponseTests({
-        access_token: 'valid-access-token',
-        expires_in: 300,
-        id_token: 'valid-id-token',
-        token_type: 'Bearer',
-        scope: 'openid profile email',
-      })));
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce(
+          jsonResponseTests({
+            authorization_endpoint: 'https://idp.localhost/auth',
+            token_endpoint: 'https://idp.localhost/token',
+            end_session_endpoint: 'https://idp.localhost/logout',
+          }),
+        )
+        .mockResolvedValueOnce(
+          jsonResponseTests({
+            access_token: 'valid-access-token',
+            expires_in: 300,
+            id_token: 'valid-id-token',
+            token_type: 'Bearer',
+            scope: 'openid profile email',
+          }),
+        ),
+    );
 
     const service = TestBed.inject(OidcClientService);
     await service.initialize();
@@ -49,7 +61,11 @@ describe('OidcClientServiceTests', () => {
   });
 
   it('erroDeCredencialRetornadoPeloIdpTests', async () => {
-    history.pushState({}, '', '/auth/callback?error=access_denied&error_description=Credencial%20invalida');
+    history.pushState(
+      {},
+      '',
+      '/auth/callback?error=access_denied&error_description=Credencial%20invalida',
+    );
 
     const service = TestBed.inject(OidcClientService);
     await service.initialize();
@@ -75,7 +91,11 @@ describe('OidcClientServiceTests', () => {
   it('retornoOidcInvalidoLimpaEstadoTransienteTests', async () => {
     sessionStorage.setItem(STATE_STORAGE_KEY, 'expected-state');
     sessionStorage.setItem(VERIFIER_STORAGE_KEY, 'expected-verifier');
-    history.pushState({}, '', '/auth/callback?code=valid-code&state=wrong-state');
+    history.pushState(
+      {},
+      '',
+      '/auth/callback?code=valid-code&state=wrong-state',
+    );
 
     const service = TestBed.inject(OidcClientService);
     await service.initialize();
@@ -91,11 +111,19 @@ describe('OidcClientServiceTests', () => {
   it('falhaNaTrocaDoCodigoPorTokenExibeErroTests', async () => {
     sessionStorage.setItem(STATE_STORAGE_KEY, 'expected-state');
     sessionStorage.setItem(VERIFIER_STORAGE_KEY, 'expected-verifier');
-    history.pushState({}, '', '/auth/callback?code=valid-code&state=expected-state');
+    history.pushState(
+      {},
+      '',
+      '/auth/callback?code=valid-code&state=expected-state',
+    );
 
-    vi.stubGlobal('fetch', vi.fn()
-      .mockResolvedValueOnce(jsonResponseTests(discoveryDocumentTests()))
-      .mockResolvedValueOnce(new Response('', { status: 401 })));
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce(jsonResponseTests(discoveryDocumentTests()))
+        .mockResolvedValueOnce(new Response('', { status: 401 })),
+    );
 
     const service = TestBed.inject(OidcClientService);
     await service.initialize();
@@ -108,11 +136,14 @@ describe('OidcClientServiceTests', () => {
   });
 
   it('sessaoExpiradaArmazenadaTests', async () => {
-    sessionStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify({
-      accessToken: 'expired-access-token',
-      tokenType: 'Bearer',
-      expiresAt: Date.now() - 1000,
-    }));
+    sessionStorage.setItem(
+      TOKEN_STORAGE_KEY,
+      JSON.stringify({
+        accessToken: 'expired-access-token',
+        tokenType: 'Bearer',
+        expiresAt: Date.now() - 1000,
+      }),
+    );
 
     const service = TestBed.inject(OidcClientService);
     await service.initialize();
@@ -122,11 +153,14 @@ describe('OidcClientServiceTests', () => {
   });
 
   it('sessaoValidaArmazenadaAutenticaSemCallbackTests', async () => {
-    sessionStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify({
-      accessToken: 'stored-access-token',
-      tokenType: 'Bearer',
-      expiresAt: Date.now() + 300_000,
-    }));
+    sessionStorage.setItem(
+      TOKEN_STORAGE_KEY,
+      JSON.stringify({
+        accessToken: 'stored-access-token',
+        tokenType: 'Bearer',
+        expiresAt: Date.now() + 300_000,
+      }),
+    );
 
     const service = TestBed.inject(OidcClientService);
     await service.initialize();
@@ -146,7 +180,10 @@ describe('OidcClientServiceTests', () => {
   });
 
   it('falhaAoIniciarLoginExibeErroTests', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Keycloak indisponivel')));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockRejectedValue(new Error('Keycloak indisponivel')),
+    );
 
     const service = TestBed.inject(OidcClientService);
     await service.login();
@@ -160,7 +197,10 @@ describe('OidcClientServiceTests', () => {
   });
 
   it('falhaAoDescobrirConfiguracaoOidcExibeErroDeDiscoveryTests', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(new Response('', { status: 503 })));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValueOnce(new Response('', { status: 503 })),
+    );
 
     const service = TestBed.inject(OidcClientService);
     await service.login();
@@ -192,7 +232,12 @@ describe('OidcClientServiceTests', () => {
         search: '',
       }),
     });
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(jsonResponseTests(discoveryDocumentTests())));
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce(jsonResponseTests(discoveryDocumentTests())),
+    );
 
     const service = TestBed.inject(OidcClientService);
     await service.login();
@@ -202,12 +247,18 @@ describe('OidcClientServiceTests', () => {
     expect(authorizationUrl.origin).toBe('https://idp.localhost');
     expect(authorizationUrl.pathname).toBe('/auth');
     expect(authorizationUrl.searchParams.get('client_id')).toBe('web-admin');
-    expect(authorizationUrl.searchParams.get('redirect_uri')).toBe('https://app.localhost/auth/callback');
+    expect(authorizationUrl.searchParams.get('redirect_uri')).toBe(
+      'https://app.localhost/auth/callback',
+    );
     expect(authorizationUrl.searchParams.get('response_type')).toBe('code');
-    expect(authorizationUrl.searchParams.get('scope')).toBe('openid profile email');
+    expect(authorizationUrl.searchParams.get('scope')).toBe(
+      'openid profile email',
+    );
     expect(authorizationUrl.searchParams.get('state')).toBeTruthy();
     expect(authorizationUrl.searchParams.get('code_challenge')).toBeTruthy();
-    expect(authorizationUrl.searchParams.get('code_challenge_method')).toBe('S256');
+    expect(authorizationUrl.searchParams.get('code_challenge_method')).toBe(
+      'S256',
+    );
     expect(sessionStorage.getItem(STATE_STORAGE_KEY)).toBeTruthy();
     expect(sessionStorage.getItem(VERIFIER_STORAGE_KEY)).toBeTruthy();
   });
@@ -221,7 +272,9 @@ describe('OidcClientServiceTests', () => {
         search: '',
       }),
     });
-    const fetch = vi.fn().mockResolvedValueOnce(jsonResponseTests(discoveryDocumentTests()));
+    const fetch = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponseTests(discoveryDocumentTests()));
     vi.stubGlobal('fetch', fetch);
 
     const service = TestBed.inject(OidcClientService);
@@ -247,7 +300,12 @@ describe('OidcClientServiceTests', () => {
         return bytes;
       }),
     });
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(jsonResponseTests(discoveryDocumentTests())));
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce(jsonResponseTests(discoveryDocumentTests())),
+    );
 
     const service = TestBed.inject(OidcClientService);
     await service.login();
@@ -258,19 +316,29 @@ describe('OidcClientServiceTests', () => {
     expect(authorizationUrl.searchParams.get('code_challenge')).toBe(
       base64UrlTests(new Uint8Array(sha256.array(verifier ?? ''))),
     );
-    expect(authorizationUrl.searchParams.get('code_challenge_method')).toBe('S256');
+    expect(authorizationUrl.searchParams.get('code_challenge_method')).toBe(
+      'S256',
+    );
   });
 
   it('logoutSemEndpointFinalizaSessaoLocalTests', async () => {
-    sessionStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify({
-      accessToken: 'stored-access-token',
-      tokenType: 'Bearer',
-      expiresAt: Date.now() + 300_000,
-    }));
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(jsonResponseTests({
-      authorization_endpoint: 'https://idp.localhost/auth',
-      token_endpoint: 'https://idp.localhost/token',
-    })));
+    sessionStorage.setItem(
+      TOKEN_STORAGE_KEY,
+      JSON.stringify({
+        accessToken: 'stored-access-token',
+        tokenType: 'Bearer',
+        expiresAt: Date.now() + 300_000,
+      }),
+    );
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValueOnce(
+        jsonResponseTests({
+          authorization_endpoint: 'https://idp.localhost/auth',
+          token_endpoint: 'https://idp.localhost/token',
+        }),
+      ),
+    );
 
     const service = TestBed.inject(OidcClientService);
     await service.logout();
@@ -288,13 +356,21 @@ describe('OidcClientServiceTests', () => {
         search: '',
       }),
     });
-    sessionStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify({
-      accessToken: 'stored-access-token',
-      idToken: 'stored-id-token',
-      tokenType: 'Bearer',
-      expiresAt: Date.now() + 300_000,
-    }));
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(jsonResponseTests(discoveryDocumentTests())));
+    sessionStorage.setItem(
+      TOKEN_STORAGE_KEY,
+      JSON.stringify({
+        accessToken: 'stored-access-token',
+        idToken: 'stored-id-token',
+        tokenType: 'Bearer',
+        expiresAt: Date.now() + 300_000,
+      }),
+    );
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce(jsonResponseTests(discoveryDocumentTests())),
+    );
 
     const service = TestBed.inject(OidcClientService);
     await service.logout();
@@ -304,7 +380,9 @@ describe('OidcClientServiceTests', () => {
     expect(logoutUrl.origin).toBe('https://idp.localhost');
     expect(logoutUrl.pathname).toBe('/logout');
     expect(logoutUrl.searchParams.get('client_id')).toBe('web-admin');
-    expect(logoutUrl.searchParams.get('post_logout_redirect_uri')).toBe('https://app.localhost/');
+    expect(logoutUrl.searchParams.get('post_logout_redirect_uri')).toBe(
+      'https://app.localhost/',
+    );
     expect(logoutUrl.searchParams.get('id_token_hint')).toBe('stored-id-token');
   });
 
@@ -317,12 +395,20 @@ describe('OidcClientServiceTests', () => {
         search: '',
       }),
     });
-    sessionStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify({
-      accessToken: 'stored-access-token',
-      tokenType: 'Bearer',
-      expiresAt: Date.now() + 300_000,
-    }));
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(jsonResponseTests(discoveryDocumentTests())));
+    sessionStorage.setItem(
+      TOKEN_STORAGE_KEY,
+      JSON.stringify({
+        accessToken: 'stored-access-token',
+        tokenType: 'Bearer',
+        expiresAt: Date.now() + 300_000,
+      }),
+    );
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce(jsonResponseTests(discoveryDocumentTests())),
+    );
 
     const service = TestBed.inject(OidcClientService);
     await service.logout();
@@ -334,11 +420,19 @@ describe('OidcClientServiceTests', () => {
   it('falhaNaoMapeadaNoCallbackUsaMensagemPadraoTests', async () => {
     sessionStorage.setItem(STATE_STORAGE_KEY, 'expected-state');
     sessionStorage.setItem(VERIFIER_STORAGE_KEY, 'expected-verifier');
-    history.pushState({}, '', '/auth/callback?code=valid-code&state=expected-state');
+    history.pushState(
+      {},
+      '',
+      '/auth/callback?code=valid-code&state=expected-state',
+    );
 
-    vi.stubGlobal('fetch', vi.fn()
-      .mockResolvedValueOnce(jsonResponseTests(discoveryDocumentTests()))
-      .mockRejectedValueOnce('offline'));
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce(jsonResponseTests(discoveryDocumentTests()))
+        .mockRejectedValueOnce('offline'),
+    );
 
     const service = TestBed.inject(OidcClientService);
     await service.initialize();
@@ -385,7 +479,7 @@ function documentTests(options: {
 
 function base64UrlTests(bytes: Uint8Array): string {
   let binary = '';
-  bytes.forEach(byte => {
+  bytes.forEach((byte) => {
     binary += String.fromCharCode(byte);
   });
 

@@ -24,7 +24,6 @@ import java.time.Instant
 import java.util.UUID
 
 class LocationTrackingService : Service() {
-
     private val handler = Handler(Looper.getMainLooper())
     private var synchronizationService: OfflineTelemetrySynchronizationService? = null
     private var networkCallback: ConnectivityManager.NetworkCallback? = null
@@ -37,7 +36,11 @@ class LocationTrackingService : Service() {
         createNotificationChannel()
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    override fun onStartCommand(
+        intent: Intent?,
+        flags: Int,
+        startId: Int,
+    ): Int {
         val instanceUrl = intent?.getStringExtra(EXTRA_INSTANCE_URL)
         val deviceId = intent?.getStringExtra(EXTRA_DEVICE_ID)
         val agentInstanceId = intent?.getStringExtra(EXTRA_AGENT_INSTANCE_ID)
@@ -52,20 +55,22 @@ class LocationTrackingService : Service() {
         handler.removeCallbacksAndMessages(null)
         unregisterNetworkCallback()
         synchronizationInProgress = false
-        synchronizationService = OfflineTelemetrySynchronizationService(
-            collector = AndroidLocationCollector(this),
-            technicalCollector = AndroidTechnicalTelemetryCollector(this),
-            sender = BatchLocationApiSender(
-                instanceUrl = instanceUrl,
-                deviceId = deviceId,
-                agentInstanceId = agentInstanceId,
-                keyStore = AgentKeyStore(),
-                apiClient = BatchLocationApiClient(),
-                diagnosticsStore = diagnosticsStore
-            ),
-            queue = FileTelemetryOfflineQueue(File(filesDir, TELEMETRY_QUEUE_FILE)),
-            eventIdProvider = { UUID.randomUUID().toString() }
-        )
+        synchronizationService =
+            OfflineTelemetrySynchronizationService(
+                collector = AndroidLocationCollector(this),
+                technicalCollector = AndroidTechnicalTelemetryCollector(this),
+                sender =
+                    BatchLocationApiSender(
+                        instanceUrl = instanceUrl,
+                        deviceId = deviceId,
+                        agentInstanceId = agentInstanceId,
+                        keyStore = AgentKeyStore(),
+                        apiClient = BatchLocationApiClient(),
+                        diagnosticsStore = diagnosticsStore,
+                    ),
+                queue = FileTelemetryOfflineQueue(File(filesDir, TELEMETRY_QUEUE_FILE)),
+                eventIdProvider = { UUID.randomUUID().toString() },
+            )
         registerNetworkCallback()
         synchronize()
         return START_NOT_STICKY
@@ -114,11 +119,12 @@ class LocationTrackingService : Service() {
 
     private fun registerNetworkCallback() {
         val manager = getSystemService(ConnectivityManager::class.java)
-        val callback = object : ConnectivityManager.NetworkCallback() {
-            override fun onAvailable(network: Network) {
-                handler.post(::retryPending)
+        val callback =
+            object : ConnectivityManager.NetworkCallback() {
+                override fun onAvailable(network: Network) {
+                    handler.post(::retryPending)
+                }
             }
-        }
         manager.registerDefaultNetworkCallback(callback)
         networkCallback = callback
     }
@@ -133,14 +139,15 @@ class LocationTrackingService : Service() {
 
     private fun statusMessage(result: LocationSynchronizationResult): String {
         return when (result) {
-            is LocationSynchronizationResult.Sent -> when {
-                result.pendingEvents > 0 ->
-                    "Lote enviado; ${result.pendingEvents} eventos ainda aguardam sincronizacao."
-                result.locationStatus == LocationCollectionStatus.COLLECTED ->
-                    "Telemetria e localizacao enviadas. Proxima coleta em 1 minuto."
-                result.locationStatus == null -> "Fila offline sincronizada."
-                else -> "Telemetria enviada sem localizacao. Proxima coleta em 1 minuto."
-            }
+            is LocationSynchronizationResult.Sent ->
+                when {
+                    result.pendingEvents > 0 ->
+                        "Lote enviado; ${result.pendingEvents} eventos ainda aguardam sincronizacao."
+                    result.locationStatus == LocationCollectionStatus.COLLECTED ->
+                        "Telemetria e localizacao enviadas. Proxima coleta em 1 minuto."
+                    result.locationStatus == null -> "Fila offline sincronizada."
+                    else -> "Telemetria enviada sem localizacao. Proxima coleta em 1 minuto."
+                }
             is LocationSynchronizationResult.SendFailure ->
                 "Sem conexao: ${result.pendingEvents} eventos preservados localmente."
         }
@@ -154,7 +161,7 @@ class LocationTrackingService : Service() {
         }
         getSystemService(NotificationManager::class.java).notify(
             NOTIFICATION_ID,
-            notification(message)
+            notification(message),
         )
     }
 
@@ -173,12 +180,13 @@ class LocationTrackingService : Service() {
     }
 
     private fun notification(message: String): Notification {
-        val openApp = PendingIntent.getActivity(
-            this,
-            0,
-            Intent(this, MainActivity::class.java),
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        )
+        val openApp =
+            PendingIntent.getActivity(
+                this,
+                0,
+                Intent(this, MainActivity::class.java),
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+            )
         return Notification.Builder(this, NOTIFICATION_CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_menu_mylocation)
             .setContentTitle("SimpleGuard Agent")
@@ -189,11 +197,12 @@ class LocationTrackingService : Service() {
     }
 
     private fun createNotificationChannel() {
-        val channel = NotificationChannel(
-            NOTIFICATION_CHANNEL_ID,
-            "Sincronizacao de telemetria",
-            NotificationManager.IMPORTANCE_LOW
-        )
+        val channel =
+            NotificationChannel(
+                NOTIFICATION_CHANNEL_ID,
+                "Sincronizacao de telemetria",
+                NotificationManager.IMPORTANCE_LOW,
+            )
         channel.description = "Estado da coleta e envio de telemetria do agente pareado."
         getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
     }
@@ -212,7 +221,7 @@ class LocationTrackingService : Service() {
             context: Context,
             instanceUrl: String,
             deviceId: String,
-            agentInstanceId: String
+            agentInstanceId: String,
         ): Intent {
             return Intent(context, LocationTrackingService::class.java)
                 .putExtra(EXTRA_INSTANCE_URL, instanceUrl)

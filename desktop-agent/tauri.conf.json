@@ -1,31 +1,31 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "SimpleGuard Agent",
-  "version": "0.1.0",
-  "identifier": "br.com.simpleguard.agent.desktop",
-  "build": {
-    "frontendDist": "./app"
-  },
   "app": {
-    "withGlobalTauri": true,
-    "windows": [
-      {
-        "title": "SimpleGuard Agent",
-        "width": 520,
-        "height": 640,
-        "minWidth": 420,
-        "minHeight": 540,
-        "resizable": false,
-        "fullscreen": false,
-        "center": true
-      }
-    ],
     "security": {
       "csp": null
-    }
+    },
+    "windows": [
+      {
+        "center": true,
+        "fullscreen": false,
+        "height": 640,
+        "minHeight": 540,
+        "minWidth": 420,
+        "resizable": false,
+        "title": "SimpleGuard Agent",
+        "width": 520
+      }
+    ],
+    "withGlobalTauri": true
+  },
+  "build": {
+    "frontendDist": "./app"
   },
   "bundle": {
     "active": true,
     "targets": "all"
-  }
+  },
+  "identifier": "br.com.simpleguard.agent.desktop",
+  "productName": "SimpleGuard Agent",
+  "version": "0.1.0"
 }

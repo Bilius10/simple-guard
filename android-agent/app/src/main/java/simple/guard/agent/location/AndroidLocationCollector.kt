@@ -17,7 +17,6 @@ import java.time.Instant
 import java.util.concurrent.atomic.AtomicBoolean
 
 class AndroidLocationCollector(context: Context) : LocationCollector {
-
     private val applicationContext = context.applicationContext
     private val locationManager = applicationContext.getSystemService(LocationManager::class.java)
     private val diagnosticsStore = LocationDiagnosticsStore(applicationContext)
@@ -64,7 +63,7 @@ class AndroidLocationCollector(context: Context) : LocationCollector {
     private fun requestCurrentLocation(
         providers: List<LocationProviderCandidate>,
         index: Int,
-        callback: (LocationCollectionResult) -> Unit
+        callback: (LocationCollectionResult) -> Unit,
     ) {
         if (index >= providers.size) {
             callback(LocationCollectionResult.LocationUnavailable)
@@ -83,31 +82,32 @@ class AndroidLocationCollector(context: Context) : LocationCollector {
     private fun requestModernLocation(
         providers: List<LocationProviderCandidate>,
         index: Int,
-        callback: (LocationCollectionResult) -> Unit
+        callback: (LocationCollectionResult) -> Unit,
     ) {
         val provider = providers[index]
         val handler = Handler(Looper.getMainLooper())
         val delivered = AtomicBoolean(false)
         val cancellation = CancellationSignal()
-        val timeout = Runnable {
-            if (delivered.compareAndSet(false, true)) {
-                cancellation.cancel()
-                continueWithFallback(
-                    providers,
-                    index,
-                    callback,
-                    provider,
-                    "tempo limite de ${LOCATION_TIMEOUT_MS / 1000}s excedido"
-                )
+        val timeout =
+            Runnable {
+                if (delivered.compareAndSet(false, true)) {
+                    cancellation.cancel()
+                    continueWithFallback(
+                        providers,
+                        index,
+                        callback,
+                        provider,
+                        "tempo limite de ${LOCATION_TIMEOUT_MS / 1000}s excedido",
+                    )
+                }
             }
-        }
         handler.postDelayed(timeout, LOCATION_TIMEOUT_MS)
         try {
             Log.i(TAG, "Tentando coletar localizacao via ${provider.contractName}.")
             locationManager.getCurrentLocation(
                 provider.systemName,
                 cancellation,
-                applicationContext.mainExecutor
+                applicationContext.mainExecutor,
             ) { location ->
                 if (delivered.compareAndSet(false, true)) {
                     handler.removeCallbacks(timeout)
@@ -119,7 +119,7 @@ class AndroidLocationCollector(context: Context) : LocationCollector {
                         index,
                         callback,
                         provider,
-                        "provedor retornou localizacao nula"
+                        "provedor retornou localizacao nula",
                     )
                 }
             }
@@ -138,58 +138,64 @@ class AndroidLocationCollector(context: Context) : LocationCollector {
     private fun requestLegacyLocation(
         providers: List<LocationProviderCandidate>,
         index: Int,
-        callback: (LocationCollectionResult) -> Unit
+        callback: (LocationCollectionResult) -> Unit,
     ) {
         val provider = providers[index]
         val handler = Handler(Looper.getMainLooper())
         val delivered = AtomicBoolean(false)
         lateinit var timeout: Runnable
-        val listener = object : LocationListener {
-            override fun onLocationChanged(location: Location) {
-                if (delivered.compareAndSet(false, true)) {
-                    handler.removeCallbacks(timeout)
-                    locationManager.removeUpdates(this)
-                    Log.i(TAG, "Localizacao obtida via ${provider.contractName}.")
-                    callback(LocationCollectionResult.Collected(location.toReading(provider.contractName)))
+        val listener =
+            object : LocationListener {
+                override fun onLocationChanged(location: Location) {
+                    if (delivered.compareAndSet(false, true)) {
+                        handler.removeCallbacks(timeout)
+                        locationManager.removeUpdates(this)
+                        Log.i(TAG, "Localizacao obtida via ${provider.contractName}.")
+                        callback(LocationCollectionResult.Collected(location.toReading(provider.contractName)))
+                    }
                 }
-            }
 
-            override fun onProviderDisabled(disabledProvider: String) {
+                override fun onProviderDisabled(disabledProvider: String) {
+                    if (delivered.compareAndSet(false, true)) {
+                        handler.removeCallbacks(timeout)
+                        locationManager.removeUpdates(this)
+                        continueWithFallback(
+                            providers,
+                            index,
+                            callback,
+                            provider,
+                            "provedor ${disabledProvider.uppercase()} foi desabilitado durante a coleta",
+                        )
+                    }
+                }
+
+                @Deprecated("Required on Android 8 and 9")
+                override fun onStatusChanged(
+                    provider: String?,
+                    status: Int,
+                    extras: Bundle?,
+                ) = Unit
+            }
+        timeout =
+            Runnable {
                 if (delivered.compareAndSet(false, true)) {
-                    handler.removeCallbacks(timeout)
-                    locationManager.removeUpdates(this)
+                    locationManager.removeUpdates(listener)
                     continueWithFallback(
                         providers,
                         index,
                         callback,
                         provider,
-                        "provedor ${disabledProvider.uppercase()} foi desabilitado durante a coleta"
+                        "tempo limite de ${LOCATION_TIMEOUT_MS / 1000}s excedido",
                     )
                 }
             }
-
-            @Deprecated("Required on Android 8 and 9")
-            override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) = Unit
-        }
-        timeout = Runnable {
-            if (delivered.compareAndSet(false, true)) {
-                locationManager.removeUpdates(listener)
-                continueWithFallback(
-                    providers,
-                    index,
-                    callback,
-                    provider,
-                    "tempo limite de ${LOCATION_TIMEOUT_MS / 1000}s excedido"
-                )
-            }
-        }
         handler.postDelayed(timeout, LOCATION_TIMEOUT_MS)
         try {
             Log.i(TAG, "Tentando coletar localizacao via ${provider.contractName}.")
             locationManager.requestSingleUpdate(
                 provider.systemName,
                 listener,
-                Looper.getMainLooper()
+                Looper.getMainLooper(),
             )
         } catch (_: IllegalArgumentException) {
             handler.removeCallbacks(timeout)
@@ -208,13 +214,13 @@ class AndroidLocationCollector(context: Context) : LocationCollector {
         index: Int,
         callback: (LocationCollectionResult) -> Unit,
         provider: LocationProviderCandidate,
-        reason: String
+        reason: String,
     ) {
         val nextIndex = index + 1
         if (nextIndex < providers.size) {
             Log.w(
                 TAG,
-                "Provedor ${provider.contractName} indisponivel: $reason. Tentando ${providers[nextIndex].contractName}."
+                "Provedor ${provider.contractName} indisponivel: $reason. Tentando ${providers[nextIndex].contractName}.",
             )
             requestCurrentLocation(providers, nextIndex, callback)
             return
@@ -228,7 +234,7 @@ class AndroidLocationCollector(context: Context) : LocationCollector {
     private fun enabledProviders(): List<LocationProviderCandidate> {
         return LocationProviderPolicy.preferredProviders(
             enabledProviderNames(),
-            precisePermissionGranted = hasFineLocationPermission()
+            precisePermissionGranted = hasFineLocationPermission(),
         )
     }
 
@@ -260,23 +266,26 @@ class AndroidLocationCollector(context: Context) : LocationCollector {
         return LocationReading(
             latitude = LocationValueNormalizer.latitude(latitude),
             longitude = LocationValueNormalizer.longitude(longitude),
-            accuracyMeters = if (hasAccuracy()) {
-                LocationValueNormalizer.accuracyMeters(accuracy.toDouble())
-            } else {
-                null
-            },
-            altitudeMeters = if (hasAltitude()) {
-                LocationValueNormalizer.altitudeMeters(altitude)
-            } else {
-                null
-            },
-            speedMetersPerSecond = if (hasSpeed()) {
-                LocationValueNormalizer.speedMetersPerSecond(speed.toDouble())
-            } else {
-                null
-            },
+            accuracyMeters =
+                if (hasAccuracy()) {
+                    LocationValueNormalizer.accuracyMeters(accuracy.toDouble())
+                } else {
+                    null
+                },
+            altitudeMeters =
+                if (hasAltitude()) {
+                    LocationValueNormalizer.altitudeMeters(altitude)
+                } else {
+                    null
+                },
+            speedMetersPerSecond =
+                if (hasSpeed()) {
+                    LocationValueNormalizer.speedMetersPerSecond(speed.toDouble())
+                } else {
+                    null
+                },
             provider = providerName,
-            collectedAt = Instant.ofEpochMilli(time)
+            collectedAt = Instant.ofEpochMilli(time),
         )
     }
 

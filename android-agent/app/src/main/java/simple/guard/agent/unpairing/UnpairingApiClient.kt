@@ -9,22 +9,21 @@ data class DeviceUnpairingRequestResponse(
     val deviceId: String,
     val deviceName: String,
     val agentInstanceId: String,
-    val status: String
+    val status: String,
 )
 
 data class AgentPairingStatusResponse(
     val deviceId: String,
     val pairingStatus: String,
-    val unpairingStatus: String
+    val unpairingStatus: String,
 )
 
 class UnpairingApiClient {
-
     fun unpair(
         instanceUrl: String,
         deviceId: String,
         agentInstanceId: String,
-        signature: String
+        signature: String,
     ): DeviceUnpairingRequestResponse {
         val endpoint = URL("${instanceUrl.trimEnd('/')}/api/agent/devices/$deviceId/pairing")
         val connection = endpoint.openConnection() as HttpURLConnection
@@ -36,10 +35,11 @@ class UnpairingApiClient {
         connection.setRequestProperty("X-Agent-Signature", signature)
 
         val status = connection.responseCode
-        val body = when {
-            status in 200..299 -> connection.inputStream.bufferedReader().use { it.readText() }
-            else -> connection.errorStream?.bufferedReader()?.use { it.readText() }.orEmpty()
-        }
+        val body =
+            when {
+                status in 200..299 -> connection.inputStream.bufferedReader().use { it.readText() }
+                else -> connection.errorStream?.bufferedReader()?.use { it.readText() }.orEmpty()
+            }
         if (status !in 200..299) {
             throw UnpairingApiException.from(status, body)
         }
@@ -51,7 +51,7 @@ class UnpairingApiClient {
         instanceUrl: String,
         deviceId: String,
         agentInstanceId: String,
-        signature: String
+        signature: String,
     ): AgentPairingStatusResponse {
         val endpoint = URL("${instanceUrl.trimEnd('/')}/api/agent/devices/$deviceId/pairing")
         val connection = endpoint.openConnection() as HttpURLConnection
@@ -64,10 +64,11 @@ class UnpairingApiClient {
         connection.setRequestProperty("X-Agent-Signature", signature)
 
         val status = connection.responseCode
-        val body = when {
-            status in 200..299 -> connection.inputStream.bufferedReader().use { it.readText() }
-            else -> connection.errorStream?.bufferedReader()?.use { it.readText() }.orEmpty()
-        }
+        val body =
+            when {
+                status in 200..299 -> connection.inputStream.bufferedReader().use { it.readText() }
+                else -> connection.errorStream?.bufferedReader()?.use { it.readText() }.orEmpty()
+            }
         if (status !in 200..299) {
             throw UnpairingApiException.from(status, body)
         }
@@ -83,7 +84,7 @@ internal fun parseUnpairingRequestResponse(body: String): DeviceUnpairingRequest
         deviceId = json.optString("deviceId"),
         deviceName = json.optString("deviceName"),
         agentInstanceId = json.optString("agentInstanceId"),
-        status = json.optString("status")
+        status = json.optString("status"),
     )
 }
 
@@ -92,12 +93,11 @@ internal fun parseAgentPairingStatusResponse(body: String): AgentPairingStatusRe
     return AgentPairingStatusResponse(
         deviceId = json.optString("deviceId"),
         pairingStatus = json.optString("pairingStatus"),
-        unpairingStatus = json.optString("unpairingStatus")
+        unpairingStatus = json.optString("unpairingStatus"),
     )
 }
 
 internal object UnpairingRequestContract {
-
     fun requirePendingRequest(response: DeviceUnpairingRequestResponse): DeviceUnpairingRequestResponse {
         if (response.status != "pending") {
             throw UnpairingApiException("A instancia retornou um estado de despareamento inesperado.")
@@ -107,21 +107,25 @@ internal object UnpairingRequestContract {
 }
 
 class UnpairingApiException(val userMessage: String) : RuntimeException(userMessage) {
-
     companion object {
-        fun from(status: Int, body: String): UnpairingApiException {
+        fun from(
+            status: Int,
+            body: String,
+        ): UnpairingApiException {
             val code = runCatching { JSONObject(body).optString("erro_code") }.getOrDefault("")
-            return UnpairingApiException(when {
-                status == 401 || code == "DEVICE_CREDENTIAL_INVALID" -> {
-                    "A instancia recusou a credencial deste agente."
-                }
-                status == 404 || code == "DEVICE_NOT_FOUND" -> {
-                    "O dispositivo nao existe mais nesta instancia."
-                }
-                else -> {
-                    "A instancia nao concluiu o despareamento."
-                }
-            })
+            return UnpairingApiException(
+                when {
+                    status == 401 || code == "DEVICE_CREDENTIAL_INVALID" -> {
+                        "A instancia recusou a credencial deste agente."
+                    }
+                    status == 404 || code == "DEVICE_NOT_FOUND" -> {
+                        "O dispositivo nao existe mais nesta instancia."
+                    }
+                    else -> {
+                        "A instancia nao concluiu o despareamento."
+                    }
+                },
+            )
         }
     }
 }

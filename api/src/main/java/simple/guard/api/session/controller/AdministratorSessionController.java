@@ -11,14 +11,10 @@ import simple.guard.api.session.controller.response.AdministratorSessionResponse
 @RequestMapping("/api/session")
 public class AdministratorSessionController {
 
-    @GetMapping("/me")
-    AdministratorSessionResponse me(Authentication authentication) {
-        Account account = (Account) authentication.getDetails();
-        return new AdministratorSessionResponse(
-                account.getSubject(),
-                account.getEmail(),
-                account.getDisplayName(),
-                account.getRole()
-        );
-    }
+  @GetMapping("/me")
+  AdministratorSessionResponse me(Authentication authentication) {
+    Account account = (Account) authentication.getDetails();
+    return new AdministratorSessionResponse(
+        account.getSubject(), account.getEmail(), account.getDisplayName(), account.getRole());
+  }
 }

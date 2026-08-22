@@ -13,9 +13,7 @@ describe('AuthInterceptorTests', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     TestBed.configureTestingModule({
-      providers: [
-        { provide: OidcClientService, useValue: oidcStub },
-      ],
+      providers: [{ provide: OidcClientService, useValue: oidcStub }],
     });
   });
 
@@ -28,7 +26,9 @@ describe('AuthInterceptorTests', () => {
 
     expect(next).toHaveBeenCalledOnce();
     const forwarded = next.mock.calls[0][0] as HttpRequest<unknown>;
-    expect(forwarded.headers.get('Authorization')).toBe('Bearer access-token-001');
+    expect(forwarded.headers.get('Authorization')).toBe(
+      'Bearer access-token-001',
+    );
   });
 
   it('keepsRequestWhenTokenDoesNotExistTests', () => {
@@ -43,7 +43,10 @@ describe('AuthInterceptorTests', () => {
 
   it('keepsExternalRequestsWithoutAuthorizationTests', () => {
     oidcStub.accessToken.mockReturnValue('access-token-001');
-    const request = new HttpRequest('GET', 'https://cdn.simpleguard.local/assets');
+    const request = new HttpRequest(
+      'GET',
+      'https://cdn.simpleguard.local/assets',
+    );
     const next = vi.fn();
 
     TestBed.runInInjectionContext(() => authInterceptor(request, next));

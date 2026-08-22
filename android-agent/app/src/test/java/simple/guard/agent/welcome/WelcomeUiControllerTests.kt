@@ -4,7 +4,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class WelcomeUiControllerTests {
-
     private val controller = WelcomeUiController()
 
     @Test
@@ -17,18 +16,18 @@ class WelcomeUiControllerTests {
             listOf(
                 WelcomeSummaryItem("Funcao", "Conectar este dispositivo"),
                 WelcomeSummaryItem("Escopo", "Telemetria e comandos"),
-                WelcomeSummaryItem("Promessa", "Sem recuperacao garantida", warning = true)
+                WelcomeSummaryItem("Promessa", "Sem recuperacao garantida", warning = true),
             ),
-            state.summary
+            state.summary,
         )
         assertEquals("Funcao do agente", state.capabilitiesTitle)
         assertEquals(
             listOf(
                 "Envia localizacao e telemetria",
                 "Recebe comandos suportados",
-                "Sincroniza eventos ao reconectar"
+                "Sincroniza eventos ao reconectar",
             ),
-            state.capabilities
+            state.capabilities,
         )
         assertEquals("Iniciar pareamento", state.actionLabel)
         assertEquals("Pronto para iniciar pareamento", state.footer)

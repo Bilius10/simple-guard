@@ -9,12 +9,11 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 class BatchLocationApiClient {
-
     fun send(
         instanceUrl: String,
         deviceId: String,
         agentInstanceId: String,
-        events: List<SignedTelemetryEnvelope>
+        events: List<SignedTelemetryEnvelope>,
     ): List<TelemetryBatchItemResult> {
         val endpoint = URL("${instanceUrl.trimEnd('/')}/api/agent/devices/$deviceId/telemetry/batch")
         val connection = endpoint.openConnection() as HttpURLConnection
@@ -26,13 +25,19 @@ class BatchLocationApiClient {
         connection.setRequestProperty("Accept", "application/json")
         connection.setRequestProperty("X-Agent-Instance-Id", agentInstanceId)
 
-        val body = JSONObject().put("events", JSONArray().apply {
-            events.forEach { signed ->
-                put(JSONObject()
-                    .put("signature", signed.signature)
-                    .put("telemetry", TelemetryJsonCodec.envelopeToJson(signed.envelope)))
-            }
-        })
+        val body =
+            JSONObject().put(
+                "events",
+                JSONArray().apply {
+                    events.forEach { signed ->
+                        put(
+                            JSONObject()
+                                .put("signature", signed.signature)
+                                .put("telemetry", TelemetryJsonCodec.envelopeToJson(signed.envelope)),
+                        )
+                    }
+                },
+            )
         OutputStreamWriter(connection.outputStream, Charsets.UTF_8).use { writer ->
             writer.write(body.toString())
         }
@@ -50,80 +55,92 @@ class BatchLocationApiClient {
             TelemetryBatchItemResult(
                 eventId = if (result.isNull("eventId")) null else result.getString("eventId"),
                 status = TelemetryBatchItemStatus.valueOf(result.getString("status")),
-                error = if (result.isNull("error")) null else result.getString("error")
+                error = if (result.isNull("error")) null else result.getString("error"),
             )
         }
     }
 }
 
 class LocationApiException(val userMessage: String) : RuntimeException(userMessage) {
-
     companion object {
-        fun from(status: Int, body: String): LocationApiException {
+        fun from(
+            status: Int,
+            body: String,
+        ): LocationApiException {
             val code = runCatching { JSONObject(body).optString("erro_code") }.getOrDefault("")
-            return LocationApiException(when {
-                status == 401 || code == "DEVICE_CREDENTIAL_INVALID" || code == "DEVICE_CREDENTIAL_REVOKED" ->
-                    "A instancia recusou a credencial deste agente."
-                status == 400 -> "A instancia recusou os dados de telemetria."
-                else -> "A instancia nao recebeu a telemetria."
-            })
+            return LocationApiException(
+                when {
+                    status == 401 || code == "DEVICE_CREDENTIAL_INVALID" || code == "DEVICE_CREDENTIAL_REVOKED" ->
+                        "A instancia recusou a credencial deste agente."
+                    status == 400 -> "A instancia recusou os dados de telemetria."
+                    else -> "A instancia nao recebeu a telemetria."
+                },
+            )
         }
     }
 }
+
 class BatchLocationApiSender(
     private val instanceUrl: String,
     private val deviceId: String,
     private val agentInstanceId: String,
     private val keyStore: AgentKeyStore,
     private val apiClient: BatchLocationApiClient,
-    private val diagnosticsStore: LocationDiagnosticsStore
+    private val diagnosticsStore: LocationDiagnosticsStore,
 ) : TelemetryBatchSender {
-
-    override fun send(envelopes: List<TelemetryEnvelope>, callback: (TelemetryBatchSendResult) -> Unit) {
+    override fun send(
+        envelopes: List<TelemetryEnvelope>,
+        callback: (TelemetryBatchSendResult) -> Unit,
+    ) {
         Thread {
-            val result = runCatching {
-                Log.i(TAG, "Enviando lote de telemetria para a API da instancia pareada.")
-                apiClient.send(
-                    instanceUrl,
-                    deviceId,
-                    agentInstanceId,
-                    envelopes.map { envelope ->
-                        SignedTelemetryEnvelope(
-                            signature = keyStore.signTelemetry(agentInstanceId, deviceId, envelope),
-                            envelope = envelope
-                        )
-                    }
-                )
-            }.fold(
-                onSuccess = { results ->
-                    val envelopesById = envelopes.associateBy(TelemetryEnvelope::eventId)
-                    results.forEach { item ->
-                        val envelope = item.eventId?.let(envelopesById::get) ?: return@forEach
-                        when (item.status) {
-                            TelemetryBatchItemStatus.ACCEPTED,
-                            TelemetryBatchItemStatus.DUPLICATE -> diagnosticsStore.recordSendSuccess(envelope)
-                            TelemetryBatchItemStatus.INVALID,
-                            TelemetryBatchItemStatus.UNAUTHORIZED,
-                            TelemetryBatchItemStatus.FAILED -> diagnosticsStore.recordSendFailure(
-                                envelope,
-                                item.error ?: "A instancia nao confirmou o evento."
+            val result =
+                runCatching {
+                    Log.i(TAG, "Enviando lote de telemetria para a API da instancia pareada.")
+                    apiClient.send(
+                        instanceUrl,
+                        deviceId,
+                        agentInstanceId,
+                        envelopes.map { envelope ->
+                            SignedTelemetryEnvelope(
+                                signature = keyStore.signTelemetry(agentInstanceId, deviceId, envelope),
+                                envelope = envelope,
                             )
+                        },
+                    )
+                }.fold(
+                    onSuccess = { results ->
+                        val envelopesById = envelopes.associateBy(TelemetryEnvelope::eventId)
+                        results.forEach { item ->
+                            val envelope = item.eventId?.let(envelopesById::get) ?: return@forEach
+                            when (item.status) {
+                                TelemetryBatchItemStatus.ACCEPTED,
+                                TelemetryBatchItemStatus.DUPLICATE,
+                                -> diagnosticsStore.recordSendSuccess(envelope)
+                                TelemetryBatchItemStatus.INVALID,
+                                TelemetryBatchItemStatus.UNAUTHORIZED,
+                                TelemetryBatchItemStatus.FAILED,
+                                ->
+                                    diagnosticsStore.recordSendFailure(
+                                        envelope,
+                                        item.error ?: "A instancia nao confirmou o evento.",
+                                    )
+                            }
                         }
-                    }
-                    Log.i(TAG, "Lote de telemetria processado pela instancia.")
-                    TelemetryBatchSendResult.Completed(results)
-                },
-                onFailure = { failure ->
-                    val message = if (failure is LocationApiException) {
-                        failure.userMessage
-                    } else {
-                        "Falha de rede ao enviar telemetria."
-                    }
-                    Log.e(TAG, message, failure)
-                    envelopes.firstOrNull()?.let { diagnosticsStore.recordSendFailure(it, message) }
-                    TelemetryBatchSendResult.Failed(message)
-                }
-            )
+                        Log.i(TAG, "Lote de telemetria processado pela instancia.")
+                        TelemetryBatchSendResult.Completed(results)
+                    },
+                    onFailure = { failure ->
+                        val message =
+                            if (failure is LocationApiException) {
+                                failure.userMessage
+                            } else {
+                                "Falha de rede ao enviar telemetria."
+                            }
+                        Log.e(TAG, message, failure)
+                        envelopes.firstOrNull()?.let { diagnosticsStore.recordSendFailure(it, message) }
+                        TelemetryBatchSendResult.Failed(message)
+                    },
+                )
             callback(result)
         }.start()
     }

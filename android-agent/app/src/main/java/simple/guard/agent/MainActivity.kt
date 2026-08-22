@@ -21,8 +21,8 @@ import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import simple.guard.agent.location.LocationDiagnosticStatus
-import simple.guard.agent.location.LocationDiagnosticsStore
 import simple.guard.agent.location.LocationDiagnosticsSnapshot
+import simple.guard.agent.location.LocationDiagnosticsStore
 import simple.guard.agent.location.LocationTrackingService
 import simple.guard.agent.pairing.AgentKeyStore
 import simple.guard.agent.pairing.CompletePairingRequest
@@ -49,11 +49,10 @@ private data class LocalPairing(
     val deviceId: String,
     val deviceName: String,
     val instanceUrl: String,
-    val pendingSynchronization: Boolean
+    val pendingSynchronization: Boolean,
 )
 
 class MainActivity : Activity() {
-
     private val uiController = PairingUiController()
     private val apiClient = PairingApiClient()
     private val keyStore = AgentKeyStore()
@@ -102,8 +101,10 @@ class MainActivity : Activity() {
     private lateinit var diagnosticsBackButton: Button
     private lateinit var diagnosticsFooterStatus: TextView
     private var currentPairing: LocalPairing? = null
+
     @Volatile
     private var unpairingPolling = false
+
     @Volatile
     private var unpairingScreenActive = false
 
@@ -116,7 +117,7 @@ class MainActivity : Activity() {
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
-        grantResults: IntArray
+        grantResults: IntArray,
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode != LOCATION_PERMISSION_REQUEST_CODE) {
@@ -149,24 +150,26 @@ class MainActivity : Activity() {
     }
 
     private fun buildWelcomeContent(state: WelcomeUiState): ScrollView {
-        val root = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            minimumHeight = resources.displayMetrics.heightPixels
-            setBackgroundColor(SCREEN_BACKGROUND)
-        }
+        val root =
+            LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                minimumHeight = resources.displayMetrics.heightPixels
+                setBackgroundColor(SCREEN_BACKGROUND)
+            }
         root.addView(header())
 
-        val content = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(22), dp(28), dp(22), dp(12))
-        }
+        val content =
+            LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(dp(22), dp(28), dp(22), dp(12))
+            }
         root.addView(
             content,
             LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 0,
-                1f
-            )
+                1f,
+            ),
         )
 
         val summaryPanel = panel(state.title)
@@ -178,14 +181,15 @@ class MainActivity : Activity() {
                     bottomMargin(0)
                 } else {
                     bottomMargin(dp(7))
-                }
+                },
             )
         }
         content.addView(summaryPanel, bottomMargin(dp(22)))
 
-        val capabilitiesPanel = panel(state.capabilitiesTitle).apply {
-            minimumHeight = dp(320)
-        }
+        val capabilitiesPanel =
+            panel(state.capabilitiesTitle).apply {
+                minimumHeight = dp(320)
+            }
         state.capabilities.forEachIndexed { index, capability ->
             capabilitiesPanel.addView(
                 numberedCapabilityRow(index + 1, capability),
@@ -193,15 +197,16 @@ class MainActivity : Activity() {
                     bottomMargin(0)
                 } else {
                     bottomMargin(dp(7))
-                }
+                },
             )
         }
         content.addView(capabilitiesPanel, bottomMargin(dp(20)))
 
-        val startPairingButton = commandButton(state.actionLabel).apply {
-            minimumHeight = dp(36)
-            setPadding(0, 0, 0, 0)
-        }
+        val startPairingButton =
+            commandButton(state.actionLabel).apply {
+                minimumHeight = dp(36)
+                setPadding(0, 0, 0, 0)
+            }
         startPairingButton.setOnClickListener {
             if (welcomeUiController.startPairing() == AgentScreen.PAIRING) {
                 showPairingScreen()
@@ -218,8 +223,8 @@ class MainActivity : Activity() {
                 root,
                 ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT
-                )
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                ),
             )
         }
     }
@@ -246,68 +251,76 @@ class MainActivity : Activity() {
     }
 
     private fun buildContent(): ScrollView {
-        val root = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            layoutParams = ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-            )
-            minimumHeight = resources.displayMetrics.heightPixels
-            setBackgroundColor(SCREEN_BACKGROUND)
-        }
+        val root =
+            LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                layoutParams =
+                    ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                    )
+                minimumHeight = resources.displayMetrics.heightPixels
+                setBackgroundColor(SCREEN_BACKGROUND)
+            }
 
         root.addView(header())
 
-        val content = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(22), dp(24), dp(22), dp(10))
-        }
+        val content =
+            LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(dp(22), dp(24), dp(22), dp(10))
+            }
         root.addView(
             content,
             LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 0,
-                1f
-            )
+                1f,
+            ),
         )
 
         val pairingPanel = panel("Pareamento")
         statusBadge = badge("")
         pairingPanel.addView(statusBadge, wrapBottomMargin(dp(10)))
 
-        instanceUrlField = editableRow(
-            label = "URL instancia",
-            hint = "http://192.168.1.5:8080"
-        )
+        instanceUrlField =
+            editableRow(
+                label = "URL instancia",
+                hint = "http://192.168.1.5:8080",
+            )
         pairingPanel.addView(instanceUrlField.parent as View, bottomMargin(dp(7)))
 
-        apiStatusValue = valueRow(
-            label = "API",
-            value = "Conectando",
-            valueColor = WARNING
-        )
+        apiStatusValue =
+            valueRow(
+                label = "API",
+                value = "Conectando",
+                valueColor = WARNING,
+            )
         pairingPanel.addView(apiStatusValue.parent as View, bottomMargin(dp(7)))
 
-        qrStatusValue = valueRow(
-            label = "QR code",
-            value = "Leitor ativo",
-            valueColor = TEXT
-        )
+        qrStatusValue =
+            valueRow(
+                label = "QR code",
+                value = "Leitor ativo",
+                valueColor = TEXT,
+            )
         pairingPanel.addView(qrStatusValue.parent as View)
         content.addView(pairingPanel, bottomMargin(dp(18)))
 
         val codePanel = panel("Codigo / QR")
-        deviceNameField = editableRow(
-            label = "Nome sugerido",
-            hint = "Android Entrega 03"
-        )
+        deviceNameField =
+            editableRow(
+                label = "Nome sugerido",
+                hint = "Android Entrega 03",
+            )
         deviceNameField.imeOptions = EditorInfo.IME_ACTION_DONE
         codePanel.addView(deviceNameField.parent as View, bottomMargin(dp(7)))
 
-        pairingCodeField = editableRow(
-            label = "Codigo manual",
-            hint = "PXYY-4XFA"
-        )
+        pairingCodeField =
+            editableRow(
+                label = "Codigo manual",
+                hint = "PXYY-4XFA",
+            )
         pairingCodeField.imeOptions = EditorInfo.IME_ACTION_NEXT
         codePanel.addView(pairingCodeField.parent as View, bottomMargin(dp(7)))
 
@@ -335,14 +348,18 @@ class MainActivity : Activity() {
         return ScrollView(this).apply {
             setBackgroundColor(SCREEN_BACKGROUND)
             isFillViewport = true
-            layoutParams = ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
+            layoutParams =
+                ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                )
+            addView(
+                root,
+                ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                ),
             )
-            addView(root, ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-            ))
         }
     }
 
@@ -362,15 +379,16 @@ class MainActivity : Activity() {
             try {
                 Log.i(TAG, "Iniciando pareamento com a instancia informada pelo usuario.")
                 val agentInstanceId = agentInstanceId()
-                val response = apiClient.complete(
-                    instanceUrl,
-                    CompletePairingRequest(
-                        pairingCode = pairingCode,
-                        agentInstanceId = agentInstanceId,
-                        platform = "ANDROID",
-                        publicKey = keyStore.publicKey(agentInstanceId)
+                val response =
+                    apiClient.complete(
+                        instanceUrl,
+                        CompletePairingRequest(
+                            pairingCode = pairingCode,
+                            agentInstanceId = agentInstanceId,
+                            platform = "ANDROID",
+                            publicKey = keyStore.publicKey(agentInstanceId),
+                        ),
                     )
-                )
                 getPreferences(MODE_PRIVATE).edit()
                     .putString("paired_device_id", response.deviceId)
                     .putString("paired_device_name", response.deviceName.ifBlank { deviceName })
@@ -382,12 +400,14 @@ class MainActivity : Activity() {
                     actionButton.isEnabled = true
                     actionButton.text = "Ver vinculo"
                     actionButton.setOnClickListener { showUnpairingScreen() }
-                    startLocationTracking(LocalPairing(
-                        deviceId = response.deviceId,
-                        deviceName = response.deviceName.ifBlank { deviceName },
-                        instanceUrl = instanceUrl,
-                        pendingSynchronization = false
-                    ))
+                    startLocationTracking(
+                        LocalPairing(
+                            deviceId = response.deviceId,
+                            deviceName = response.deviceName.ifBlank { deviceName },
+                            instanceUrl = instanceUrl,
+                            pendingSynchronization = false,
+                        ),
+                    )
                 }
             } catch (exception: PairingApiException) {
                 Log.w(TAG, "Pareamento recusado pela instancia: ${exception.userMessage}")
@@ -397,7 +417,7 @@ class MainActivity : Activity() {
                             uiController.expired()
                         } else {
                             uiController.failed(exception.userMessage)
-                        }
+                        },
                     )
                     actionButton.isEnabled = true
                 }
@@ -405,7 +425,7 @@ class MainActivity : Activity() {
                 Log.e(TAG, "Falha de rede ao parear com a instancia.", exception)
                 runOnUiThread {
                     render(
-                        uiController.failed("Nao foi possivel conectar com a instancia.")
+                        uiController.failed("Nao foi possivel conectar com a instancia."),
                     )
                     actionButton.isEnabled = true
                 }
@@ -462,9 +482,9 @@ class MainActivity : Activity() {
             requestPermissions(
                 arrayOf(
                     Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
                 ),
-                LOCATION_PERMISSION_REQUEST_CODE
+                LOCATION_PERMISSION_REQUEST_CODE,
             )
             return
         }
@@ -475,19 +495,21 @@ class MainActivity : Activity() {
     private fun launchTelemetryTracking(pairing: LocalPairing) {
         Log.i(TAG, "Iniciando servico de telemetria para a instancia pareada.")
         try {
-            startForegroundService(LocationTrackingService.intent(
-                context = this,
-                instanceUrl = pairing.instanceUrl,
-                deviceId = pairing.deviceId,
-                agentInstanceId = agentInstanceId()
-            ))
+            startForegroundService(
+                LocationTrackingService.intent(
+                    context = this,
+                    instanceUrl = pairing.instanceUrl,
+                    deviceId = pairing.deviceId,
+                    agentInstanceId = agentInstanceId(),
+                ),
+            )
         } catch (exception: RuntimeException) {
             Log.e(TAG, "Nao foi possivel iniciar o servico de telemetria.", exception)
             diagnosticsStore.recordSendFailure("Nao foi possivel iniciar a telemetria em segundo plano.")
             Toast.makeText(
                 this,
                 "Agente aberto. Telemetria em segundo plano indisponivel neste momento.",
-                Toast.LENGTH_LONG
+                Toast.LENGTH_LONG,
             ).show()
         }
     }
@@ -527,12 +549,13 @@ class MainActivity : Activity() {
         Thread {
             try {
                 val agentInstanceId = agentInstanceId()
-                val response = unpairingApiClient.unpair(
-                    instanceUrl = pairing.instanceUrl,
-                    deviceId = pairing.deviceId,
-                    agentInstanceId = agentInstanceId,
-                    signature = keyStore.signUnpairing(agentInstanceId, pairing.deviceId)
-                )
+                val response =
+                    unpairingApiClient.unpair(
+                        instanceUrl = pairing.instanceUrl,
+                        deviceId = pairing.deviceId,
+                        agentInstanceId = agentInstanceId,
+                        signature = keyStore.signUnpairing(agentInstanceId, pairing.deviceId),
+                    )
                 UnpairingRequestContract.requirePendingRequest(response)
                 runOnUiThread {
                     renderUnpairing(unpairingUiController.requested())
@@ -548,6 +571,7 @@ class MainActivity : Activity() {
                 }
             } catch (exception: IOException) {
                 persistPendingUnpairing(pairing)
+                Log.w(TAG, "Falha de rede ao enviar solicitacao de despareamento. Mantendo pedido pendente.", exception)
                 runOnUiThread {
                     renderUnpairing(unpairingUiController.syncPending())
                     unpairingActionButton.isEnabled = true
@@ -557,8 +581,8 @@ class MainActivity : Activity() {
                 runOnUiThread {
                     renderUnpairing(
                         unpairingUiController.apiFailure(
-                            exception.message ?: "Nao foi possivel usar a credencial local."
-                        )
+                            exception.message ?: "Nao foi possivel usar a credencial local.",
+                        ),
                     )
                     unpairingCancelButton.isEnabled = true
                     unpairingActionButton.isEnabled = true
@@ -575,7 +599,7 @@ class MainActivity : Activity() {
                     synchronizeUnpairingStatus(pairing)
                 }
             },
-            UNPAIRING_POLL_INTERVAL_MS
+            UNPAIRING_POLL_INTERVAL_MS,
         )
     }
 
@@ -608,12 +632,13 @@ class MainActivity : Activity() {
         Thread {
             try {
                 val agentInstanceId = agentInstanceId()
-                val response = unpairingApiClient.pairingStatus(
-                    instanceUrl = pairing.instanceUrl,
-                    deviceId = pairing.deviceId,
-                    agentInstanceId = agentInstanceId,
-                    signature = keyStore.signUnpairing(agentInstanceId, pairing.deviceId)
-                )
+                val response =
+                    unpairingApiClient.pairingStatus(
+                        instanceUrl = pairing.instanceUrl,
+                        deviceId = pairing.deviceId,
+                        agentInstanceId = agentInstanceId,
+                        signature = keyStore.signUnpairing(agentInstanceId, pairing.deviceId),
+                    )
                 runOnUiThread {
                     if (!unpairingScreenActive || currentPairing?.deviceId != pairing.deviceId) {
                         return@runOnUiThread
@@ -656,9 +681,11 @@ class MainActivity : Activity() {
                     if (!unpairingScreenActive || currentPairing?.deviceId != pairing.deviceId) {
                         return@runOnUiThread
                     }
-                    renderUnpairing(unpairingUiController.apiFailure(
-                        exception.message ?: "Nao foi possivel consultar o despareamento."
-                    ))
+                    renderUnpairing(
+                        unpairingUiController.apiFailure(
+                            exception.message ?: "Nao foi possivel consultar o despareamento.",
+                        ),
+                    )
                     if (unpairingPolling) {
                         startUnpairingPolling(pairing)
                     }
@@ -668,33 +695,38 @@ class MainActivity : Activity() {
     }
 
     private fun buildUnpairingContent(pairing: LocalPairing): ScrollView {
-        val root = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            minimumHeight = resources.displayMetrics.heightPixels
-            setBackgroundColor(SCREEN_BACKGROUND)
-        }
+        val root =
+            LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                minimumHeight = resources.displayMetrics.heightPixels
+                setBackgroundColor(SCREEN_BACKGROUND)
+            }
         root.addView(header())
 
-        val content = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(22), dp(24), dp(22), dp(10))
-        }
-        root.addView(content, LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            0,
-            1f
-        ))
+        val content =
+            LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(dp(22), dp(24), dp(22), dp(10))
+            }
+        root.addView(
+            content,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                0,
+                1f,
+            ),
+        )
 
         val summaryPanel = panel("Despareamento")
         unpairingStatusBadge = badge("")
         summaryPanel.addView(unpairingStatusBadge, wrapBottomMargin(dp(10)))
         summaryPanel.addView(
             valueRow("Dispositivo", pairing.deviceName, TEXT).parent as View,
-            bottomMargin(dp(7))
+            bottomMargin(dp(7)),
         )
         summaryPanel.addView(
             valueRow("Instancia atual", pairing.instanceUrl, TEXT).parent as View,
-            bottomMargin(dp(7))
+            bottomMargin(dp(7)),
         )
         unpairingDetailValue = valueRow("Consequencia", "Para telemetria e comandos", TEXT)
         summaryPanel.addView(unpairingDetailValue.parent as View)
@@ -713,18 +745,21 @@ class MainActivity : Activity() {
 
         content.addView(spacer())
 
-        unpairingCancelButton = commandButton("Cancelar").apply {
-            background = bordered(0xFF202B3F.toInt(), 0xFF647287.toInt(), dp(1), dp(2))
-        }
+        unpairingCancelButton =
+            commandButton("Cancelar").apply {
+                background = bordered(0xFF202B3F.toInt(), 0xFF647287.toInt(), dp(1), dp(2))
+            }
         content.addView(unpairingCancelButton, bottomMargin(dp(8)))
-        unpairingActionButton = commandButton("Desparear dispositivo").apply {
-            background = bordered(0xFF471B28.toInt(), DANGER, dp(1), dp(2))
-            setTextColor(0xFFFFD7D7.toInt())
-        }
+        unpairingActionButton =
+            commandButton("Desparear dispositivo").apply {
+                background = bordered(0xFF471B28.toInt(), DANGER, dp(1), dp(2))
+                setTextColor(0xFFFFD7D7.toInt())
+            }
         content.addView(unpairingActionButton, bottomMargin(dp(8)))
-        unpairingDiagnosticsButton = commandButton("Abrir telemetria").apply {
-            background = bordered(0xFF1C3248.toInt(), 0xFF7CC7F7.toInt(), dp(1), dp(2))
-        }
+        unpairingDiagnosticsButton =
+            commandButton("Abrir telemetria").apply {
+                background = bordered(0xFF1C3248.toInt(), 0xFF7CC7F7.toInt(), dp(1), dp(2))
+            }
         content.addView(unpairingDiagnosticsButton, bottomMargin(dp(8)))
 
         unpairingFooterStatus = footer("Nenhuma alteracao aplicada")
@@ -733,30 +768,38 @@ class MainActivity : Activity() {
         return ScrollView(this).apply {
             setBackgroundColor(SCREEN_BACKGROUND)
             isFillViewport = true
-            addView(root, ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-            ))
+            addView(
+                root,
+                ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                ),
+            )
         }
     }
 
     private fun buildDiagnosticsContent(pairing: LocalPairing): ScrollView {
-        val root = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            minimumHeight = resources.displayMetrics.heightPixels
-            setBackgroundColor(SCREEN_BACKGROUND)
-        }
+        val root =
+            LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                minimumHeight = resources.displayMetrics.heightPixels
+                setBackgroundColor(SCREEN_BACKGROUND)
+            }
         root.addView(header())
 
-        val content = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(22), dp(24), dp(22), dp(10))
-        }
-        root.addView(content, LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            0,
-            1f
-        ))
+        val content =
+            LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(dp(22), dp(24), dp(22), dp(10))
+            }
+        root.addView(
+            content,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                0,
+                1f,
+            ),
+        )
 
         val summaryPanel = panel("Telemetria do agente")
         diagnosticsDeviceValue = valueRow("Dispositivo", pairing.deviceName, TEXT)
@@ -799,9 +842,10 @@ class MainActivity : Activity() {
 
         diagnosticsRefreshButton = commandButton("Atualizar telemetria")
         content.addView(diagnosticsRefreshButton, bottomMargin(dp(8)))
-        diagnosticsBackButton = commandButton("Voltar").apply {
-            background = bordered(0xFF202B3F.toInt(), 0xFF647287.toInt(), dp(1), dp(2))
-        }
+        diagnosticsBackButton =
+            commandButton("Voltar").apply {
+                background = bordered(0xFF202B3F.toInt(), 0xFF647287.toInt(), dp(1), dp(2))
+            }
         content.addView(diagnosticsBackButton)
 
         diagnosticsFooterStatus = footer("Ultimo estado persistido localmente")
@@ -810,14 +854,20 @@ class MainActivity : Activity() {
         return ScrollView(this).apply {
             setBackgroundColor(SCREEN_BACKGROUND)
             isFillViewport = true
-            addView(root, ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-            ))
+            addView(
+                root,
+                ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                ),
+            )
         }
     }
 
-    private fun renderDiagnostics(snapshot: LocationDiagnosticsSnapshot, pairing: LocalPairing) {
+    private fun renderDiagnostics(
+        snapshot: LocationDiagnosticsSnapshot,
+        pairing: LocalPairing,
+    ) {
         diagnosticsDeviceValue.text = pairing.deviceName
         diagnosticsInstanceValue.text = pairing.instanceUrl
         diagnosticsAttemptValue.text = formatInstant(snapshot.lastAttemptAt)
@@ -830,14 +880,16 @@ class MainActivity : Activity() {
         diagnosticsProviderValue.setTextColor(if (snapshot.provider.isNullOrBlank()) MUTED else TEXT)
         diagnosticsFailureValue.text = snapshot.failureReason ?: "-"
         diagnosticsFailureValue.setTextColor(
-            if (snapshot.failureReason.isNullOrBlank()) MUTED else diagnosticStatusColor(snapshot.status)
+            if (snapshot.failureReason.isNullOrBlank()) MUTED else diagnosticStatusColor(snapshot.status),
         )
         diagnosticsBatteryValue.text = snapshot.batteryLevelPercentage?.let { "$it%" } ?: "-"
-        diagnosticsBatteryValue.setTextColor(when {
-            snapshot.batteryLevelPercentage == null -> MUTED
-            snapshot.batteryLevelPercentage <= 15 -> WARNING
-            else -> TEXT
-        })
+        diagnosticsBatteryValue.setTextColor(
+            when {
+                snapshot.batteryLevelPercentage == null -> MUTED
+                snapshot.batteryLevelPercentage <= 15 -> WARNING
+                else -> TEXT
+            },
+        )
         diagnosticsChargingValue.text = snapshot.batteryCharging?.let { if (it) "Carregando" else "Descarregando" } ?: "-"
         diagnosticsChargingValue.setTextColor(if (snapshot.batteryCharging == null) MUTED else TEXT)
         diagnosticsNetworkValue.text = snapshot.networkType?.name ?: "-"
@@ -848,14 +900,15 @@ class MainActivity : Activity() {
         diagnosticsFinePermissionValue.setTextColor(if (snapshot.fineLocationPermission == null) MUTED else TEXT)
         diagnosticsCoarsePermissionValue.text = snapshot.coarseLocationPermission?.name ?: "-"
         diagnosticsCoarsePermissionValue.setTextColor(if (snapshot.coarseLocationPermission == null) MUTED else TEXT)
-        diagnosticsFooterStatus.text = when (snapshot.status) {
-            LocationDiagnosticStatus.SENT -> "Ultimo envio aceito pela API"
-            LocationDiagnosticStatus.SEND_FAILURE -> "Ultimo envio de telemetria falhou"
-            LocationDiagnosticStatus.LOCATION_UNAVAILABLE -> "Agente nao conseguiu obter um ponto valido"
-            LocationDiagnosticStatus.PROVIDER_UNAVAILABLE -> "Nenhum provedor de localizacao disponivel"
-            LocationDiagnosticStatus.PERMISSION_DENIED -> "Permissao de localizacao ausente no dispositivo"
-            LocationDiagnosticStatus.IDLE -> "Aguardando a primeira sincronizacao do servico"
-        }
+        diagnosticsFooterStatus.text =
+            when (snapshot.status) {
+                LocationDiagnosticStatus.SENT -> "Ultimo envio aceito pela API"
+                LocationDiagnosticStatus.SEND_FAILURE -> "Ultimo envio de telemetria falhou"
+                LocationDiagnosticStatus.LOCATION_UNAVAILABLE -> "Agente nao conseguiu obter um ponto valido"
+                LocationDiagnosticStatus.PROVIDER_UNAVAILABLE -> "Nenhum provedor de localizacao disponivel"
+                LocationDiagnosticStatus.PERMISSION_DENIED -> "Permissao de localizacao ausente no dispositivo"
+                LocationDiagnosticStatus.IDLE -> "Aguardando a primeira sincronizacao do servico"
+            }
     }
 
     private fun renderUnpairing(state: UnpairingUiState) {
@@ -868,22 +921,24 @@ class MainActivity : Activity() {
         unpairedValue.setTextColor(if (state.stage == UnpairingStage.UNPAIRED) SUCCESS else MUTED)
         unpairingFailureValue.setTextColor(if (state.stage == UnpairingStage.API_FAILURE) DANGER else MUTED)
         unpairingPendingValue.setTextColor(if (state.stage == UnpairingStage.SYNC_PENDING) WARNING else MUTED)
-        unpairingFooterStatus.text = when (state.stage) {
-            UnpairingStage.CONFIRMATION_REQUIRED -> "Nenhuma alteracao aplicada"
-            UnpairingStage.REQUESTED -> "Solicitacao aguardando admin"
-            UnpairingStage.UNPAIRED -> "Vinculo removido"
-            UnpairingStage.REJECTED -> "Vinculo mantido"
-            UnpairingStage.API_FAILURE -> "Vinculo mantido"
-            UnpairingStage.SYNC_PENDING -> "Aguardando conexao"
-        }
-        unpairingActionButton.text = when (state.stage) {
-            UnpairingStage.REQUESTED -> "Reenviar solicitacao"
-            UnpairingStage.SYNC_PENDING -> "Tentar sincronizar"
-            UnpairingStage.API_FAILURE -> "Tentar novamente"
-            UnpairingStage.UNPAIRED -> "Iniciar novo pareamento"
-            UnpairingStage.REJECTED -> "Solicitar novamente"
-            UnpairingStage.CONFIRMATION_REQUIRED -> "Desparear dispositivo"
-        }
+        unpairingFooterStatus.text =
+            when (state.stage) {
+                UnpairingStage.CONFIRMATION_REQUIRED -> "Nenhuma alteracao aplicada"
+                UnpairingStage.REQUESTED -> "Solicitacao aguardando admin"
+                UnpairingStage.UNPAIRED -> "Vinculo removido"
+                UnpairingStage.REJECTED -> "Vinculo mantido"
+                UnpairingStage.API_FAILURE -> "Vinculo mantido"
+                UnpairingStage.SYNC_PENDING -> "Aguardando conexao"
+            }
+        unpairingActionButton.text =
+            when (state.stage) {
+                UnpairingStage.REQUESTED -> "Reenviar solicitacao"
+                UnpairingStage.SYNC_PENDING -> "Tentar sincronizar"
+                UnpairingStage.API_FAILURE -> "Tentar novamente"
+                UnpairingStage.UNPAIRED -> "Iniciar novo pareamento"
+                UnpairingStage.REJECTED -> "Solicitar novamente"
+                UnpairingStage.CONFIRMATION_REQUIRED -> "Desparear dispositivo"
+            }
     }
 
     private fun loadLocalPairing(): LocalPairing? {
@@ -892,10 +947,11 @@ class MainActivity : Activity() {
         if (!pendingDeviceId.isNullOrBlank()) {
             return LocalPairing(
                 deviceId = pendingDeviceId,
-                deviceName = preferences.getString("pending_unpair_device_name", "Dispositivo Android")
-                    ?: "Dispositivo Android",
+                deviceName =
+                    preferences.getString("pending_unpair_device_name", "Dispositivo Android")
+                        ?: "Dispositivo Android",
                 instanceUrl = preferences.getString("pending_unpair_instance_url", "").orEmpty(),
-                pendingSynchronization = true
+                pendingSynchronization = true,
             )
         }
 
@@ -905,10 +961,11 @@ class MainActivity : Activity() {
         }
         return LocalPairing(
             deviceId = pairedDeviceId,
-            deviceName = preferences.getString("paired_device_name", "Dispositivo Android")
-                ?: "Dispositivo Android",
+            deviceName =
+                preferences.getString("paired_device_name", "Dispositivo Android")
+                    ?: "Dispositivo Android",
             instanceUrl = preferences.getString("paired_instance_url", "").orEmpty(),
-            pendingSynchronization = false
+            pendingSynchronization = false,
         )
     }
 
@@ -941,21 +998,23 @@ class MainActivity : Activity() {
         statusBadge.text = state.badge
         statusBadge.setTextColor(state.color)
         statusBadge.background = bordered(BADGE_BACKGROUND, state.color, dp(1), dp(1))
-        apiStatusValue.text = when (state.stage) {
-            PairingStage.PAIRED -> "Conectada"
-            PairingStage.VALIDATING -> "Conectando"
-            PairingStage.FAILURE -> "Falha"
-            PairingStage.EXPIRED -> "Codigo expirado"
-            PairingStage.WAITING -> "Aguardando"
-        }
+        apiStatusValue.text =
+            when (state.stage) {
+                PairingStage.PAIRED -> "Conectada"
+                PairingStage.VALIDATING -> "Conectando"
+                PairingStage.FAILURE -> "Falha"
+                PairingStage.EXPIRED -> "Codigo expirado"
+                PairingStage.WAITING -> "Aguardando"
+            }
         apiStatusValue.setTextColor(statusColor(state))
-        qrStatusValue.text = when (state.stage) {
-            PairingStage.PAIRED -> "Pareado"
-            PairingStage.VALIDATING -> "Validando"
-            PairingStage.FAILURE -> "Falha"
-            PairingStage.EXPIRED -> "Expirado"
-            PairingStage.WAITING -> "Leitor ativo"
-        }
+        qrStatusValue.text =
+            when (state.stage) {
+                PairingStage.PAIRED -> "Pareado"
+                PairingStage.VALIDATING -> "Validando"
+                PairingStage.FAILURE -> "Falha"
+                PairingStage.EXPIRED -> "Expirado"
+                PairingStage.WAITING -> "Leitor ativo"
+            }
         qrStatusValue.setTextColor(statusColor(state))
         statePrimaryValue.text = state.title
         statePrimaryValue.setTextColor(state.color)
@@ -965,7 +1024,7 @@ class MainActivity : Activity() {
                 DANGER
             } else {
                 MUTED
-            }
+            },
         )
         stateSuccessValue.setTextColor(if (state.stage == PairingStage.PAIRED) SUCCESS else MUTED)
         stateFailureValue.setTextColor(
@@ -973,20 +1032,22 @@ class MainActivity : Activity() {
                 DANGER
             } else {
                 MUTED
-            }
+            },
         )
-        footerStatus.text = when (state.stage) {
-            PairingStage.PAIRED -> "Pareamento concluido"
-            PairingStage.VALIDATING -> "Validando pareamento"
-            PairingStage.EXPIRED -> "Codigo expirado"
-            PairingStage.FAILURE -> "Pareamento nao concluido"
-            PairingStage.WAITING -> "Pareamento ainda nao concluido"
-        }
-        actionButton.text = when (state.stage) {
-            PairingStage.PAIRED -> "Pareado"
-            PairingStage.VALIDATING -> "Validando"
-            else -> "Validar codigo"
-        }
+        footerStatus.text =
+            when (state.stage) {
+                PairingStage.PAIRED -> "Pareamento concluido"
+                PairingStage.VALIDATING -> "Validando pareamento"
+                PairingStage.EXPIRED -> "Codigo expirado"
+                PairingStage.FAILURE -> "Pareamento nao concluido"
+                PairingStage.WAITING -> "Pareamento ainda nao concluido"
+            }
+        actionButton.text =
+            when (state.stage) {
+                PairingStage.PAIRED -> "Pareado"
+                PairingStage.VALIDATING -> "Validando"
+                else -> "Validar codigo"
+            }
     }
 
     private fun agentInstanceId(): String {
@@ -1052,19 +1113,22 @@ class MainActivity : Activity() {
             setPadding(dp(9), dp(4), dp(9), dp(4))
             addView(
                 technicalText(item.label, LABEL, Gravity.START or Gravity.CENTER_VERTICAL),
-                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f)
+                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f),
             )
             addView(
                 technicalText(
                     item.value,
                     if (item.warning) WARNING else TEXT,
-                    Gravity.END or Gravity.CENTER_VERTICAL
+                    Gravity.END or Gravity.CENTER_VERTICAL,
                 ),
-                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.4f)
+                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.4f),
             )
         }
 
-    private fun numberedCapabilityRow(index: Int, value: String): LinearLayout =
+    private fun numberedCapabilityRow(
+        index: Int,
+        value: String,
+    ): LinearLayout =
         LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
@@ -1073,15 +1137,19 @@ class MainActivity : Activity() {
             setPadding(dp(9), dp(4), dp(9), dp(4))
             addView(
                 technicalText(index.toString(), LABEL, Gravity.START or Gravity.CENTER_VERTICAL),
-                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 0.35f)
+                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 0.35f),
             )
             addView(
                 technicalText(value, TEXT, Gravity.END or Gravity.CENTER_VERTICAL),
-                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.65f)
+                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.65f),
             )
         }
 
-    private fun technicalText(value: String, color: Int, textGravity: Int): TextView =
+    private fun technicalText(
+        value: String,
+        color: Int,
+        textGravity: Int,
+    ): TextView =
         TextView(this).apply {
             text = value
             typeface = Typeface.MONOSPACE
@@ -1104,7 +1172,10 @@ class MainActivity : Activity() {
             setTextColor(ACCENT)
         }
 
-    private fun editableRow(label: String, hint: String): EditText {
+    private fun editableRow(
+        label: String,
+        hint: String,
+    ): EditText {
         val container = rowContainer()
         container.addView(rowLabel(label))
         return EditText(this).apply {
@@ -1122,12 +1193,16 @@ class MainActivity : Activity() {
             imeOptions = EditorInfo.IME_ACTION_NEXT
             container.addView(
                 this,
-                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.3f)
+                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.3f),
             )
         }
     }
 
-    private fun valueRow(label: String, value: String, valueColor: Int): TextView {
+    private fun valueRow(
+        label: String,
+        value: String,
+        valueColor: Int,
+    ): TextView {
         val container = rowContainer()
         container.addView(rowLabel(label))
         return TextView(this).apply {
@@ -1139,7 +1214,7 @@ class MainActivity : Activity() {
             setTextColor(valueColor)
             container.addView(
                 this,
-                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.3f)
+                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.3f),
             )
         }
     }
@@ -1151,10 +1226,11 @@ class MainActivity : Activity() {
             minimumHeight = dp(30)
             background = bordered(ROW_BACKGROUND, ROW_BORDER, dp(1), dp(1))
             setPadding(dp(9), 0, dp(9), 0)
-            layoutParams = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                dp(30)
-            )
+            layoutParams =
+                LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    dp(30),
+                )
         }
 
     private fun rowLabel(text: String): TextView =
@@ -1166,11 +1242,12 @@ class MainActivity : Activity() {
             gravity = Gravity.CENTER_VERTICAL
             setTextColor(LABEL)
             setPadding(0, 0, dp(8), 0)
-            layoutParams = LinearLayout.LayoutParams(
-                0,
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                1f
-            )
+            layoutParams =
+                LinearLayout.LayoutParams(
+                    0,
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    1f,
+                )
         }
 
     private fun commandButton(text: String): Button =
@@ -1198,11 +1275,12 @@ class MainActivity : Activity() {
 
     private fun spacer(): View =
         View(this).apply {
-            layoutParams = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                0,
-                1f
-            )
+            layoutParams =
+                LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    0,
+                    1f,
+                )
         }
 
     private fun formatInstant(value: java.time.Instant?): String {
@@ -1215,7 +1293,8 @@ class MainActivity : Activity() {
             LocationDiagnosticStatus.SEND_FAILURE,
             LocationDiagnosticStatus.LOCATION_UNAVAILABLE,
             LocationDiagnosticStatus.PROVIDER_UNAVAILABLE,
-            LocationDiagnosticStatus.PERMISSION_DENIED -> DANGER
+            LocationDiagnosticStatus.PERMISSION_DENIED,
+            -> DANGER
             LocationDiagnosticStatus.IDLE -> MUTED
         }
     }
@@ -1225,11 +1304,17 @@ class MainActivity : Activity() {
             PairingStage.PAIRED -> SUCCESS
             PairingStage.VALIDATING -> WARNING
             PairingStage.FAILURE,
-            PairingStage.EXPIRED -> DANGER
+            PairingStage.EXPIRED,
+            -> DANGER
             PairingStage.WAITING -> TEXT
         }
 
-    private fun bordered(backgroundColor: Int, strokeColor: Int, strokeWidth: Int, radius: Int): GradientDrawable {
+    private fun bordered(
+        backgroundColor: Int,
+        strokeColor: Int,
+        strokeWidth: Int,
+        radius: Int,
+    ): GradientDrawable {
         return GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
             cornerRadius = radius.toFloat()
@@ -1241,7 +1326,7 @@ class MainActivity : Activity() {
     private fun bottomMargin(bottomMargin: Int): LinearLayout.LayoutParams =
         LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
+            ViewGroup.LayoutParams.WRAP_CONTENT,
         ).apply {
             setMargins(0, 0, 0, bottomMargin)
         }
@@ -1249,13 +1334,12 @@ class MainActivity : Activity() {
     private fun wrapBottomMargin(bottomMargin: Int): LinearLayout.LayoutParams =
         LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.WRAP_CONTENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
+            ViewGroup.LayoutParams.WRAP_CONTENT,
         ).apply {
             setMargins(0, 0, 0, bottomMargin)
         }
 
-    private fun dp(value: Int): Int =
-        (value * resources.displayMetrics.density).toInt()
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
 
     private companion object {
         const val TAG = "SimpleGuardAgent"

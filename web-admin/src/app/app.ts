@@ -1,4 +1,10 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  inject,
+  signal,
+} from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 
 import { OidcClientService } from './auth/oidc-client.service';
@@ -10,24 +16,34 @@ import {
 import { DeviceRegistrationComponent } from './devices/device-registration.component';
 import { NotificationContainerComponent } from './notifications/notification-container.component';
 import { NotificationService } from './notifications/notification.service';
-import { AdministratorSession, SessionApiService } from './session/session-api.service';
+import {
+  AdministratorSession,
+  SessionApiService,
+} from './session/session-api.service';
 import { apiErrorMessage } from './shared/api-error-message';
 
 @Component({
   selector: 'sg-root',
-  imports: [CriticalActionDialogComponent, DeviceRegistrationComponent, NotificationContainerComponent],
+  imports: [
+    CriticalActionDialogComponent,
+    DeviceRegistrationComponent,
+    NotificationContainerComponent,
+  ],
   templateUrl: './app.html',
   styleUrl: './app.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class App implements OnInit {
-
   readonly auth = inject(OidcClientService);
   readonly session = signal<AdministratorSession | null>(null);
   readonly sessionError = signal<string | null>(null);
-  readonly criticalAction = signal<CriticalActionConfirmationRequest | null>(null);
+  readonly criticalAction = signal<CriticalActionConfirmationRequest | null>(
+    null,
+  );
   readonly criticalActionError = signal<string | null>(null);
-  readonly criticalActionEvent = signal<CriticalActionConfirmationEvent | null>(null);
+  readonly criticalActionEvent = signal<CriticalActionConfirmationEvent | null>(
+    null,
+  );
   readonly operatorPanelExpanded = signal(true);
 
   private readonly notifications = inject(NotificationService);
@@ -50,7 +66,7 @@ export class App implements OnInit {
   }
 
   toggleOperatorPanel(): void {
-    this.operatorPanelExpanded.update(expanded => !expanded);
+    this.operatorPanelExpanded.update((expanded) => !expanded);
   }
 
   openCriticalActionSimulation(): void {
@@ -72,7 +88,9 @@ export class App implements OnInit {
 
   confirmCriticalAction(action: CriticalActionConfirmationRequest): void {
     if (this.criticalActionFailureSimulation) {
-      this.notifications.error('Falha ao emitir evento de confirmacao critica.');
+      this.notifications.error(
+        'Falha ao emitir evento de confirmacao critica.',
+      );
       return;
     }
 
@@ -90,7 +108,10 @@ export class App implements OnInit {
       this.session.set(await firstValueFrom(this.sessionApi.me()));
       this.sessionError.set(null);
     } catch (error) {
-      const message = apiErrorMessage(error, 'Nao foi possivel validar a sessao na API.');
+      const message = apiErrorMessage(
+        error,
+        'Nao foi possivel validar a sessao na API.',
+      );
       this.session.set(null);
       this.sessionError.set(message);
       this.notifications.error(message);
@@ -102,7 +123,8 @@ export class App implements OnInit {
       actionType: 'TRIGGER_ALARM',
       targetId: 'device-demo-001',
       targetName: 'Notebook operacional demo',
-      consequence: 'O comando podera acionar um alarme no dispositivo alvo quando comandos reais forem implementados.',
+      consequence:
+        'O comando podera acionar um alarme no dispositivo alvo quando comandos reais forem implementados.',
       connectivityState: 'online',
       lastKnownLocation: 'indisponivel',
       lastUpdatedAt: 'indisponivel',

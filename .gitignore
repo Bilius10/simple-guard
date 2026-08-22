@@ -43,5 +43,5 @@ Thumbs.db
 .vscode/
 .codex/*
 !.codex/review/
-!.codex/review/.pre-commit-config.yaml
-!.codex/review/run-hook.ps1
+!.codex/review/*.yaml
+!.codex/review/*.ps1

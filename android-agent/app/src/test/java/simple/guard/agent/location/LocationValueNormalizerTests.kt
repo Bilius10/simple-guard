@@ -4,7 +4,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class LocationValueNormalizerTests {
-
     @Test
     fun normalizesLatitudeAndLongitudeToEightFractionDigitsTests() {
         assertEquals("-23.55052012", LocationValueNormalizer.latitude(-23.55052012345).toPlainString())

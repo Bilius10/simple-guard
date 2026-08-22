@@ -9,7 +9,7 @@ enum class LocationDiagnosticStatus(val label: String) {
     SEND_FAILURE("Falha ao enviar"),
     LOCATION_UNAVAILABLE("Localizacao indisponivel"),
     PROVIDER_UNAVAILABLE("Provedor indisponivel"),
-    PERMISSION_DENIED("Permissao negada")
+    PERMISSION_DENIED("Permissao negada"),
 }
 
 data class LocationDiagnosticsSnapshot(
@@ -24,11 +24,10 @@ data class LocationDiagnosticsSnapshot(
     val networkType: NetworkType?,
     val signalStrengthDbm: Int?,
     val fineLocationPermission: PermissionState?,
-    val coarseLocationPermission: PermissionState?
+    val coarseLocationPermission: PermissionState?,
 )
 
 class LocationDiagnosticsStore(context: Context) {
-
     private val preferences = context.applicationContext.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
 
     fun recordSyncAttempt(at: Instant = Instant.now()) {
@@ -45,26 +44,37 @@ class LocationDiagnosticsStore(context: Context) {
         updateStatus(LocationDiagnosticStatus.PROVIDER_UNAVAILABLE, provider = null, failureReason = reason)
     }
 
-    fun recordLocationUnavailable(provider: String?, reason: String) {
+    fun recordLocationUnavailable(
+        provider: String?,
+        reason: String,
+    ) {
         updateStatus(LocationDiagnosticStatus.LOCATION_UNAVAILABLE, provider = provider, failureReason = reason)
     }
 
-    fun recordSendSuccess(envelope: TelemetryEnvelope, at: Instant = Instant.now()) {
-        val editor = preferences.edit()
-            .putLong(KEY_LAST_SUCCESS_AT, at.toEpochMilli())
-            .putString(KEY_STATUS, LocationDiagnosticStatus.SENT.name)
-            .putString(KEY_PROVIDER, envelope.location?.provider)
-            .putString(KEY_LOCATION_STATUS, envelope.locationStatus.name)
-            .remove(KEY_FAILURE_REASON)
+    fun recordSendSuccess(
+        envelope: TelemetryEnvelope,
+        at: Instant = Instant.now(),
+    ) {
+        val editor =
+            preferences.edit()
+                .putLong(KEY_LAST_SUCCESS_AT, at.toEpochMilli())
+                .putString(KEY_STATUS, LocationDiagnosticStatus.SENT.name)
+                .putString(KEY_PROVIDER, envelope.location?.provider)
+                .putString(KEY_LOCATION_STATUS, envelope.locationStatus.name)
+                .remove(KEY_FAILURE_REASON)
         putTechnical(editor, envelope.technical).apply()
     }
 
-    fun recordSendFailure(envelope: TelemetryEnvelope, reason: String) {
-        val editor = preferences.edit()
-            .putString(KEY_STATUS, LocationDiagnosticStatus.SEND_FAILURE.name)
-            .putString(KEY_PROVIDER, envelope.location?.provider)
-            .putString(KEY_LOCATION_STATUS, envelope.locationStatus.name)
-            .putString(KEY_FAILURE_REASON, reason)
+    fun recordSendFailure(
+        envelope: TelemetryEnvelope,
+        reason: String,
+    ) {
+        val editor =
+            preferences.edit()
+                .putString(KEY_STATUS, LocationDiagnosticStatus.SEND_FAILURE.name)
+                .putString(KEY_PROVIDER, envelope.location?.provider)
+                .putString(KEY_LOCATION_STATUS, envelope.locationStatus.name)
+                .putString(KEY_FAILURE_REASON, reason)
         putTechnical(editor, envelope.technical).apply()
     }
 
@@ -76,9 +86,10 @@ class LocationDiagnosticsStore(context: Context) {
         return LocationDiagnosticsSnapshot(
             lastAttemptAt = preferences.instant(KEY_LAST_ATTEMPT_AT),
             lastSuccessAt = preferences.instant(KEY_LAST_SUCCESS_AT),
-            status = preferences.getString(KEY_STATUS, LocationDiagnosticStatus.IDLE.name)
-                ?.let { runCatching { LocationDiagnosticStatus.valueOf(it) }.getOrNull() }
-                ?: LocationDiagnosticStatus.IDLE,
+            status =
+                preferences.getString(KEY_STATUS, LocationDiagnosticStatus.IDLE.name)
+                    ?.let { runCatching { LocationDiagnosticStatus.valueOf(it) }.getOrNull() }
+                    ?: LocationDiagnosticStatus.IDLE,
             provider = preferences.getString(KEY_PROVIDER, null),
             failureReason = preferences.getString(KEY_FAILURE_REASON, null),
             locationStatus = preferences.enumValue<LocationCollectionStatus>(KEY_LOCATION_STATUS),
@@ -87,13 +98,13 @@ class LocationDiagnosticsStore(context: Context) {
             networkType = preferences.enumValue<NetworkType>(KEY_NETWORK_TYPE),
             signalStrengthDbm = preferences.intValue(KEY_SIGNAL_STRENGTH),
             fineLocationPermission = preferences.enumValue<PermissionState>(KEY_FINE_LOCATION_PERMISSION),
-            coarseLocationPermission = preferences.enumValue<PermissionState>(KEY_COARSE_LOCATION_PERMISSION)
+            coarseLocationPermission = preferences.enumValue<PermissionState>(KEY_COARSE_LOCATION_PERMISSION),
         )
     }
 
     private fun putTechnical(
         editor: android.content.SharedPreferences.Editor,
-        technical: TechnicalTelemetryReading
+        technical: TechnicalTelemetryReading,
     ): android.content.SharedPreferences.Editor {
         editor.putNullableInt(KEY_BATTERY_LEVEL, technical.batteryLevelPercentage)
         editor.putNullableBoolean(KEY_BATTERY_CHARGING, technical.batteryCharging)
@@ -107,7 +118,7 @@ class LocationDiagnosticsStore(context: Context) {
     private fun updateStatus(
         status: LocationDiagnosticStatus,
         provider: String?,
-        failureReason: String?
+        failureReason: String?,
     ) {
         preferences.edit()
             .putString(KEY_STATUS, status.name)
@@ -134,14 +145,14 @@ class LocationDiagnosticsStore(context: Context) {
 
     private fun android.content.SharedPreferences.Editor.putNullableInt(
         key: String,
-        value: Int?
+        value: Int?,
     ): android.content.SharedPreferences.Editor {
         return if (value == null) remove(key) else putInt(key, value)
     }
 
     private fun android.content.SharedPreferences.Editor.putNullableBoolean(
         key: String,
-        value: Boolean?
+        value: Boolean?,
     ): android.content.SharedPreferences.Editor {
         return if (value == null) remove(key) else putBoolean(key, value)
     }

@@ -19,7 +19,7 @@
   padding: 0 18px;
   border-bottom: 1px solid #31b7d7;
   background: #0b1a24;
-  font-family: "Cascadia Mono", "Roboto Mono", monospace;
+  font-family: 'Cascadia Mono', 'Roboto Mono', monospace;
   font-size: 0.75rem;
 }
 
@@ -71,7 +71,7 @@
   gap: 4px;
   justify-items: end;
   color: #d7f7ff;
-  font-family: "Cascadia Mono", "Roboto Mono", monospace;
+  font-family: 'Cascadia Mono', 'Roboto Mono', monospace;
   font-size: 0.75rem;
 }
 
@@ -83,7 +83,7 @@
 .message {
   margin: 0;
   color: #7fa6b6;
-  font-family: "Cascadia Mono", "Roboto Mono", monospace;
+  font-family: 'Cascadia Mono', 'Roboto Mono', monospace;
 }
 
 .error {
@@ -93,7 +93,7 @@
 h1 {
   margin: 12px 0;
   max-width: 18ch;
-  font-family: "Cascadia Mono", "Roboto Mono", monospace;
+  font-family: 'Cascadia Mono', 'Roboto Mono', monospace;
   font-size: 2.5rem;
   letter-spacing: 0;
 }
@@ -106,7 +106,7 @@ button {
   padding: 0 18px;
   background: transparent;
   color: #d7f7ff;
-  font-family: "Cascadia Mono", "Roboto Mono", monospace;
+  font-family: 'Cascadia Mono', 'Roboto Mono', monospace;
   font-size: 0.875rem;
   cursor: pointer;
 }
@@ -174,7 +174,7 @@ button:hover {
   border: 0;
   background: #000911;
   color: #e8fbff;
-  font-family: "Cascadia Mono", "Roboto Mono", monospace;
+  font-family: 'Cascadia Mono', 'Roboto Mono', monospace;
 }
 
 .status-bar {

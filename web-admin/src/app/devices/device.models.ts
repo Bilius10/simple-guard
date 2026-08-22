@@ -1,6 +1,7 @@
 export type DeviceType = 'MOBILE' | 'NOTEBOOK' | 'DESKTOP' | 'OTHER';
 
-export type DevicePlatform = 'ANDROID' | 'WINDOWS' | 'LINUX' | 'MACOS' | 'OTHER';
+export type DevicePlatform =
+  'ANDROID' | 'WINDOWS' | 'LINUX' | 'MACOS' | 'OTHER';
 
 export interface CreateDeviceRequest {
   readonly name: string;
@@ -44,7 +45,10 @@ export interface DeviceUnpairingRequest {
 }
 
 export type DeviceUnpairingRequestStatus = 'pending' | 'approved' | 'rejected';
-export type DeviceUnpairingRequestTerminalStatus = Exclude<DeviceUnpairingRequestStatus, 'pending'>;
+export type DeviceUnpairingRequestTerminalStatus = Exclude<
+  DeviceUnpairingRequestStatus,
+  'pending'
+>;
 
 export interface DeviceUnpairingDecisionResponse {
   readonly request: DeviceUnpairingRequest;

@@ -29,7 +29,9 @@ function payloadMessage(payload: unknown): string | null {
   }
 
   const message = (payload as ApiErrorPayload).mensagem;
-  return typeof message === 'string' && message.trim().length > 0 ? message.trim() : null;
+  return typeof message === 'string' && message.trim().length > 0
+    ? message.trim()
+    : null;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

@@ -15,18 +15,17 @@ import simple.guard.api.devices.pairingsession.service.PairingSessionService;
 @RequestMapping("/api/agent/pairing")
 public class AgentPairingController {
 
-    private final PairingSessionService pairingSessionService;
+  private final PairingSessionService pairingSessionService;
 
-    public AgentPairingController(PairingSessionService pairingSessionService) {
-        this.pairingSessionService = pairingSessionService;
-    }
+  public AgentPairingController(PairingSessionService pairingSessionService) {
+    this.pairingSessionService = pairingSessionService;
+  }
 
-    @PostMapping("/complete")
-    ResponseEntity<CompleteAgentPairingResponse> completePairing(
-            @Valid @RequestBody CompleteAgentPairingRequest request
-    ) {
-        return ResponseEntity.ok()
-                .cacheControl(CacheControl.noStore())
-                .body(pairingSessionService.complete(request));
-    }
+  @PostMapping("/complete")
+  ResponseEntity<CompleteAgentPairingResponse> completePairing(
+      @Valid @RequestBody CompleteAgentPairingRequest request) {
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.noStore())
+        .body(pairingSessionService.complete(request));
+  }
 }

@@ -1,4 +1,5 @@
-export type CriticalActionType = 'LOCK_DEVICE' | 'TRIGGER_ALARM' | 'UNPAIR_DEVICE' | 'CLOSE_INCIDENT';
+export type CriticalActionType =
+  'LOCK_DEVICE' | 'TRIGGER_ALARM' | 'UNPAIR_DEVICE' | 'CLOSE_INCIDENT';
 
 export type CriticalActionStepUpRequirement = 'not_required' | 'required';
 

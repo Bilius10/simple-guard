@@ -4,9 +4,4 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 public record UnpairDeviceResponse(
-        UUID deviceId,
-        String pairingStatus,
-        int revokedKeyCount,
-        OffsetDateTime unpairedAt
-) {
-}
+    UUID deviceId, String pairingStatus, int revokedKeyCount, OffsetDateTime unpairedAt) {}

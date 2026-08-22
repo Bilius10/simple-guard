@@ -14,7 +14,6 @@ import android.telephony.TelephonyManager
 import java.time.Instant
 
 class AndroidTechnicalTelemetryCollector(context: Context) : TechnicalTelemetryCollector {
-
     private val applicationContext = context.applicationContext
 
     override fun collect(): TechnicalTelemetryReading {
@@ -25,27 +24,32 @@ class AndroidTechnicalTelemetryCollector(context: Context) : TechnicalTelemetryC
             batteryCharging = battery?.second,
             networkType = networkType,
             signalStrengthDbm = signalStrengthDbm(networkType),
-            permissions = TelemetryPermissions(
-                fineLocation = permissionState(Manifest.permission.ACCESS_FINE_LOCATION),
-                coarseLocation = permissionState(Manifest.permission.ACCESS_COARSE_LOCATION)
-            ),
-            collectedAt = Instant.now()
+            permissions =
+                TelemetryPermissions(
+                    fineLocation = permissionState(Manifest.permission.ACCESS_FINE_LOCATION),
+                    coarseLocation = permissionState(Manifest.permission.ACCESS_COARSE_LOCATION),
+                ),
+            collectedAt = Instant.now(),
         )
     }
 
     private fun batteryState(): Pair<Int?, Boolean?>? {
-        val state = applicationContext.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
-            ?: return null
+        val state =
+            applicationContext.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+                ?: return null
         val level = state.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
         val scale = state.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
         val percentage = TechnicalTelemetryValueNormalizer.batteryPercentage(level, scale)
-        val charging = when (state.getIntExtra(BatteryManager.EXTRA_STATUS, -1)) {
-            BatteryManager.BATTERY_STATUS_CHARGING,
-            BatteryManager.BATTERY_STATUS_FULL -> true
-            BatteryManager.BATTERY_STATUS_DISCHARGING,
-            BatteryManager.BATTERY_STATUS_NOT_CHARGING -> false
-            else -> null
-        }
+        val charging =
+            when (state.getIntExtra(BatteryManager.EXTRA_STATUS, -1)) {
+                BatteryManager.BATTERY_STATUS_CHARGING,
+                BatteryManager.BATTERY_STATUS_FULL,
+                -> true
+                BatteryManager.BATTERY_STATUS_DISCHARGING,
+                BatteryManager.BATTERY_STATUS_NOT_CHARGING,
+                -> false
+                else -> null
+            }
         return percentage to charging
     }
 
@@ -65,15 +69,17 @@ class AndroidTechnicalTelemetryCollector(context: Context) : TechnicalTelemetryC
     }
 
     private fun signalStrengthDbm(networkType: NetworkType?): Int? {
-        val value = runCatching {
-            when (networkType) {
-                NetworkType.WIFI -> applicationContext.getSystemService(WifiManager::class.java)
-                    .connectionInfo
-                    .rssi
-                NetworkType.CELLULAR -> cellularSignalStrengthDbm()
-                else -> null
-            }
-        }.getOrNull()
+        val value =
+            runCatching {
+                when (networkType) {
+                    NetworkType.WIFI ->
+                        applicationContext.getSystemService(WifiManager::class.java)
+                            .connectionInfo
+                            .rssi
+                    NetworkType.CELLULAR -> cellularSignalStrengthDbm()
+                    else -> null
+                }
+            }.getOrNull()
         return TechnicalTelemetryValueNormalizer.signalStrengthDbm(value)
     }
 

@@ -23,7 +23,6 @@ interface CachedPairingSession {
 
 @Injectable({ providedIn: 'root' })
 export class DeviceApiService {
-
   private readonly http = inject(HttpClient);
   private readonly config = inject(SIMPLEGUARD_AUTH_CONFIG);
 
@@ -43,27 +42,32 @@ export class DeviceApiService {
     }
     this.clearCachedPairingSession(deviceId);
 
-    return this.http.post<PairingSession>(
-      `${this.config.apiBaseUrl}/devices/${deviceId}/pairing-sessions`,
-      {},
-    ).pipe(
-      tap(session => this.cachePairingSession(deviceId, session)),
-    );
+    return this.http
+      .post<PairingSession>(
+        `${this.config.apiBaseUrl}/devices/${deviceId}/pairing-sessions`,
+        {},
+      )
+      .pipe(tap((session) => this.cachePairingSession(deviceId, session)));
   }
 
   unpair(deviceId: string) {
-    return this.http.delete<UnpairDeviceResponse>(
-      `${this.config.apiBaseUrl}/devices/${deviceId}/unpairing`,
-    ).pipe(
-      tap(() => this.clearCachedPairingSession(deviceId)),
-    );
+    return this.http
+      .delete<UnpairDeviceResponse>(
+        `${this.config.apiBaseUrl}/devices/${deviceId}/unpairing`,
+      )
+      .pipe(tap(() => this.clearCachedPairingSession(deviceId)));
   }
 
   listUnpairingRequests() {
-    return this.http.get<DeviceUnpairingRequest[]>(`${this.config.apiBaseUrl}/devices/unpairing-requests`);
+    return this.http.get<DeviceUnpairingRequest[]>(
+      `${this.config.apiBaseUrl}/devices/unpairing-requests`,
+    );
   }
 
-  decideUnpairingRequest(requestId: string, status: DeviceUnpairingRequestTerminalStatus) {
+  decideUnpairingRequest(
+    requestId: string,
+    status: DeviceUnpairingRequestTerminalStatus,
+  ) {
     return this.http.post<DeviceUnpairingDecisionResponse>(
       `${this.config.apiBaseUrl}/devices/unpairing-requests/${requestId}/decision`,
       { status },
@@ -73,9 +77,16 @@ export class DeviceApiService {
   private cachePairingSession(deviceId: string, session: PairingSession): void {
     const now = Date.now();
     const sessionExpiresAt = Date.parse(session.expiresAt);
-    const cacheExpiresAt = Math.min(now + PAIRING_SESSION_CACHE_TTL_MS, sessionExpiresAt);
+    const cacheExpiresAt = Math.min(
+      now + PAIRING_SESSION_CACHE_TTL_MS,
+      sessionExpiresAt,
+    );
 
-    if (session.status !== 'waiting' || !Number.isFinite(sessionExpiresAt) || cacheExpiresAt <= now) {
+    if (
+      session.status !== 'waiting' ||
+      !Number.isFinite(sessionExpiresAt) ||
+      cacheExpiresAt <= now
+    ) {
       this.clearCachedPairingSession(deviceId);
       return;
     }
@@ -87,7 +98,9 @@ export class DeviceApiService {
     sessionStorage.setItem(this.cacheKey(deviceId), JSON.stringify(cached));
   }
 
-  private readCachedPairingSession(deviceId: string): CachedPairingSession | null {
+  private readCachedPairingSession(
+    deviceId: string,
+  ): CachedPairingSession | null {
     const rawValue = sessionStorage.getItem(this.cacheKey(deviceId));
     if (!rawValue) {
       return null;
@@ -95,7 +108,11 @@ export class DeviceApiService {
 
     try {
       const cached = JSON.parse(rawValue) as CachedPairingSession;
-      if (!cached.session || cached.session.deviceId !== deviceId || cached.session.status !== 'waiting') {
+      if (
+        !cached.session ||
+        cached.session.deviceId !== deviceId ||
+        cached.session.status !== 'waiting'
+      ) {
         this.clearCachedPairingSession(deviceId);
         return null;
       }

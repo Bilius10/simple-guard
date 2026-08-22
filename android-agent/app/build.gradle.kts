@@ -2,6 +2,8 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlinx.kover")
+    id("org.jlleitschuh.gradle.ktlint")
+    id("io.gitlab.arturbosch.detekt")
 }
 
 android {
@@ -26,7 +28,19 @@ kotlin {
     jvmToolchain(17)
 }
 
+detekt {
+    buildUponDefaultConfig = true
+    allRules = false
+    config.setFrom(files("$rootDir/detekt.yml"))
+}
+
+ktlint {
+    android.set(true)
+    ignoreFailures.set(false)
+}
+
 dependencies {
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.23.8")
     testImplementation(kotlin("test"))
     testImplementation("org.json:json:20240303")
 }
@@ -60,7 +74,7 @@ kover {
                     "*LocationTrackingService*",
                     "*LocationDiagnosticsStore*",
                     "*LocationDiagnosticStatus*",
-                    "*LocationDiagnosticsSnapshot*"
+                    "*LocationDiagnosticsSnapshot*",
                 )
             }
         }

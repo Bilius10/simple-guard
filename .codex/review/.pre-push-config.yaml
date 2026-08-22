@@ -1,0 +1,187 @@
+exclude: ^(android-agent/(\.gradle|\.gradle-user|\.gradle-codex-coverage|\.kotlin|build|app/build)/|api/(\.m2|target|AppData)/|web-admin/(node_modules|dist|coverage|\.angular)/|desktop-agent/target/)
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        stages: [pre-push]
+      - id: end-of-file-fixer
+        stages: [pre-push]
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+        stages: [pre-push]
+      - id: check-json
+        stages: [pre-push]
+      - id: pretty-format-json
+        args: ["--autofix", "--indent", "2"]
+        stages: [pre-push]
+      - id: check-yaml
+        stages: [pre-push]
+      - id: check-toml
+        stages: [pre-push]
+      - id: check-merge-conflict
+        stages: [pre-push]
+      - id: check-added-large-files
+        stages: [pre-push]
+      - id: check-case-conflict
+        stages: [pre-push]
+      - id: check-executables-have-shebangs
+        stages: [pre-push]
+      - id: check-shebang-scripts-are-executable
+        stages: [pre-push]
+      - id: detect-private-key
+        stages: [pre-push]
+      - id: forbid-submodules
+        stages: [pre-push]
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.24.0
+    hooks:
+      - id: gitleaks
+        stages: [pre-push]
+
+  - repo: local
+    hooks:
+      - id: repo-policy
+        name: "repo: forbidden tracked paths"
+        entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .codex/review/run-repo-policy.ps1
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+
+      - id: api-tests
+        name: "api: Maven tests"
+        entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .codex/review/run-hook.ps1 api mvnw.cmd test
+        language: system
+        pass_filenames: false
+        files: ^api/(src|pom\.xml|\.mvn|mvnw|mvnw\.cmd)
+        stages: [pre-push]
+
+      - id: api-verify
+        name: "api: Maven verify with JaCoCo"
+        entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .codex/review/run-hook.ps1 api mvnw.cmd verify
+        language: system
+        pass_filenames: false
+        files: ^api/(src|pom\.xml|\.mvn|mvnw|mvnw\.cmd)
+        stages: [pre-push]
+
+      - id: api-spotless
+        name: "api: Spotless check if configured"
+        entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .codex/review/run-quality-hook.ps1 api spotless
+        language: system
+        pass_filenames: false
+        files: ^api/(src|pom\.xml)
+        stages: [pre-push]
+
+      - id: api-checkstyle
+        name: "api: Checkstyle if configured"
+        entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .codex/review/run-quality-hook.ps1 api checkstyle
+        language: system
+        pass_filenames: false
+        files: ^api/(src|pom\.xml|checkstyle.*)
+        stages: [pre-push]
+
+      - id: api-pmd
+        name: "api: PMD if configured"
+        entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .codex/review/run-quality-hook.ps1 api pmd
+        language: system
+        pass_filenames: false
+        files: ^api/(src|pom\.xml|pmd.*)
+        stages: [pre-push]
+
+      - id: api-spotbugs
+        name: "api: SpotBugs if configured"
+        entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .codex/review/run-quality-hook.ps1 api spotbugs
+        language: system
+        pass_filenames: false
+        files: ^api/(src|pom\.xml)
+        stages: [pre-push]
+
+      - id: web-admin-build
+        name: "web-admin: Angular build"
+        entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .codex/review/run-hook.ps1 web-admin npm run build
+        language: system
+        pass_filenames: false
+        files: ^web-admin/(src|public|angular\.json|package\.json|package-lock\.json|tsconfig.*\.json)
+        stages: [pre-push]
+
+      - id: web-admin-tests
+        name: "web-admin: Angular tests"
+        entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .codex/review/run-hook.ps1 web-admin npm test
+        language: system
+        pass_filenames: false
+        files: ^web-admin/(src|public|angular\.json|package\.json|package-lock\.json|tsconfig.*\.json)
+        stages: [pre-push]
+
+      - id: web-admin-coverage
+        name: "web-admin: Angular coverage"
+        entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .codex/review/run-hook.ps1 web-admin npm run test:coverage
+        language: system
+        pass_filenames: false
+        files: ^web-admin/(src|public|angular\.json|package\.json|package-lock\.json|tsconfig.*\.json)
+        stages: [pre-push]
+
+      - id: web-admin-eslint
+        name: "web-admin: ESLint if configured"
+        entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .codex/review/run-quality-hook.ps1 web-admin eslint
+        language: system
+        pass_filenames: false
+        files: ^web-admin/(src|package\.json|package-lock\.json|eslint\.config\..*|\.eslintrc.*)
+        stages: [pre-push]
+
+      - id: web-admin-prettier
+        name: "web-admin: Prettier if configured"
+        entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .codex/review/run-quality-hook.ps1 web-admin prettier
+        language: system
+        pass_filenames: false
+        files: ^web-admin/(src|public|package\.json|package-lock\.json|\.prettierrc.*|prettier\.config\..*)
+        stages: [pre-push]
+
+      - id: android-unit-tests
+        name: "android-agent: unit tests"
+        entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .codex/review/run-hook.ps1 android-agent gradlew.bat --no-daemon --max-workers=1 testDebugUnitTest
+        language: system
+        pass_filenames: false
+        files: ^android-agent/(app/src|app/build\.gradle\.kts|build\.gradle\.kts|settings\.gradle\.kts|gradle/)
+        stages: [pre-push]
+
+      - id: android-lint
+        name: "android-agent: Android lint"
+        entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .codex/review/run-hook.ps1 android-agent gradlew.bat --no-daemon --max-workers=1 lintDebug
+        language: system
+        pass_filenames: false
+        files: ^android-agent/(app/src|app/build\.gradle\.kts|build\.gradle\.kts|settings\.gradle\.kts|gradle/)
+        stages: [pre-push]
+
+      - id: android-kover
+        name: "android-agent: Kover verify"
+        entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .codex/review/run-hook.ps1 android-agent gradlew.bat --no-daemon --max-workers=1 :app:koverVerifyDebug
+        language: system
+        pass_filenames: false
+        files: ^android-agent/(app/src|app/build\.gradle\.kts|build\.gradle\.kts|settings\.gradle\.kts|gradle/)
+        stages: [pre-push]
+
+      - id: android-assemble
+        name: "android-agent: assemble debug APK"
+        entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .codex/review/run-hook.ps1 android-agent gradlew.bat --no-daemon --max-workers=1 assembleDebug
+        language: system
+        pass_filenames: false
+        files: ^android-agent/(app/src|app/build\.gradle\.kts|build\.gradle\.kts|settings\.gradle\.kts|gradle/)
+        stages: [pre-push]
+
+      - id: android-ktlint
+        name: "android-agent: ktlint if configured"
+        entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .codex/review/run-quality-hook.ps1 android-agent ktlint
+        language: system
+        pass_filenames: false
+        files: ^android-agent/(app/src|app/build\.gradle\.kts|build\.gradle\.kts|settings\.gradle\.kts)
+        stages: [pre-push]
+
+      - id: android-detekt
+        name: "android-agent: detekt if configured"
+        entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .codex/review/run-quality-hook.ps1 android-agent detekt
+        language: system
+        pass_filenames: false
+        files: ^android-agent/(app/src|app/build\.gradle\.kts|build\.gradle\.kts|settings\.gradle\.kts|detekt.*)
+        stages: [pre-push]

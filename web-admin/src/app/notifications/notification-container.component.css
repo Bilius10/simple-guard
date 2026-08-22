@@ -23,7 +23,7 @@
   background: #0b1a24;
   box-shadow: 0 12px 32px rgb(0 0 0 / 35%);
   color: #d7f7ff;
-  font-family: "Cascadia Mono", "Roboto Mono", monospace;
+  font-family: 'Cascadia Mono', 'Roboto Mono', monospace;
   font-size: 0.75rem;
   pointer-events: auto;
 }

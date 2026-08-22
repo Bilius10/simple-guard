@@ -1,5 +1,6 @@
 package simple.guard.api.devices.pairingsession.controller;
 
+import java.util.UUID;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -12,37 +13,33 @@ import simple.guard.api.devices.deviceunpairingrequest.controller.response.Devic
 import simple.guard.api.devices.deviceunpairingrequest.service.DeviceUnpairingRequestService;
 import simple.guard.api.devices.pairingsession.controller.response.AgentPairingStatusResponse;
 
-import java.util.UUID;
-
 @RestController
 @RequestMapping("/api/agent/devices")
 public class AgentUnpairingController {
 
-    private final DeviceUnpairingRequestService deviceUnpairingRequests;
+  private final DeviceUnpairingRequestService deviceUnpairingRequests;
 
-    public AgentUnpairingController(DeviceUnpairingRequestService deviceUnpairingRequests) {
-        this.deviceUnpairingRequests = deviceUnpairingRequests;
-    }
+  public AgentUnpairingController(DeviceUnpairingRequestService deviceUnpairingRequests) {
+    this.deviceUnpairingRequests = deviceUnpairingRequests;
+  }
 
-    @DeleteMapping("/{deviceId}/pairing")
-    ResponseEntity<DeviceUnpairingRequestResponse> unpair(
-            @PathVariable UUID deviceId,
-            @RequestHeader("X-Agent-Instance-Id") String agentInstanceId,
-            @RequestHeader("X-Agent-Signature") String signature
-    ) {
-        return ResponseEntity.accepted()
-                .cacheControl(CacheControl.noStore())
-                .body(deviceUnpairingRequests.requestByAgent(deviceId, agentInstanceId, signature));
-    }
+  @DeleteMapping("/{deviceId}/pairing")
+  ResponseEntity<DeviceUnpairingRequestResponse> unpair(
+      @PathVariable UUID deviceId,
+      @RequestHeader("X-Agent-Instance-Id") String agentInstanceId,
+      @RequestHeader("X-Agent-Signature") String signature) {
+    return ResponseEntity.accepted()
+        .cacheControl(CacheControl.noStore())
+        .body(deviceUnpairingRequests.requestByAgent(deviceId, agentInstanceId, signature));
+  }
 
-    @GetMapping("/{deviceId}/pairing")
-    ResponseEntity<AgentPairingStatusResponse> pairingStatus(
-            @PathVariable UUID deviceId,
-            @RequestHeader("X-Agent-Instance-Id") String agentInstanceId,
-            @RequestHeader("X-Agent-Signature") String signature
-    ) {
-        return ResponseEntity.ok()
-                .cacheControl(CacheControl.noStore())
-                .body(deviceUnpairingRequests.statusForAgent(deviceId, agentInstanceId, signature));
-    }
+  @GetMapping("/{deviceId}/pairing")
+  ResponseEntity<AgentPairingStatusResponse> pairingStatus(
+      @PathVariable UUID deviceId,
+      @RequestHeader("X-Agent-Instance-Id") String agentInstanceId,
+      @RequestHeader("X-Agent-Signature") String signature) {
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.noStore())
+        .body(deviceUnpairingRequests.statusForAgent(deviceId, agentInstanceId, signature));
+  }
 }

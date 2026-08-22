@@ -10,7 +10,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 class FileTelemetryOfflineQueueTests {
-
     @Test
     fun persistsAndOrdersEventsByOriginalCollectionTimeTests() {
         withQueueFile { file ->
@@ -56,12 +55,13 @@ class FileTelemetryOfflineQueueTests {
     fun roundTripsNullableTelemetryFieldsTests() {
         withQueueFile { file ->
             val now = Instant.parse("2026-08-20T12:00:00Z")
-            val envelope = TelemetryEnvelope(
-                eventId = "nullable",
-                location = null,
-                technical = TechnicalTelemetryReading(null, null, null, null, null, now),
-                locationStatus = LocationCollectionStatus.PERMISSION_DENIED
-            )
+            val envelope =
+                TelemetryEnvelope(
+                    eventId = "nullable",
+                    location = null,
+                    technical = TechnicalTelemetryReading(null, null, null, null, null, now),
+                    locationStatus = LocationCollectionStatus.PERMISSION_DENIED,
+                )
             val queue = FileTelemetryOfflineQueue(file)
             queue.enqueue(envelope, now)
 
@@ -72,27 +72,32 @@ class FileTelemetryOfflineQueueTests {
         }
     }
 
-    private fun envelope(eventId: String, collectedAt: Instant): TelemetryEnvelope {
+    private fun envelope(
+        eventId: String,
+        collectedAt: Instant,
+    ): TelemetryEnvelope {
         return TelemetryEnvelope(
             eventId = eventId,
-            location = LocationReading(
-                latitude = BigDecimal("-23.55052"),
-                longitude = BigDecimal("-46.633308"),
-                accuracyMeters = BigDecimal("4.5"),
-                altitudeMeters = null,
-                speedMetersPerSecond = null,
-                provider = "GPS",
-                collectedAt = collectedAt
-            ),
-            technical = TechnicalTelemetryReading(
-                batteryLevelPercentage = 70,
-                batteryCharging = false,
-                networkType = NetworkType.WIFI,
-                signalStrengthDbm = -55,
-                permissions = TelemetryPermissions(PermissionState.GRANTED, PermissionState.DENIED),
-                collectedAt = collectedAt.plusSeconds(2)
-            ),
-            locationStatus = LocationCollectionStatus.COLLECTED
+            location =
+                LocationReading(
+                    latitude = BigDecimal("-23.55052"),
+                    longitude = BigDecimal("-46.633308"),
+                    accuracyMeters = BigDecimal("4.5"),
+                    altitudeMeters = null,
+                    speedMetersPerSecond = null,
+                    provider = "GPS",
+                    collectedAt = collectedAt,
+                ),
+            technical =
+                TechnicalTelemetryReading(
+                    batteryLevelPercentage = 70,
+                    batteryCharging = false,
+                    networkType = NetworkType.WIFI,
+                    signalStrengthDbm = -55,
+                    permissions = TelemetryPermissions(PermissionState.GRANTED, PermissionState.DENIED),
+                    collectedAt = collectedAt.plusSeconds(2),
+                ),
+            locationStatus = LocationCollectionStatus.COLLECTED,
         )
     }
 

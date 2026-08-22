@@ -4,7 +4,6 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 
 object LocationValueNormalizer {
-
     fun latitude(value: Double): BigDecimal = decimal(value, 8)
 
     fun longitude(value: Double): BigDecimal = decimal(value, 8)
@@ -15,7 +14,10 @@ object LocationValueNormalizer {
 
     fun speedMetersPerSecond(value: Double): BigDecimal = decimal(value, 3)
 
-    private fun decimal(value: Double, scale: Int): BigDecimal {
+    private fun decimal(
+        value: Double,
+        scale: Int,
+    ): BigDecimal {
         return BigDecimal.valueOf(value).setScale(scale, RoundingMode.HALF_UP)
     }
 }

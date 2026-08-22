@@ -8,7 +8,12 @@
   </header>
 
   <div class="registry-layout">
-    <form class="registration-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <form
+      class="registration-form"
+      [formGroup]="form"
+      (ngSubmit)="submit()"
+      novalidate
+    >
       <div class="form-heading">
         <span class="step-index">01</span>
         <div>
@@ -27,7 +32,9 @@
         placeholder="Ex.: Notebook de campo"
       />
       @if (form.controls.name.touched && form.controls.name.invalid) {
-        <p class="field-error">Informe um nome valido com ate 160 caracteres.</p>
+        <p class="field-error">
+          Informe um nome valido com ate 160 caracteres.
+        </p>
       }
 
       <label for="device-type">Tipo</label>
@@ -57,7 +64,11 @@
       </button>
     </form>
 
-    <section class="device-list" aria-labelledby="device-list-title" aria-live="polite">
+    <section
+      class="device-list"
+      aria-labelledby="device-list-title"
+      aria-live="polite"
+    >
       <div class="list-heading">
         <span class="step-index">02</span>
         <div>
@@ -71,16 +82,24 @@
       } @else if (loadError()) {
         <div class="system-state error-state" role="alert">
           <p>{{ loadError() }}</p>
-          <button type="button" class="retry-action" (click)="loadDevices()">Tentar novamente</button>
+          <button type="button" class="retry-action" (click)="loadDevices()">
+            Tentar novamente
+          </button>
         </div>
       } @else if (devices().length === 0) {
         <div class="empty-state">
           <span class="empty-code">DEVICE_00</span>
           <h4>Nenhum dispositivo cadastrado</h4>
-          <p>O primeiro dispositivo aparecera aqui como pendente de pareamento.</p>
+          <p>
+            O primeiro dispositivo aparecera aqui como pendente de pareamento.
+          </p>
         </div>
       } @else {
-        <div class="device-table" role="table" aria-label="Dispositivos cadastrados">
+        <div
+          class="device-table"
+          role="table"
+          aria-label="Dispositivos cadastrados"
+        >
           <div class="table-row table-header" role="row">
             <span role="columnheader">Dispositivo</span>
             <span role="columnheader">Tipo</span>
@@ -95,7 +114,9 @@
               <span role="cell">{{ platformLabel(device.platform) }}</span>
               <span role="cell">
                 @if (pendingUnpairingRequest(device.deviceId); as request) {
-                  <span class="pairing-status unpairing-request-status">Despareamento solicitado</span>
+                  <span class="pairing-status unpairing-request-status"
+                    >Despareamento solicitado</span
+                  >
                 } @else if (device.pairingStatus === 'unpaired') {
                   <span class="pairing-status">Pendente de pareamento</span>
                 } @else {
@@ -108,7 +129,9 @@
                     <button
                       type="button"
                       class="approve-unpair-request-action"
-                      [disabled]="decidingUnpairingRequestId() === request.requestId"
+                      [disabled]="
+                        decidingUnpairingRequestId() === request.requestId
+                      "
                       (click)="openApproveUnpairingRequestConfirmation(request)"
                     >
                       Aprovar
@@ -116,7 +139,9 @@
                     <button
                       type="button"
                       class="reject-unpair-request-action"
-                      [disabled]="decidingUnpairingRequestId() === request.requestId"
+                      [disabled]="
+                        decidingUnpairingRequestId() === request.requestId
+                      "
                       (click)="rejectUnpairingRequest(request)"
                     >
                       Rejeitar
@@ -129,7 +154,11 @@
                     [disabled]="pairingLoadingDeviceId() === device.deviceId"
                     (click)="generatePairingSession(device)"
                   >
-                    {{ pairingLoadingDeviceId() === device.deviceId ? 'Gerando...' : 'Gerar codigo' }}
+                    {{
+                      pairingLoadingDeviceId() === device.deviceId
+                        ? 'Gerando...'
+                        : 'Gerar codigo'
+                    }}
                   </button>
                 } @else {
                   <button
@@ -145,7 +174,6 @@
             </div>
           }
         </div>
-
       }
     </section>
   </div>
@@ -178,7 +206,9 @@
 
         @if (pairingExpired()) {
           <p class="pairing-state-label expired-label">Codigo expirado</p>
-          <p class="pairing-instruction">Este codigo nao pode mais ser utilizado.</p>
+          <p class="pairing-instruction">
+            Este codigo nao pode mais ser utilizado.
+          </p>
           <button
             type="button"
             class="pairing-action regenerate-action"
@@ -189,12 +219,17 @@
           </button>
         } @else {
           <p class="pairing-state-label waiting-label">Aguardando agente</p>
-          <output class="pairing-code" aria-label="Codigo de pareamento">{{ pairing.session.pairingCode }}</output>
-          <p class="pairing-instruction">Informe este codigo somente no dispositivo em sua posse.</p>
+          <output class="pairing-code" aria-label="Codigo de pareamento">{{
+            pairing.session.pairingCode
+          }}</output>
+          <p class="pairing-instruction">
+            Informe este codigo somente no dispositivo em sua posse.
+          </p>
         }
 
         <p class="pairing-expiration">
-          Expira em {{ pairing.session.expiresAt | date:'dd/MM/yyyy HH:mm:ss' }}
+          Expira em
+          {{ pairing.session.expiresAt | date: 'dd/MM/yyyy HH:mm:ss' }}
         </p>
       </section>
     </div>

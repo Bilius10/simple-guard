@@ -1,5 +1,7 @@
 package simple.guard.api.devices.pairingsession.controller;
 
+import java.net.URI;
+import java.util.UUID;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -11,33 +13,29 @@ import simple.guard.api.devices.pairingsession.controller.response.PairingSessio
 import simple.guard.api.devices.pairingsession.service.PairingSessionService;
 import simple.guard.api.identity.domain.Account;
 
-import java.net.URI;
-import java.util.UUID;
-
 @RestController
 @RequestMapping("/api/devices")
 public class PairingSessionController {
 
-    private final PairingSessionService pairingSessionService;
+  private final PairingSessionService pairingSessionService;
 
-    public PairingSessionController(PairingSessionService pairingSessionService) {
-        this.pairingSessionService = pairingSessionService;
-    }
+  public PairingSessionController(PairingSessionService pairingSessionService) {
+    this.pairingSessionService = pairingSessionService;
+  }
 
-    @PostMapping("/{deviceId}/pairing-sessions")
-    ResponseEntity<PairingSessionResponse> generatePairingSession(
-            @PathVariable UUID deviceId,
-            Authentication authentication
-    ) {
-        PairingSessionResponse session = pairingSessionService.generate(deviceId, account(authentication));
-        return ResponseEntity.created(URI.create(
-                        "/api/devices/" + deviceId + "/pairing-sessions/" + session.pairingSessionId()
-                ))
-                .cacheControl(CacheControl.noStore())
-                .body(session);
-    }
+  @PostMapping("/{deviceId}/pairing-sessions")
+  ResponseEntity<PairingSessionResponse> generatePairingSession(
+      @PathVariable UUID deviceId, Authentication authentication) {
+    PairingSessionResponse session =
+        pairingSessionService.generate(deviceId, account(authentication));
+    return ResponseEntity.created(
+            URI.create(
+                "/api/devices/" + deviceId + "/pairing-sessions/" + session.pairingSessionId()))
+        .cacheControl(CacheControl.noStore())
+        .body(session);
+  }
 
-    private Account account(Authentication authentication) {
-        return (Account) authentication.getDetails();
-    }
+  private Account account(Authentication authentication) {
+    return (Account) authentication.getDetails();
+  }
 }

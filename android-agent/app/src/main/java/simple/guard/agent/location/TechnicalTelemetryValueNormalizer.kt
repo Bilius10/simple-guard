@@ -1,8 +1,10 @@
 package simple.guard.agent.location
 
 object TechnicalTelemetryValueNormalizer {
-
-    fun batteryPercentage(level: Int, scale: Int): Int? {
+    fun batteryPercentage(
+        level: Int,
+        scale: Int,
+    ): Int? {
         if (level < 0) return null
         if (scale <= 0) return null
         return (level * 100 / scale).coerceIn(0, 100)

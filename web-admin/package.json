@@ -6,7 +6,10 @@
     "start": "ng serve",
     "build": "ng build",
     "test": "ng test --watch=false",
-    "test:coverage": "ng test --watch=false --coverage"
+    "test:coverage": "ng test --watch=false --coverage",
+    "lint": "eslint .",
+    "format:check": "prettier . --check",
+    "format:write": "prettier . --write"
   },
   "dependencies": {
     "@angular/common": "22.0.8",
@@ -25,8 +28,13 @@
     "@angular/cli": "22.0.8",
     "@angular/compiler-cli": "22.0.8",
     "@vitest/coverage-v8": "4.1.10",
+    "angular-eslint": "^22.0.2",
+    "eslint": "^9.35.0",
+    "eslint-config-prettier": "^10.1.8",
     "jsdom": "26.1.0",
+    "prettier": "^3.6.2",
     "typescript": "6.0.2",
+    "typescript-eslint": "^8.43.0",
     "vitest": "4.1.10"
   },
   "engines": {

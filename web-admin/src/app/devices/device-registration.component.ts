@@ -1,6 +1,18 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnDestroy,
+  OnInit,
+  inject,
+  signal,
+} from '@angular/core';
+import {
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 
 import { CriticalActionDialogComponent } from '../critical-action/critical-action-dialog.component';
@@ -30,19 +42,24 @@ interface SelectOption<T> {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DeviceRegistrationComponent implements OnInit, OnDestroy {
-
   readonly devices = signal<Device[]>([]);
   readonly unpairingRequests = signal<DeviceUnpairingRequest[]>([]);
   readonly loading = signal(true);
   readonly submitting = signal(false);
   readonly loadError = signal<string | null>(null);
   readonly pairingLoadingDeviceId = signal<string | null>(null);
-  readonly activePairing = signal<{ readonly device: Device; readonly session: PairingSession } | null>(null);
+  readonly activePairing = signal<{
+    readonly device: Device;
+    readonly session: PairingSession;
+  } | null>(null);
   readonly pairingExpired = signal(false);
-  readonly unpairAction = signal<CriticalActionConfirmationRequest | null>(null);
+  readonly unpairAction = signal<CriticalActionConfirmationRequest | null>(
+    null,
+  );
   readonly unpairError = signal<string | null>(null);
   readonly unpairingDeviceId = signal<string | null>(null);
-  readonly unpairingRequestAction = signal<CriticalActionConfirmationRequest | null>(null);
+  readonly unpairingRequestAction =
+    signal<CriticalActionConfirmationRequest | null>(null);
   readonly unpairingRequestError = signal<string | null>(null);
   readonly decidingUnpairingRequestId = signal<string | null>(null);
 
@@ -64,7 +81,11 @@ export class DeviceRegistrationComponent implements OnInit, OnDestroy {
   readonly form = new FormGroup({
     name: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.pattern(/\S/), Validators.maxLength(160)],
+      validators: [
+        Validators.required,
+        Validators.pattern(/\S/),
+        Validators.maxLength(160),
+      ],
     }),
     type: new FormControl<DeviceType | null>(null, Validators.required),
     platform: new FormControl<DevicePlatform | null>(null, Validators.required),
@@ -94,7 +115,10 @@ export class DeviceRegistrationComponent implements OnInit, OnDestroy {
       this.devices.set(devices);
       this.unpairingRequests.set(unpairingRequests);
     } catch (error) {
-      const message = apiErrorMessage(error, 'Nao foi possivel carregar os dispositivos.');
+      const message = apiErrorMessage(
+        error,
+        'Nao foi possivel carregar os dispositivos.',
+      );
       this.devices.set([]);
       this.unpairingRequests.set([]);
       this.loadError.set(message);
@@ -124,14 +148,18 @@ export class DeviceRegistrationComponent implements OnInit, OnDestroy {
     this.submitting.set(true);
     try {
       const created = await firstValueFrom(this.deviceApi.create(request));
-      this.devices.update(devices => [created, ...devices]);
+      this.devices.update((devices) => [created, ...devices]);
       this.form.reset();
-      this.notifications.success(`${created.name} cadastrado e pendente de pareamento.`);
+      this.notifications.success(
+        `${created.name} cadastrado e pendente de pareamento.`,
+      );
     } catch (error) {
-      this.notifications.error(apiErrorMessage(
-        error,
-        'Nao foi possivel cadastrar o dispositivo. Revise os dados e tente novamente.',
-      ));
+      this.notifications.error(
+        apiErrorMessage(
+          error,
+          'Nao foi possivel cadastrar o dispositivo. Revise os dados e tente novamente.',
+        ),
+      );
     } finally {
       this.submitting.set(false);
     }
@@ -141,14 +169,18 @@ export class DeviceRegistrationComponent implements OnInit, OnDestroy {
     this.pairingLoadingDeviceId.set(device.deviceId);
 
     try {
-      const session = await firstValueFrom(this.deviceApi.generatePairingSession(device.deviceId));
+      const session = await firstValueFrom(
+        this.deviceApi.generatePairingSession(device.deviceId),
+      );
       this.activePairing.set({ device, session });
       this.watchExpiration(session);
     } catch (error) {
-      this.notifications.error(apiErrorMessage(
-        error,
-        `Nao foi possivel gerar o codigo de pareamento para ${device.name}.`,
-      ));
+      this.notifications.error(
+        apiErrorMessage(
+          error,
+          `Nao foi possivel gerar o codigo de pareamento para ${device.name}.`,
+        ),
+      );
     } finally {
       this.pairingLoadingDeviceId.set(null);
     }
@@ -166,7 +198,8 @@ export class DeviceRegistrationComponent implements OnInit, OnDestroy {
       actionType: 'UNPAIR_DEVICE',
       targetId: device.deviceId,
       targetName: device.name,
-      consequence: 'As chaves ativas serao revogadas. O agente deixara de enviar telemetria e receber comandos.',
+      consequence:
+        'As chaves ativas serao revogadas. O agente deixara de enviar telemetria e receber comandos.',
       connectivityState: device.pairingStatus,
       lastKnownLocation: 'indisponivel',
       lastUpdatedAt: device.createdAt,
@@ -179,8 +212,12 @@ export class DeviceRegistrationComponent implements OnInit, OnDestroy {
     this.unpairError.set(null);
   }
 
-  async confirmUnpair(action: CriticalActionConfirmationRequest): Promise<void> {
-    const device = this.devices().find(candidate => candidate.deviceId === action.targetId);
+  async confirmUnpair(
+    action: CriticalActionConfirmationRequest,
+  ): Promise<void> {
+    const device = this.devices().find(
+      (candidate) => candidate.deviceId === action.targetId,
+    );
     if (!device) {
       this.unpairError.set('O dispositivo nao esta mais disponivel na lista.');
       return;
@@ -189,19 +226,32 @@ export class DeviceRegistrationComponent implements OnInit, OnDestroy {
     this.unpairingDeviceId.set(device.deviceId);
     this.unpairError.set(null);
     try {
-      const response = await firstValueFrom(this.deviceApi.unpair(device.deviceId));
-      this.devices.update(devices => devices.map(current => current.deviceId === response.deviceId
-        ? { ...current, pairingStatus: response.pairingStatus }
-        : current));
-      this.unpairingRequests.update(requests => requests.filter(request => request.deviceId !== response.deviceId));
+      const response = await firstValueFrom(
+        this.deviceApi.unpair(device.deviceId),
+      );
+      this.devices.update((devices) =>
+        devices.map((current) =>
+          current.deviceId === response.deviceId
+            ? { ...current, pairingStatus: response.pairingStatus }
+            : current,
+        ),
+      );
+      this.unpairingRequests.update((requests) =>
+        requests.filter((request) => request.deviceId !== response.deviceId),
+      );
       this.unpairAction.set(null);
-      this.notifications.success(`${device.name} foi despareado e suas chaves foram revogadas.`);
+      this.notifications.success(
+        `${device.name} foi despareado e suas chaves foram revogadas.`,
+      );
     } catch (error) {
       const detailMessage = apiErrorMessage(
         error,
         'Nao foi possivel desparear o dispositivo. Nenhuma alteracao local foi aplicada.',
       );
-      const notificationMessage = apiErrorMessage(error, `Nao foi possivel desparear ${device.name}.`);
+      const notificationMessage = apiErrorMessage(
+        error,
+        `Nao foi possivel desparear ${device.name}.`,
+      );
       this.unpairError.set(detailMessage);
       this.notifications.error(notificationMessage);
     } finally {
@@ -209,13 +259,16 @@ export class DeviceRegistrationComponent implements OnInit, OnDestroy {
     }
   }
 
-  openApproveUnpairingRequestConfirmation(request: DeviceUnpairingRequest): void {
+  openApproveUnpairingRequestConfirmation(
+    request: DeviceUnpairingRequest,
+  ): void {
     this.unpairingRequestError.set(null);
     this.unpairingRequestAction.set({
       actionType: 'UNPAIR_DEVICE',
       targetId: request.requestId,
       targetName: request.deviceName,
-      consequence: 'As chaves ativas serao revogadas. O dispositivo passara para despareado.',
+      consequence:
+        'As chaves ativas serao revogadas. O dispositivo passara para despareado.',
       connectivityState: 'paired',
       lastKnownLocation: `agente ${request.agentInstanceId}`,
       lastUpdatedAt: request.requestedAt,
@@ -228,32 +281,51 @@ export class DeviceRegistrationComponent implements OnInit, OnDestroy {
     this.unpairingRequestError.set(null);
   }
 
-  async confirmApproveUnpairingRequest(action: CriticalActionConfirmationRequest): Promise<void> {
-    const request = this.unpairingRequests().find(candidate => candidate.requestId === action.targetId);
+  async confirmApproveUnpairingRequest(
+    action: CriticalActionConfirmationRequest,
+  ): Promise<void> {
+    const request = this.unpairingRequests().find(
+      (candidate) => candidate.requestId === action.targetId,
+    );
     if (!request) {
-      this.unpairingRequestError.set('A solicitacao nao esta mais disponivel na lista.');
+      this.unpairingRequestError.set(
+        'A solicitacao nao esta mais disponivel na lista.',
+      );
       return;
     }
 
     this.decidingUnpairingRequestId.set(request.requestId);
     this.unpairingRequestError.set(null);
     try {
-      const response = await firstValueFrom(this.deviceApi.decideUnpairingRequest(request.requestId, 'approved'));
+      const response = await firstValueFrom(
+        this.deviceApi.decideUnpairingRequest(request.requestId, 'approved'),
+      );
       this.removeUnpairingRequest(response.request.requestId);
       if (response.unpairing) {
-        this.devices.update(devices => devices.map(device => device.deviceId === response.unpairing?.deviceId
-          ? { ...device, pairingStatus: response.unpairing.pairingStatus }
-          : device));
+        this.devices.update((devices) =>
+          devices.map((device) =>
+            device.deviceId === response.unpairing?.deviceId
+              ? { ...device, pairingStatus: response.unpairing.pairingStatus }
+              : device,
+          ),
+        );
       }
       this.unpairingRequestAction.set(null);
-      this.notifications.success(`${request.deviceName} foi despareado apos aprovacao administrativa.`);
+      this.notifications.success(
+        `${request.deviceName} foi despareado apos aprovacao administrativa.`,
+      );
     } catch (error) {
       const detailMessage = apiErrorMessage(
         error,
         'Nao foi possivel aprovar o despareamento. Nenhuma alteracao local foi aplicada.',
       );
       this.unpairingRequestError.set(detailMessage);
-      this.notifications.error(apiErrorMessage(error, `Nao foi possivel aprovar o despareamento de ${request.deviceName}.`));
+      this.notifications.error(
+        apiErrorMessage(
+          error,
+          `Nao foi possivel aprovar o despareamento de ${request.deviceName}.`,
+        ),
+      );
     } finally {
       this.decidingUnpairingRequestId.set(null);
     }
@@ -262,30 +334,51 @@ export class DeviceRegistrationComponent implements OnInit, OnDestroy {
   async rejectUnpairingRequest(request: DeviceUnpairingRequest): Promise<void> {
     this.decidingUnpairingRequestId.set(request.requestId);
     try {
-      const response = await firstValueFrom(this.deviceApi.decideUnpairingRequest(request.requestId, 'rejected'));
+      const response = await firstValueFrom(
+        this.deviceApi.decideUnpairingRequest(request.requestId, 'rejected'),
+      );
       this.removeUnpairingRequest(response.request.requestId);
-      this.notifications.success(`Solicitacao de despareamento de ${request.deviceName} rejeitada.`);
+      this.notifications.success(
+        `Solicitacao de despareamento de ${request.deviceName} rejeitada.`,
+      );
     } catch (error) {
-      this.notifications.error(apiErrorMessage(error, `Nao foi possivel rejeitar a solicitacao de ${request.deviceName}.`));
+      this.notifications.error(
+        apiErrorMessage(
+          error,
+          `Nao foi possivel rejeitar a solicitacao de ${request.deviceName}.`,
+        ),
+      );
     } finally {
       this.decidingUnpairingRequestId.set(null);
     }
   }
 
   pendingUnpairingRequest(deviceId: string): DeviceUnpairingRequest | null {
-    return this.unpairingRequests().find(request => request.deviceId === deviceId && request.status === 'pending') ?? null;
+    return (
+      this.unpairingRequests().find(
+        (request) =>
+          request.deviceId === deviceId && request.status === 'pending',
+      ) ?? null
+    );
   }
 
   typeLabel(type: DeviceType): string {
-    return this.typeOptions.find(option => option.value === type)?.label ?? type;
+    return (
+      this.typeOptions.find((option) => option.value === type)?.label ?? type
+    );
   }
 
   platformLabel(platform: DevicePlatform): string {
-    return this.platformOptions.find(option => option.value === platform)?.label ?? platform;
+    return (
+      this.platformOptions.find((option) => option.value === platform)?.label ??
+      platform
+    );
   }
 
   private removeUnpairingRequest(requestId: string): void {
-    this.unpairingRequests.update(requests => requests.filter(request => request.requestId !== requestId));
+    this.unpairingRequests.update((requests) =>
+      requests.filter((request) => request.requestId !== requestId),
+    );
   }
 
   private watchExpiration(session: PairingSession): void {
@@ -298,7 +391,10 @@ export class DeviceRegistrationComponent implements OnInit, OnDestroy {
     }
 
     this.pairingExpired.set(false);
-    this.expirationTimer = setTimeout(() => this.pairingExpired.set(true), remainingMilliseconds);
+    this.expirationTimer = setTimeout(
+      () => this.pairingExpired.set(true),
+      remainingMilliseconds,
+    );
   }
 
   private clearExpirationTimer(): void {

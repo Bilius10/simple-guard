@@ -3,7 +3,12 @@ import { inject, Injectable, signal } from '@angular/core';
 import { sha256 } from 'js-sha256';
 
 import { SIMPLEGUARD_AUTH_CONFIG } from './auth.config';
-import { AuthState, OidcDiscoveryDocument, StoredTokenSet, TokenResponse } from './auth.models';
+import {
+  AuthState,
+  OidcDiscoveryDocument,
+  StoredTokenSet,
+  TokenResponse,
+} from './auth.models';
 
 const TOKEN_STORAGE_KEY = 'simpleguard.oidc.tokens';
 const STATE_STORAGE_KEY = 'simpleguard.oidc.state';
@@ -12,7 +17,6 @@ const EXPIRATION_SKEW_MS = 30_000;
 
 @Injectable({ providedIn: 'root' })
 export class OidcClientService {
-
   private readonly config = inject(SIMPLEGUARD_AUTH_CONFIG);
   private readonly document = inject(DOCUMENT);
   private discoveryDocument?: OidcDiscoveryDocument;
@@ -33,7 +37,10 @@ export class OidcClientService {
 
     if (this.isExpired(tokens)) {
       this.clearSession();
-      this.state.set({ status: 'session_expired', message: 'Sessao expirada. Faca login novamente.' });
+      this.state.set({
+        status: 'session_expired',
+        message: 'Sessao expirada. Faca login novamente.',
+      });
       return;
     }
 
@@ -62,7 +69,11 @@ export class OidcClientService {
       this.document.location.assign(authorizationUrl.toString());
     } catch (error) {
       this.clearTransientLoginState();
-      this.state.set({ status: 'auth_error', message: error instanceof Error ? error.message : 'Falha ao iniciar login.' });
+      this.state.set({
+        status: 'auth_error',
+        message:
+          error instanceof Error ? error.message : 'Falha ao iniciar login.',
+      });
     }
   }
 
@@ -78,7 +89,10 @@ export class OidcClientService {
 
     const logoutUrl = new URL(discovery.end_session_endpoint);
     logoutUrl.searchParams.set('client_id', this.config.clientId);
-    logoutUrl.searchParams.set('post_logout_redirect_uri', this.postLogoutRedirectUri());
+    logoutUrl.searchParams.set(
+      'post_logout_redirect_uri',
+      this.postLogoutRedirectUri(),
+    );
     if (tokens?.idToken) {
       logoutUrl.searchParams.set('id_token_hint', tokens.idToken);
     }
@@ -104,15 +118,26 @@ export class OidcClientService {
     const error = parameters.get('error');
     if (error) {
       this.clearTransientLoginState();
-      this.state.set({ status: 'auth_error', message: parameters.get('error_description') ?? error });
+      this.state.set({
+        status: 'auth_error',
+        message: parameters.get('error_description') ?? error,
+      });
       return;
     }
 
     const code = parameters.get('code');
     const returnedState = parameters.get('state');
-    if (!code || !expectedState || !verifier || returnedState !== expectedState) {
+    if (
+      !code ||
+      !expectedState ||
+      !verifier ||
+      returnedState !== expectedState
+    ) {
       this.clearTransientLoginState();
-      this.state.set({ status: 'auth_error', message: 'Retorno OIDC invalido.' });
+      this.state.set({
+        status: 'auth_error',
+        message: 'Retorno OIDC invalido.',
+      });
       return;
     }
 
@@ -136,14 +161,18 @@ export class OidcClientService {
         throw new Error('Falha ao trocar codigo OIDC por token.');
       }
 
-      const tokenResponse = await response.json() as TokenResponse;
+      const tokenResponse = (await response.json()) as TokenResponse;
       this.storeTokens(tokenResponse);
       this.clearTransientLoginState();
       history.replaceState({}, this.document.title, '/');
       this.state.set({ status: 'authenticated' });
     } catch (error) {
       this.clearSession();
-      this.state.set({ status: 'auth_error', message: error instanceof Error ? error.message : 'Falha de autenticacao.' });
+      this.state.set({
+        status: 'auth_error',
+        message:
+          error instanceof Error ? error.message : 'Falha de autenticacao.',
+      });
     }
   }
 
@@ -152,12 +181,14 @@ export class OidcClientService {
       return this.discoveryDocument;
     }
 
-    const response = await fetch(`${this.config.issuer}/.well-known/openid-configuration`);
+    const response = await fetch(
+      `${this.config.issuer}/.well-known/openid-configuration`,
+    );
     if (!response.ok) {
       throw new Error('Nao foi possivel carregar a configuracao OIDC.');
     }
 
-    this.discoveryDocument = await response.json() as OidcDiscoveryDocument;
+    this.discoveryDocument = (await response.json()) as OidcDiscoveryDocument;
     return this.discoveryDocument;
   }
 
@@ -168,7 +199,8 @@ export class OidcClientService {
       refreshToken: tokenResponse.refresh_token,
       tokenType: tokenResponse.token_type,
       scope: tokenResponse.scope,
-      expiresAt: Date.now() + tokenResponse.expires_in * 1000 - EXPIRATION_SKEW_MS,
+      expiresAt:
+        Date.now() + tokenResponse.expires_in * 1000 - EXPIRATION_SKEW_MS,
     };
 
     sessionStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify(tokens));
@@ -227,8 +259,13 @@ export class OidcClientService {
 
   private async sha256(bytes: Uint8Array): Promise<Uint8Array> {
     if (globalThis.crypto?.subtle?.digest) {
-      const digestInput = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
-      return new Uint8Array(await globalThis.crypto.subtle.digest('SHA-256', digestInput));
+      const digestInput = bytes.buffer.slice(
+        bytes.byteOffset,
+        bytes.byteOffset + bytes.byteLength,
+      ) as ArrayBuffer;
+      return new Uint8Array(
+        await globalThis.crypto.subtle.digest('SHA-256', digestInput),
+      );
     }
 
     return new Uint8Array(sha256.array(bytes));

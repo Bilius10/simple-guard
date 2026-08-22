@@ -6,7 +6,6 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class UnpairingUiControllerTests {
-
     private val controller = UnpairingUiController()
 
     @Test

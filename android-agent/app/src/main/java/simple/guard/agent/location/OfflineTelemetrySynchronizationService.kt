@@ -8,21 +8,21 @@ class OfflineTelemetrySynchronizationService(
     private val sender: TelemetryBatchSender,
     private val queue: TelemetryOfflineQueue,
     private val eventIdProvider: () -> String,
-    private val nowProvider: () -> Instant = Instant::now
+    private val nowProvider: () -> Instant = Instant::now,
 ) {
-
     fun synchronize(callback: (LocationSynchronizationResult) -> Unit) {
         val technical = technicalCollector.collect()
         collector.collect { collection ->
-            val (location, locationStatus) = when (collection) {
-                is LocationCollectionResult.Collected -> collection.reading to LocationCollectionStatus.COLLECTED
-                LocationCollectionResult.PermissionDenied -> null to LocationCollectionStatus.PERMISSION_DENIED
-                LocationCollectionResult.ProviderUnavailable -> null to LocationCollectionStatus.PROVIDER_UNAVAILABLE
-                LocationCollectionResult.LocationUnavailable -> null to LocationCollectionStatus.LOCATION_UNAVAILABLE
-            }
+            val (location, locationStatus) =
+                when (collection) {
+                    is LocationCollectionResult.Collected -> collection.reading to LocationCollectionStatus.COLLECTED
+                    LocationCollectionResult.PermissionDenied -> null to LocationCollectionStatus.PERMISSION_DENIED
+                    LocationCollectionResult.ProviderUnavailable -> null to LocationCollectionStatus.PROVIDER_UNAVAILABLE
+                    LocationCollectionResult.LocationUnavailable -> null to LocationCollectionStatus.LOCATION_UNAVAILABLE
+                }
             queue.enqueue(
                 TelemetryEnvelope(eventIdProvider(), location, technical, locationStatus),
-                nowProvider()
+                nowProvider(),
             )
             drain(locationStatus, callback)
         }
@@ -34,7 +34,7 @@ class OfflineTelemetrySynchronizationService(
 
     private fun drain(
         locationStatus: LocationCollectionStatus?,
-        callback: (LocationSynchronizationResult) -> Unit
+        callback: (LocationSynchronizationResult) -> Unit,
     ) {
         val now = nowProvider()
         val batch = queue.pending(BATCH_SIZE, now)
@@ -61,11 +61,12 @@ class OfflineTelemetrySynchronizationService(
         batch: List<QueuedTelemetryEvent>,
         results: List<TelemetryBatchItemResult>,
         locationStatus: LocationCollectionStatus?,
-        callback: (LocationSynchronizationResult) -> Unit
+        callback: (LocationSynchronizationResult) -> Unit,
     ) {
-        val resultsByEventId = results
-            .filter { it.eventId != null }
-            .associateBy { requireNotNull(it.eventId) }
+        val resultsByEventId =
+            results
+                .filter { it.eventId != null }
+                .associateBy { requireNotNull(it.eventId) }
         val acknowledged = mutableSetOf<String>()
         val retryable = mutableSetOf<String>()
         var retryError = "A instancia nao confirmou todos os eventos."
@@ -76,10 +77,12 @@ class OfflineTelemetrySynchronizationService(
             when (item?.status) {
                 TelemetryBatchItemStatus.ACCEPTED,
                 TelemetryBatchItemStatus.DUPLICATE,
-                TelemetryBatchItemStatus.INVALID -> acknowledged.add(eventId)
+                TelemetryBatchItemStatus.INVALID,
+                -> acknowledged.add(eventId)
                 TelemetryBatchItemStatus.UNAUTHORIZED,
                 TelemetryBatchItemStatus.FAILED,
-                null -> {
+                null,
+                -> {
                     retryable.add(eventId)
                     retryError = item?.error ?: retryError
                 }

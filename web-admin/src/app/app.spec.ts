@@ -20,12 +20,14 @@ describe('AppTests', () => {
   };
 
   const sessionApiStub = {
-    me: vi.fn().mockReturnValue(of({
-      subject: '00000000-0000-0000-0000-000000000001',
-      email: 'admin@simpleguard.local',
-      displayName: 'SimpleGuard Admin',
-      role: 'ADMIN',
-    })),
+    me: vi.fn().mockReturnValue(
+      of({
+        subject: '00000000-0000-0000-0000-000000000001',
+        email: 'admin@simpleguard.local',
+        displayName: 'SimpleGuard Admin',
+        role: 'ADMIN',
+      }),
+    ),
   };
 
   const deviceApiStub = {
@@ -69,10 +71,16 @@ describe('AppTests', () => {
     fixture.detectChanges();
 
     const element = fixture.nativeElement as HTMLElement;
-    expect(element.querySelector('.brand')?.textContent).toContain('SIMPLEGUARD');
-    expect(element.querySelector('.status')?.textContent).toContain('NOT AUTHENTICATED');
+    expect(element.querySelector('.brand')?.textContent).toContain(
+      'SIMPLEGUARD',
+    );
+    expect(element.querySelector('.status')?.textContent).toContain(
+      'NOT AUTHENTICATED',
+    );
     expect(element.querySelector('.timestamp')).toBeNull();
-    expect(element.querySelector('h1')?.textContent).toContain('Central operacional');
+    expect(element.querySelector('h1')?.textContent).toContain(
+      'Central operacional',
+    );
   });
 
   it('opensCriticalActionDialogTests', async () => {
@@ -117,13 +125,18 @@ describe('AppTests', () => {
       stepUpRequired: true,
     });
     expect(element.querySelector('[role="dialog"]')).toBeNull();
-    expect(element.querySelector('.confirmation-event')?.textContent).toContain('command-confirmed');
+    expect(element.querySelector('.confirmation-event')?.textContent).toContain(
+      'command-confirmed',
+    );
   });
 
   it('showsCriticalActionConfirmationErrorTests', async () => {
     const fixture = await createAuthenticatedFixtureTests();
 
-    clickTests(fixture.nativeElement, '.authenticated-actions .secondary-action');
+    clickTests(
+      fixture.nativeElement,
+      '.authenticated-actions .secondary-action',
+    );
     fixture.detectChanges();
     clickTests(fixture.nativeElement, '.critical-dialog .danger-action');
     fixture.detectChanges();
@@ -131,14 +144,18 @@ describe('AppTests', () => {
     const element = fixture.nativeElement as HTMLElement;
     expect(element.querySelector('[role="dialog"]')).not.toBeNull();
     expect(element.querySelector('[role="alert"]')).toBeNull();
-    expect(notificationStub.error).toHaveBeenCalledWith('Falha ao emitir evento de confirmacao critica.');
+    expect(notificationStub.error).toHaveBeenCalledWith(
+      'Falha ao emitir evento de confirmacao critica.',
+    );
     expect(fixture.componentInstance.criticalActionEvent()).toBeNull();
   });
 
   it('expandsAndCollapsesOperatorPanelTests', async () => {
     const fixture = await createAuthenticatedFixtureTests();
     const element = fixture.nativeElement as HTMLElement;
-    const toggle = element.querySelector<HTMLButtonElement>('.operator-panel-toggle');
+    const toggle = element.querySelector<HTMLButtonElement>(
+      '.operator-panel-toggle',
+    );
 
     expect(fixture.componentInstance.operatorPanelExpanded()).toBe(true);
     expect(toggle?.getAttribute('aria-expanded')).toBe('true');
@@ -146,7 +163,9 @@ describe('AppTests', () => {
     toggle?.click();
     fixture.detectChanges();
     expect(fixture.componentInstance.operatorPanelExpanded()).toBe(false);
-    expect(element.querySelector('.workspace')?.classList).toContain('operator-panel-collapsed');
+    expect(element.querySelector('.workspace')?.classList).toContain(
+      'operator-panel-collapsed',
+    );
     expect(toggle?.getAttribute('aria-expanded')).toBe('false');
 
     toggle?.click();
@@ -166,32 +185,44 @@ describe('AppTests', () => {
 
   it('showsSessionValidationFailureWhenAuthenticatedSessionFailsTests', async () => {
     authServiceStub.state.set({ status: 'authenticated' });
-    sessionApiStub.me.mockReturnValueOnce(throwError(() => new Error('offline')));
+    sessionApiStub.me.mockReturnValueOnce(
+      throwError(() => new Error('offline')),
+    );
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
 
     expect(fixture.componentInstance.session()).toBeNull();
-    expect(fixture.componentInstance.sessionError()).toBe('Nao foi possivel validar a sessao na API.');
-    expect(notificationStub.error).toHaveBeenCalledWith('Nao foi possivel validar a sessao na API.');
+    expect(fixture.componentInstance.sessionError()).toBe(
+      'Nao foi possivel validar a sessao na API.',
+    );
+    expect(notificationStub.error).toHaveBeenCalledWith(
+      'Nao foi possivel validar a sessao na API.',
+    );
   });
 
   it('showsBackendMessageWhenSessionValidationFailsTests', async () => {
     authServiceStub.state.set({ status: 'authenticated' });
-    sessionApiStub.me.mockReturnValueOnce(throwError(() => ({
-      error: {
-        erro_code: 'INVALID_TOKEN',
-        mensagem: 'Token invalido ou sessao expirada.',
-      },
-    })));
+    sessionApiStub.me.mockReturnValueOnce(
+      throwError(() => ({
+        error: {
+          erro_code: 'INVALID_TOKEN',
+          mensagem: 'Token invalido ou sessao expirada.',
+        },
+      })),
+    );
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(fixture.componentInstance.sessionError()).toBe('Token invalido ou sessao expirada.');
-    expect(notificationStub.error).toHaveBeenCalledWith('Token invalido ou sessao expirada.');
+    expect(fixture.componentInstance.sessionError()).toBe(
+      'Token invalido ou sessao expirada.',
+    );
+    expect(notificationStub.error).toHaveBeenCalledWith(
+      'Token invalido ou sessao expirada.',
+    );
   });
 
   async function createAuthenticatedFixtureTests() {

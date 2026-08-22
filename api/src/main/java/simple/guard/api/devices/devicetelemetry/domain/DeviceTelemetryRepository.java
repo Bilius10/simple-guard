@@ -1,8 +1,6 @@
 package simple.guard.api.devices.devicetelemetry.domain;
 
+import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.UUID;
-
-public interface DeviceTelemetryRepository extends JpaRepository<DeviceTelemetry, UUID> {
-}
+public interface DeviceTelemetryRepository extends JpaRepository<DeviceTelemetry, UUID> {}

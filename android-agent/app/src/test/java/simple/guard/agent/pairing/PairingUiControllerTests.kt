@@ -5,7 +5,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class PairingUiControllerTests {
-
     private val controller = PairingUiController()
 
     @Test

@@ -7,30 +7,32 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class OfflineTelemetrySynchronizationServiceTests {
-
     private val now = Instant.parse("2026-08-20T12:00:00Z")
-    private val technical = TechnicalTelemetryReading(
-        batteryLevelPercentage = 67,
-        batteryCharging = false,
-        networkType = NetworkType.WIFI,
-        signalStrengthDbm = -55,
-        permissions = TelemetryPermissions(PermissionState.GRANTED, PermissionState.GRANTED),
-        collectedAt = now
-    )
+    private val technical =
+        TechnicalTelemetryReading(
+            batteryLevelPercentage = 67,
+            batteryCharging = false,
+            networkType = NetworkType.WIFI,
+            signalStrengthDbm = -55,
+            permissions = TelemetryPermissions(PermissionState.GRANTED, PermissionState.GRANTED),
+            collectedAt = now,
+        )
 
     @Test
     fun enqueuesBeforeSendingAndCleansAcceptedEventTests() {
         val queue = InMemoryQueue()
-        val sender = RecordingSender(
-            TelemetryBatchSendResult.Completed(
-                listOf(TelemetryBatchItemResult("current", TelemetryBatchItemStatus.ACCEPTED, null))
+        val sender =
+            RecordingSender(
+                TelemetryBatchSendResult.Completed(
+                    listOf(TelemetryBatchItemResult("current", TelemetryBatchItemStatus.ACCEPTED, null)),
+                ),
             )
-        )
-        val service = service(
-            collection = LocationCollectionResult.Collected(location(now.minusSeconds(2))),
-            queue = queue,
-            sender = sender
-        )
+        val service =
+            service(
+                collection = LocationCollectionResult.Collected(location(now.minusSeconds(2))),
+                queue = queue,
+                sender = sender,
+            )
 
         var result: LocationSynchronizationResult? = null
         service.synchronize { result = it }
@@ -43,12 +45,13 @@ class OfflineTelemetrySynchronizationServiceTests {
     @Test
     fun keepsFailedEventAndRetriesItAfterReconnectTests() {
         val queue = InMemoryQueue()
-        val sender = RecordingSender(
-            TelemetryBatchSendResult.Failed("offline"),
-            TelemetryBatchSendResult.Completed(
-                listOf(TelemetryBatchItemResult("current", TelemetryBatchItemStatus.ACCEPTED, null))
+        val sender =
+            RecordingSender(
+                TelemetryBatchSendResult.Failed("offline"),
+                TelemetryBatchSendResult.Completed(
+                    listOf(TelemetryBatchItemResult("current", TelemetryBatchItemStatus.ACCEPTED, null)),
+                ),
             )
-        )
         val service = service(LocationCollectionResult.LocationUnavailable, queue, sender)
 
         var firstResult: LocationSynchronizationResult? = null
@@ -71,25 +74,26 @@ class OfflineTelemetrySynchronizationServiceTests {
         listOf("accepted", "duplicate", "invalid", "unauthorized", "failed", "missing").forEachIndexed { index, id ->
             queue.enqueue(envelope(id, now.plusSeconds(index.toLong())), now)
         }
-        val sender = RecordingSender(
-            TelemetryBatchSendResult.Completed(
-                listOf(
-                    TelemetryBatchItemResult(null, TelemetryBatchItemStatus.INVALID, "unmapped"),
-                    TelemetryBatchItemResult("accepted", TelemetryBatchItemStatus.ACCEPTED, null),
-                    TelemetryBatchItemResult("duplicate", TelemetryBatchItemStatus.DUPLICATE, null),
-                    TelemetryBatchItemResult("invalid", TelemetryBatchItemStatus.INVALID, "invalid"),
-                    TelemetryBatchItemResult("unauthorized", TelemetryBatchItemStatus.UNAUTHORIZED, "credential"),
-                    TelemetryBatchItemResult("failed", TelemetryBatchItemStatus.FAILED, null)
-                )
-            ),
-            TelemetryBatchSendResult.Completed(
-                listOf(
-                    TelemetryBatchItemResult("unauthorized", TelemetryBatchItemStatus.ACCEPTED, null),
-                    TelemetryBatchItemResult("failed", TelemetryBatchItemStatus.ACCEPTED, null),
-                    TelemetryBatchItemResult("missing", TelemetryBatchItemStatus.ACCEPTED, null)
-                )
+        val sender =
+            RecordingSender(
+                TelemetryBatchSendResult.Completed(
+                    listOf(
+                        TelemetryBatchItemResult(null, TelemetryBatchItemStatus.INVALID, "unmapped"),
+                        TelemetryBatchItemResult("accepted", TelemetryBatchItemStatus.ACCEPTED, null),
+                        TelemetryBatchItemResult("duplicate", TelemetryBatchItemStatus.DUPLICATE, null),
+                        TelemetryBatchItemResult("invalid", TelemetryBatchItemStatus.INVALID, "invalid"),
+                        TelemetryBatchItemResult("unauthorized", TelemetryBatchItemStatus.UNAUTHORIZED, "credential"),
+                        TelemetryBatchItemResult("failed", TelemetryBatchItemStatus.FAILED, null),
+                    ),
+                ),
+                TelemetryBatchSendResult.Completed(
+                    listOf(
+                        TelemetryBatchItemResult("unauthorized", TelemetryBatchItemStatus.ACCEPTED, null),
+                        TelemetryBatchItemResult("failed", TelemetryBatchItemStatus.ACCEPTED, null),
+                        TelemetryBatchItemResult("missing", TelemetryBatchItemStatus.ACCEPTED, null),
+                    ),
+                ),
             )
-        )
         val service = service(LocationCollectionResult.PermissionDenied, queue, sender)
 
         var firstResult: LocationSynchronizationResult? = null
@@ -108,19 +112,21 @@ class OfflineTelemetrySynchronizationServiceTests {
 
     @Test
     fun sendsTelemetryForPermissionAndProviderFailuresTests() {
-        val statuses = listOf(
-            LocationCollectionResult.PermissionDenied to LocationCollectionStatus.PERMISSION_DENIED,
-            LocationCollectionResult.ProviderUnavailable to LocationCollectionStatus.PROVIDER_UNAVAILABLE
-        )
+        val statuses =
+            listOf(
+                LocationCollectionResult.PermissionDenied to LocationCollectionStatus.PERMISSION_DENIED,
+                LocationCollectionResult.ProviderUnavailable to LocationCollectionStatus.PROVIDER_UNAVAILABLE,
+            )
 
         statuses.forEachIndexed { index, (collection, expectedStatus) ->
             val eventId = "status-$index"
             val queue = InMemoryQueue()
-            val sender = RecordingSender(
-                TelemetryBatchSendResult.Completed(
-                    listOf(TelemetryBatchItemResult(eventId, TelemetryBatchItemStatus.ACCEPTED, null))
+            val sender =
+                RecordingSender(
+                    TelemetryBatchSendResult.Completed(
+                        listOf(TelemetryBatchItemResult(eventId, TelemetryBatchItemStatus.ACCEPTED, null)),
+                    ),
                 )
-            )
             val service = service(collection, queue, sender, eventId)
 
             var result: LocationSynchronizationResult? = null
@@ -134,7 +140,7 @@ class OfflineTelemetrySynchronizationServiceTests {
         collection: LocationCollectionResult,
         queue: TelemetryOfflineQueue,
         sender: TelemetryBatchSender,
-        eventId: String = "current"
+        eventId: String = "current",
     ): OfflineTelemetrySynchronizationService {
         return OfflineTelemetrySynchronizationService(
             collector = LocationCollector { callback -> callback(collection) },
@@ -142,7 +148,7 @@ class OfflineTelemetrySynchronizationServiceTests {
             sender = sender,
             queue = queue,
             eventIdProvider = { eventId },
-            nowProvider = { now }
+            nowProvider = { now },
         )
     }
 
@@ -154,16 +160,19 @@ class OfflineTelemetrySynchronizationServiceTests {
             altitudeMeters = null,
             speedMetersPerSecond = null,
             provider = "GPS",
-            collectedAt = collectedAt
+            collectedAt = collectedAt,
         )
     }
 
-    private fun envelope(eventId: String, collectedAt: Instant): TelemetryEnvelope {
+    private fun envelope(
+        eventId: String,
+        collectedAt: Instant,
+    ): TelemetryEnvelope {
         return TelemetryEnvelope(
             eventId,
             null,
             technical.copy(collectedAt = collectedAt),
-            LocationCollectionStatus.LOCATION_UNAVAILABLE
+            LocationCollectionStatus.LOCATION_UNAVAILABLE,
         )
     }
 
@@ -171,7 +180,10 @@ class OfflineTelemetrySynchronizationServiceTests {
         private val responses = ArrayDeque(responses.toList())
         val sentBatches = mutableListOf<List<String>>()
 
-        override fun send(envelopes: List<TelemetryEnvelope>, callback: (TelemetryBatchSendResult) -> Unit) {
+        override fun send(
+            envelopes: List<TelemetryEnvelope>,
+            callback: (TelemetryBatchSendResult) -> Unit,
+        ) {
             sentBatches.add(envelopes.map(TelemetryEnvelope::eventId))
             callback(responses.removeFirst())
         }
@@ -180,11 +192,17 @@ class OfflineTelemetrySynchronizationServiceTests {
     private class InMemoryQueue : TelemetryOfflineQueue {
         private val events = linkedMapOf<String, QueuedTelemetryEvent>()
 
-        override fun enqueue(envelope: TelemetryEnvelope, queuedAt: Instant) {
+        override fun enqueue(
+            envelope: TelemetryEnvelope,
+            queuedAt: Instant,
+        ) {
             events[envelope.eventId] = QueuedTelemetryEvent(envelope, queuedAt)
         }
 
-        override fun pending(limit: Int, now: Instant): List<QueuedTelemetryEvent> {
+        override fun pending(
+            limit: Int,
+            now: Instant,
+        ): List<QueuedTelemetryEvent> {
             return events.values
                 .sortedWith(compareBy({ it.envelope.originalCollectedAt() }, { it.envelope.eventId }))
                 .take(limit)
@@ -194,13 +212,17 @@ class OfflineTelemetrySynchronizationServiceTests {
             eventIds.forEach(events::remove)
         }
 
-        override fun recordFailure(eventIds: Set<String>, attemptedAt: Instant, error: String) {
+        override fun recordFailure(
+            eventIds: Set<String>,
+            attemptedAt: Instant,
+            error: String,
+        ) {
             eventIds.forEach { eventId ->
                 events.computeIfPresent(eventId) { _, queued ->
                     queued.copy(
                         attemptCount = queued.attemptCount + 1,
                         lastAttemptAt = attemptedAt,
-                        lastError = error
+                        lastError = error,
                     )
                 }
             }

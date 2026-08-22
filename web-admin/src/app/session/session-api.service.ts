@@ -12,11 +12,12 @@ export interface AdministratorSession {
 
 @Injectable({ providedIn: 'root' })
 export class SessionApiService {
-
   private readonly http = inject(HttpClient);
   private readonly config = inject(SIMPLEGUARD_AUTH_CONFIG);
 
   me() {
-    return this.http.get<AdministratorSession>(`${this.config.apiBaseUrl}/session/me`);
+    return this.http.get<AdministratorSession>(
+      `${this.config.apiBaseUrl}/session/me`,
+    );
   }
 }

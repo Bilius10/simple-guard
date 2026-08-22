@@ -36,7 +36,7 @@
 .step-index,
 .pairing-status,
 .empty-code {
-  font-family: "Cascadia Mono", "Roboto Mono", monospace;
+  font-family: 'Cascadia Mono', 'Roboto Mono', monospace;
   font-size: 0.75rem;
 }
 
@@ -137,7 +137,7 @@ select:focus {
   min-height: 42px;
   border: 1px solid #3cc4df;
   border-radius: 2px;
-  font-family: "Cascadia Mono", "Roboto Mono", monospace;
+  font-family: 'Cascadia Mono', 'Roboto Mono', monospace;
   cursor: pointer;
 }
 
@@ -234,7 +234,9 @@ select:focus {
 
 .table-row {
   display: grid;
-  grid-template-columns: minmax(180px, 1.5fr) minmax(90px, 0.7fr) minmax(100px, 0.7fr) minmax(170px, 1fr) minmax(120px, 0.8fr);
+  grid-template-columns:
+    minmax(180px, 1.5fr) minmax(90px, 0.7fr) minmax(100px, 0.7fr)
+    minmax(170px, 1fr) minmax(120px, 0.8fr);
   gap: 16px;
   align-items: center;
 }
@@ -303,7 +305,7 @@ select:focus {
 .pairing-state-label,
 .pairing-code,
 .pairing-expiration {
-  font-family: "Cascadia Mono", "Roboto Mono", monospace;
+  font-family: 'Cascadia Mono', 'Roboto Mono', monospace;
 }
 
 .pairing-label {
@@ -393,7 +395,7 @@ select:focus {
   border: 1px solid #0d7188;
   background: #061923;
   color: #e8fbff;
-  font-family: "Cascadia Mono", "Roboto Mono", monospace;
+  font-family: 'Cascadia Mono', 'Roboto Mono', monospace;
 }
 
 .registry-header {

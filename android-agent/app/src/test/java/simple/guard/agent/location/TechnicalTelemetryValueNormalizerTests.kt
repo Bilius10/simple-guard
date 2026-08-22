@@ -5,7 +5,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 class TechnicalTelemetryValueNormalizerTests {
-
     @Test
     fun preservesValidAndEmptyBatteryLevelsTests() {
         assertEquals(67, TechnicalTelemetryValueNormalizer.batteryPercentage(67, 100))

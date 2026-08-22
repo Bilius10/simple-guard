@@ -3,7 +3,12 @@ import { apiErrorMessage } from './api-error-message';
 describe('ApiErrorMessageTests', () => {
   it('returnsBackendMessageFromHttpErrorPayloadTests', () => {
     const message = apiErrorMessage(
-      { error: { erro_code: 'DEVICE_NOT_FOUND', mensagem: 'Dispositivo nao encontrado.' } },
+      {
+        error: {
+          erro_code: 'DEVICE_NOT_FOUND',
+          mensagem: 'Dispositivo nao encontrado.',
+        },
+      },
       'Falha local.',
     );
 
@@ -20,8 +25,17 @@ describe('ApiErrorMessageTests', () => {
   });
 
   it('returnsFallbackWhenBackendMessageIsUnavailableTests', () => {
-    expect(apiErrorMessage(new Error('offline'), 'API indisponivel.')).toBe('API indisponivel.');
-    expect(apiErrorMessage({ error: '<html>gateway error</html>' }, 'API indisponivel.')).toBe('API indisponivel.');
-    expect(apiErrorMessage(null, 'API indisponivel.')).toBe('API indisponivel.');
+    expect(apiErrorMessage(new Error('offline'), 'API indisponivel.')).toBe(
+      'API indisponivel.',
+    );
+    expect(
+      apiErrorMessage(
+        { error: '<html>gateway error</html>' },
+        'API indisponivel.',
+      ),
+    ).toBe('API indisponivel.');
+    expect(apiErrorMessage(null, 'API indisponivel.')).toBe(
+      'API indisponivel.',
+    );
   });
 });

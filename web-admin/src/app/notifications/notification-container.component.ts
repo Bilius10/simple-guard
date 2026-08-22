@@ -9,6 +9,5 @@ import { NotificationService } from './notification.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NotificationContainerComponent {
-
   readonly notifications = inject(NotificationService);
 }

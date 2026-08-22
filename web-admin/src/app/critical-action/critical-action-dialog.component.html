@@ -1,5 +1,10 @@
 <div class="dialog-backdrop">
-  <section class="critical-dialog" role="dialog" aria-modal="true" aria-labelledby="critical-action-title">
+  <section
+    class="critical-dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="critical-action-title"
+  >
     <p class="dialog-eyebrow">ACAO CRITICA</p>
     <h2 id="critical-action-title">{{ title() }}</h2>
 
@@ -28,7 +33,13 @@
       </div>
       <div>
         <dt>Reautenticacao</dt>
-        <dd>{{ action().stepUpRequirement === 'required' ? 'exigida futuramente' : 'nao exigida' }}</dd>
+        <dd>
+          {{
+            action().stepUpRequirement === 'required'
+              ? 'exigida futuramente'
+              : 'nao exigida'
+          }}
+        </dd>
       </div>
     </dl>
 
@@ -39,8 +50,20 @@
     }
 
     <div class="dialog-actions">
-      <button type="button" class="secondary-action" [disabled]="busy()" (click)="cancel()">Cancelar</button>
-      <button type="button" class="danger-action" [disabled]="busy()" (click)="confirm()">
+      <button
+        type="button"
+        class="secondary-action"
+        [disabled]="busy()"
+        (click)="cancel()"
+      >
+        Cancelar
+      </button>
+      <button
+        type="button"
+        class="danger-action"
+        [disabled]="busy()"
+        (click)="confirm()"
+      >
         {{ confirmLabel() }}
       </button>
     </div>

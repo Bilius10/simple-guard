@@ -10,7 +10,6 @@ export interface AppNotification {
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService implements OnDestroy {
-
   private static readonly DEFAULT_DURATION_MS = 10_000;
 
   readonly notifications = signal<readonly AppNotification[]>([]);
@@ -19,7 +18,7 @@ export class NotificationService implements OnDestroy {
   private readonly timers = new Map<number, ReturnType<typeof setTimeout>>();
 
   ngOnDestroy(): void {
-    this.timers.forEach(timer => clearTimeout(timer));
+    this.timers.forEach((timer) => clearTimeout(timer));
     this.timers.clear();
   }
 
@@ -37,14 +36,25 @@ export class NotificationService implements OnDestroy {
       clearTimeout(timer);
       this.timers.delete(id);
     }
-    this.notifications.update(notifications => notifications.filter(notification => notification.id !== id));
+    this.notifications.update((notifications) =>
+      notifications.filter((notification) => notification.id !== id),
+    );
   }
 
   private show(type: NotificationType, message: string): void {
     const id = this.nextId++;
     const notification: AppNotification = { id, type, message };
 
-    this.notifications.update(notifications => [...notifications, notification]);
-    this.timers.set(id, setTimeout(() => this.dismiss(id), NotificationService.DEFAULT_DURATION_MS));
+    this.notifications.update((notifications) => [
+      ...notifications,
+      notification,
+    ]);
+    this.timers.set(
+      id,
+      setTimeout(
+        () => this.dismiss(id),
+        NotificationService.DEFAULT_DURATION_MS,
+      ),
+    );
   }
 }

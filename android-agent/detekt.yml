@@ -1,0 +1,53 @@
+build:
+  maxIssues: 0
+
+config:
+  validation: true
+
+complexity:
+  CyclomaticComplexMethod:
+    excludes:
+      - '**/MainActivity.kt'
+  LongMethod:
+    excludes:
+      - '**/MainActivity.kt'
+  LongParameterList:
+    active: false
+  TooManyFunctions:
+    thresholdInClasses: 17
+    thresholdInObjects: 14
+    excludes:
+      - '**/MainActivity.kt'
+  LargeClass:
+    excludes:
+      - '**/MainActivity.kt'
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: false
+
+formatting:
+  ArgumentListWrapping:
+    active: false
+  Indentation:
+    active: false
+  MaximumLineLength:
+    active: false
+  ParameterListWrapping:
+    active: false
+
+naming:
+  FunctionNaming:
+    active: false
+
+style:
+  MagicNumber:
+    active: false
+  MaxLineLength:
+    active: false
+  ReturnCount:
+    active: false
+  ThrowsCount:
+    active: false
+  WildcardImport:
+    active: false

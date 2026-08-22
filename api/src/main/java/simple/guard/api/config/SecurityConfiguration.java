@@ -16,47 +16,54 @@ import simple.guard.api.identity.config.AccountJwtAuthenticationConverter;
 @Configuration
 public class SecurityConfiguration {
 
-    @Bean
-    SecurityFilterChain securityFilterChain(
-            HttpSecurity http,
-            AccountJwtAuthenticationConverter accountJwtAuthenticationConverter,
-            ApiSecurityErrorHandler apiSecurityErrorHandler
-    ) throws Exception {
-        http.csrf(csrf -> csrf.disable());
-        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-        http.authorizeHttpRequests(requests -> requests
-                .requestMatchers(
-                        "/actuator/health",
-                        "/actuator/health/**",
-                        "/livez",
-                        "/readyz"
-                ).permitAll()
-                .requestMatchers("/api/agent/pairing/complete").permitAll()
-                .requestMatchers(HttpMethod.DELETE, "/api/agent/devices/*/pairing").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/agent/devices/*/pairing").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/agent/devices/*/telemetry").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/agent/devices/*/telemetry/batch").permitAll()
-                .requestMatchers("/api/devices/**").hasRole("ADMIN")
+  @Bean
+  SecurityFilterChain securityFilterChain(
+      HttpSecurity http,
+      AccountJwtAuthenticationConverter accountJwtAuthenticationConverter,
+      ApiSecurityErrorHandler apiSecurityErrorHandler)
+      throws Exception {
+    http.csrf(csrf -> csrf.disable());
+    http.sessionManagement(
+        session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+    http.authorizeHttpRequests(
+        requests ->
+            requests
+                .requestMatchers("/actuator/health", "/actuator/health/**", "/livez", "/readyz")
+                .permitAll()
+                .requestMatchers("/api/agent/pairing/complete")
+                .permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/api/agent/devices/*/pairing")
+                .permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/agent/devices/*/pairing")
+                .permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/agent/devices/*/telemetry")
+                .permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/agent/devices/*/telemetry/batch")
+                .permitAll()
+                .requestMatchers("/api/devices/**")
+                .hasRole("ADMIN")
                 .anyRequest()
-                .authenticated()
-        );
-        http.oauth2ResourceServer(oauth2 -> oauth2
+                .authenticated());
+    http.oauth2ResourceServer(
+        oauth2 ->
+            oauth2
                 .authenticationEntryPoint(apiSecurityErrorHandler)
                 .accessDeniedHandler(apiSecurityErrorHandler)
-                .jwt(jwt -> jwt.jwtAuthenticationConverter(accountJwtAuthenticationConverter))
-        );
-        http.exceptionHandling(exceptions -> exceptions
+                .jwt(jwt -> jwt.jwtAuthenticationConverter(accountJwtAuthenticationConverter)));
+    http.exceptionHandling(
+        exceptions ->
+            exceptions
                 .authenticationEntryPoint(apiSecurityErrorHandler)
-                .accessDeniedHandler(apiSecurityErrorHandler)
-        );
+                .accessDeniedHandler(apiSecurityErrorHandler));
 
-        return http.build();
-    }
+    return http.build();
+  }
 
-    @Bean
-    JwtDecoder jwtDecoder(SimpleGuardOidcProperties oidcProperties) {
-        NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withJwkSetUri(oidcProperties.jwkSetUri()).build();
-        jwtDecoder.setJwtValidator(JwtValidators.createDefaultWithIssuer(oidcProperties.issuerUri()));
-        return jwtDecoder;
-    }
+  @Bean
+  JwtDecoder jwtDecoder(SimpleGuardOidcProperties oidcProperties) {
+    NimbusJwtDecoder jwtDecoder =
+        NimbusJwtDecoder.withJwkSetUri(oidcProperties.jwkSetUri()).build();
+    jwtDecoder.setJwtValidator(JwtValidators.createDefaultWithIssuer(oidcProperties.issuerUri()));
+    return jwtDecoder;
+  }
 }
