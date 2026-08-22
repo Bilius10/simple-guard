@@ -41,4 +41,7 @@ desktop-agent/simpleguard-desktop-agent.local.json
 Thumbs.db
 .idea/
 .vscode/
-.codex/
+.codex/*
+!.codex/review/
+!.codex/review/.pre-commit-config.yaml
+!.codex/review/run-hook.ps1

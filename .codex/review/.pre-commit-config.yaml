@@ -1,0 +1,90 @@
+exclude: ^(android-agent/(\.gradle|\.gradle-user|\.gradle-codex-coverage|\.kotlin|build|app/build)/|api/(\.m2|target|AppData)/|web-admin/(node_modules|dist|coverage|\.angular)/|desktop-agent/target/)
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-json
+      - id: check-yaml
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.24.0
+    hooks:
+      - id: gitleaks
+
+  - repo: local
+    hooks:
+      - id: api-tests
+        name: "api: Maven tests"
+        entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .codex/review/run-hook.ps1 api mvnw.cmd test
+        language: system
+        pass_filenames: false
+        files: ^api/(src|pom\.xml|\.mvn|mvnw|mvnw\.cmd)
+
+      - id: api-verify
+        name: "api: Maven verify with JaCoCo"
+        entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .codex/review/run-hook.ps1 api mvnw.cmd verify
+        language: system
+        pass_filenames: false
+        files: ^api/(src|pom\.xml|\.mvn|mvnw|mvnw\.cmd)
+
+      - id: web-admin-build
+        name: "web-admin: Angular build"
+        entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .codex/review/run-hook.ps1 web-admin npm run build
+        language: system
+        pass_filenames: false
+        files: ^web-admin/(src|public|angular\.json|package\.json|package-lock\.json|tsconfig.*\.json)
+
+      - id: web-admin-tests
+        name: "web-admin: Angular tests"
+        entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .codex/review/run-hook.ps1 web-admin npm test
+        language: system
+        pass_filenames: false
+        files: ^web-admin/(src|public|angular\.json|package\.json|package-lock\.json|tsconfig.*\.json)
+
+      - id: android-unit-tests
+        name: "android-agent: unit tests"
+        entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .codex/review/run-hook.ps1 android-agent gradlew.bat --no-daemon --max-workers=1 testDebugUnitTest
+        language: system
+        pass_filenames: false
+        files: ^android-agent/(app/src|app/build\.gradle\.kts|build\.gradle\.kts|settings\.gradle\.kts|gradle/)
+
+      - id: android-lint
+        name: "android-agent: Android lint"
+        entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .codex/review/run-hook.ps1 android-agent gradlew.bat --no-daemon --max-workers=1 lintDebug
+        language: system
+        pass_filenames: false
+        files: ^android-agent/(app/src|app/build\.gradle\.kts|build\.gradle\.kts|settings\.gradle\.kts|gradle/)
+
+      - id: android-kover
+        name: "android-agent: Kover verify"
+        entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .codex/review/run-hook.ps1 android-agent gradlew.bat --no-daemon --max-workers=1 :app:koverVerifyDebug
+        language: system
+        pass_filenames: false
+        files: ^android-agent/(app/src|app/build\.gradle\.kts|build\.gradle\.kts|settings\.gradle\.kts|gradle/)
+
+      - id: desktop-fmt
+        name: "desktop-agent: cargo fmt"
+        entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .codex/review/run-hook.ps1 desktop-agent cargo fmt --check
+        language: system
+        pass_filenames: false
+        files: ^desktop-agent/(src|Cargo\.toml|Cargo\.lock|build\.rs)
+
+      - id: desktop-clippy
+        name: "desktop-agent: cargo clippy"
+        entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Set-Location desktop-agent; cargo clippy -- -D warnings"
+        language: system
+        pass_filenames: false
+        files: ^desktop-agent/(src|Cargo\.toml|Cargo\.lock|build\.rs)
+
+      - id: desktop-tests
+        name: "desktop-agent: cargo test"
+        entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .codex/review/run-hook.ps1 desktop-agent cargo test
+        language: system
+        pass_filenames: false
+        files: ^desktop-agent/(src|Cargo\.toml|Cargo\.lock|build\.rs)

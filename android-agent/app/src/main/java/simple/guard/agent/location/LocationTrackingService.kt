@@ -1,5 +1,6 @@
 package simple.guard.agent.location
 
+import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -9,21 +10,25 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
-import android.Manifest
+import android.net.ConnectivityManager
+import android.net.Network
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.util.Log
-import java.time.Instant
-import java.util.UUID
 import simple.guard.agent.MainActivity
 import simple.guard.agent.pairing.AgentKeyStore
+import java.io.File
+import java.time.Instant
+import java.util.UUID
 
 class LocationTrackingService : Service() {
 
     private val handler = Handler(Looper.getMainLooper())
-    private var synchronizationService: LocationSynchronizationService? = null
+    private var synchronizationService: OfflineTelemetrySynchronizationService? = null
+    private var networkCallback: ConnectivityManager.NetworkCallback? = null
+    private var synchronizationInProgress = false
     private lateinit var diagnosticsStore: LocationDiagnosticsStore
 
     override fun onCreate() {
@@ -44,26 +49,32 @@ class LocationTrackingService : Service() {
 
         Log.i(TAG, "Servico de telemetria iniciado para dispositivo pareado.")
         startAsForeground("Preparando coleta de telemetria.")
-        synchronizationService = LocationSynchronizationService(
+        handler.removeCallbacksAndMessages(null)
+        unregisterNetworkCallback()
+        synchronizationInProgress = false
+        synchronizationService = OfflineTelemetrySynchronizationService(
             collector = AndroidLocationCollector(this),
             technicalCollector = AndroidTechnicalTelemetryCollector(this),
-            sender = LocationApiSender(
+            sender = BatchLocationApiSender(
                 instanceUrl = instanceUrl,
                 deviceId = deviceId,
                 agentInstanceId = agentInstanceId,
                 keyStore = AgentKeyStore(),
-                apiClient = LocationApiClient(),
+                apiClient = BatchLocationApiClient(),
                 diagnosticsStore = diagnosticsStore
             ),
+            queue = FileTelemetryOfflineQueue(File(filesDir, TELEMETRY_QUEUE_FILE)),
             eventIdProvider = { UUID.randomUUID().toString() }
         )
-        handler.removeCallbacksAndMessages(null)
+        registerNetworkCallback()
         synchronize()
         return START_NOT_STICKY
     }
 
     override fun onDestroy() {
         handler.removeCallbacksAndMessages(null)
+        unregisterNetworkCallback()
+        synchronizationInProgress = false
         synchronizationService = null
         super.onDestroy()
     }
@@ -72,25 +83,66 @@ class LocationTrackingService : Service() {
 
     private fun synchronize() {
         val service = synchronizationService ?: return
+        if (synchronizationInProgress) return
+        synchronizationInProgress = true
         diagnosticsStore.recordSyncAttempt(Instant.now())
-        service.synchronize result@ { result ->
-            if (synchronizationService !== service) {
-                return@result
+        service.synchronize { result ->
+            handler.post {
+                if (synchronizationService !== service) return@post
+                synchronizationInProgress = false
+                Log.i(TAG, "Resultado da sincronizacao de telemetria: $result")
+                updateNotification(statusMessage(result))
+                handler.postDelayed(::synchronize, LOCATION_INTERVAL_MS)
             }
-            Log.i(TAG, "Resultado da sincronizacao de telemetria: $result")
-            updateNotification(statusMessage(result))
-            handler.postDelayed(::synchronize, LOCATION_INTERVAL_MS)
         }
+    }
+
+    private fun retryPending() {
+        val service = synchronizationService ?: return
+        if (synchronizationInProgress) return
+        synchronizationInProgress = true
+        diagnosticsStore.recordSyncAttempt(Instant.now())
+        service.retryPending { result ->
+            handler.post {
+                if (synchronizationService !== service) return@post
+                synchronizationInProgress = false
+                Log.i(TAG, "Resultado do retry da fila de telemetria: $result")
+                updateNotification(statusMessage(result))
+            }
+        }
+    }
+
+    private fun registerNetworkCallback() {
+        val manager = getSystemService(ConnectivityManager::class.java)
+        val callback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                handler.post(::retryPending)
+            }
+        }
+        manager.registerDefaultNetworkCallback(callback)
+        networkCallback = callback
+    }
+
+    private fun unregisterNetworkCallback() {
+        val callback = networkCallback ?: return
+        runCatching {
+            getSystemService(ConnectivityManager::class.java).unregisterNetworkCallback(callback)
+        }
+        networkCallback = null
     }
 
     private fun statusMessage(result: LocationSynchronizationResult): String {
         return when (result) {
-            is LocationSynchronizationResult.Sent -> when (result.locationStatus) {
-                LocationCollectionStatus.COLLECTED -> "Telemetria e localizacao enviadas. Proxima coleta em 1 minuto."
+            is LocationSynchronizationResult.Sent -> when {
+                result.pendingEvents > 0 ->
+                    "Lote enviado; ${result.pendingEvents} eventos ainda aguardam sincronizacao."
+                result.locationStatus == LocationCollectionStatus.COLLECTED ->
+                    "Telemetria e localizacao enviadas. Proxima coleta em 1 minuto."
+                result.locationStatus == null -> "Fila offline sincronizada."
                 else -> "Telemetria enviada sem localizacao. Proxima coleta em 1 minuto."
             }
             is LocationSynchronizationResult.SendFailure ->
-                "Falha de rede ao enviar telemetria. Nova tentativa em 1 minuto."
+                "Sem conexao: ${result.pendingEvents} eventos preservados localmente."
         }
     }
 
@@ -154,6 +206,7 @@ class LocationTrackingService : Service() {
         private const val NOTIFICATION_CHANNEL_ID = "simpleguard-location"
         private const val NOTIFICATION_ID = 3101
         private const val LOCATION_INTERVAL_MS = 60_000L
+        private const val TELEMETRY_QUEUE_FILE = "telemetry-offline-queue.json"
 
         fun intent(
             context: Context,

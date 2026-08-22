@@ -474,12 +474,22 @@ class MainActivity : Activity() {
 
     private fun launchTelemetryTracking(pairing: LocalPairing) {
         Log.i(TAG, "Iniciando servico de telemetria para a instancia pareada.")
-        startForegroundService(LocationTrackingService.intent(
-            context = this,
-            instanceUrl = pairing.instanceUrl,
-            deviceId = pairing.deviceId,
-            agentInstanceId = agentInstanceId()
-        ))
+        try {
+            startForegroundService(LocationTrackingService.intent(
+                context = this,
+                instanceUrl = pairing.instanceUrl,
+                deviceId = pairing.deviceId,
+                agentInstanceId = agentInstanceId()
+            ))
+        } catch (exception: RuntimeException) {
+            Log.e(TAG, "Nao foi possivel iniciar o servico de telemetria.", exception)
+            diagnosticsStore.recordSendFailure("Nao foi possivel iniciar a telemetria em segundo plano.")
+            Toast.makeText(
+                this,
+                "Agente aberto. Telemetria em segundo plano indisponivel neste momento.",
+                Toast.LENGTH_LONG
+            ).show()
+        }
     }
 
     private fun hasLocationPermission(): Boolean {
@@ -573,6 +583,27 @@ class MainActivity : Activity() {
         unpairingPolling = false
     }
 
+    private fun renderOfflinePairingStatus(pairing: LocalPairing) {
+        if (!unpairingScreenActive || currentPairing?.deviceId != pairing.deviceId) {
+            return
+        }
+
+        if (pairing.pendingSynchronization || unpairingPolling) {
+            renderUnpairing(unpairingUiController.syncPending())
+            unpairingCancelButton.isEnabled = false
+            unpairingActionButton.isEnabled = true
+            unpairingActionButton.setOnClickListener { requestUnpairing() }
+            startUnpairingPolling(pairing)
+            return
+        }
+
+        renderUnpairing(unpairingUiController.confirmationRequired())
+        unpairingFooterStatus.text = "Sem conexao; vinculo local carregado"
+        unpairingCancelButton.isEnabled = true
+        unpairingActionButton.isEnabled = true
+        unpairingActionButton.setOnClickListener { confirmUnpairing() }
+    }
+
     private fun synchronizeUnpairingStatus(pairing: LocalPairing) {
         Thread {
             try {
@@ -615,15 +646,22 @@ class MainActivity : Activity() {
                         else -> stopUnpairingPolling()
                     }
                 }
+            } catch (exception: IOException) {
+                Log.i(TAG, "Sem conexao para consultar status do vinculo local.", exception)
+                runOnUiThread {
+                    renderOfflinePairingStatus(pairing)
+                }
             } catch (exception: RuntimeException) {
                 runOnUiThread {
-                    if (!unpairingScreenActive || currentPairing?.deviceId != pairing.deviceId || !unpairingPolling) {
+                    if (!unpairingScreenActive || currentPairing?.deviceId != pairing.deviceId) {
                         return@runOnUiThread
                     }
                     renderUnpairing(unpairingUiController.apiFailure(
                         exception.message ?: "Nao foi possivel consultar o despareamento."
                     ))
-                    startUnpairingPolling(pairing)
+                    if (unpairingPolling) {
+                        startUnpairingPolling(pairing)
+                    }
                 }
             }
         }.start()

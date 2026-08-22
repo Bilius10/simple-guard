@@ -55,6 +55,8 @@ kover {
                     "*LocationApiClient*",
                     "*LocationApiException*",
                     "*LocationApiSender*",
+                    "*FileTelemetryOfflineQueue*",
+                    "*TelemetryJsonCodec*",
                     "*LocationTrackingService*",
                     "*LocationDiagnosticsStore*",
                     "*LocationDiagnosticStatus*",

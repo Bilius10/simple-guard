@@ -16,7 +16,9 @@ import simple.guard.api.devices.devicekey.domain.DeviceKey;
 import simple.guard.api.devices.devicekey.domain.DeviceKeyRepository;
 import simple.guard.api.devices.devicekey.domain.DeviceKeyStatus;
 import simple.guard.api.devices.devicelocation.domain.DeviceLocationRepository;
+import simple.guard.api.devices.devicetelemetry.controller.request.CreateDeviceTelemetryBatchRequest;
 import simple.guard.api.devices.devicetelemetry.controller.request.CreateDeviceTelemetryRequest;
+import simple.guard.api.devices.devicetelemetry.controller.request.SignedDeviceTelemetryRequest;
 import simple.guard.api.devices.devicetelemetry.controller.request.TechnicalTelemetryRequest;
 import simple.guard.api.devices.devicetelemetry.controller.request.TelemetryLocationRequest;
 import simple.guard.api.devices.devicetelemetry.controller.request.TelemetryPermissionsRequest;
@@ -31,8 +33,10 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.Signature;
 import java.security.spec.ECGenParameterSpec;
+import java.util.Arrays;
 import java.time.OffsetDateTime;
 import java.util.Base64;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -172,6 +176,86 @@ class AgentDeviceTelemetryControllerTests {
     }
 
     @Test
+    void ingestsOutOfOrderDuplicateAndPartiallyInvalidBatchTests() throws Exception {
+        UUID laterEventId = UUID.fromString("00000000-0000-0000-0000-000000000904");
+        UUID invalidEventId = UUID.fromString("00000000-0000-0000-0000-000000000905");
+        UUID earlierEventId = UUID.fromString("00000000-0000-0000-0000-000000000906");
+        CreateDeviceTelemetryRequest later = requestTests(laterEventId, COLLECTED_AT.plusMinutes(5));
+        CreateDeviceTelemetryRequest invalid = new CreateDeviceTelemetryRequest(invalidEventId, null, null);
+        CreateDeviceTelemetryRequest earlier = requestTests(earlierEventId, COLLECTED_AT.minusMinutes(5));
+
+        CreateDeviceTelemetryBatchRequest batch = new CreateDeviceTelemetryBatchRequest(List.of(
+                new SignedDeviceTelemetryRequest(validSignatureTests(later), later),
+                new SignedDeviceTelemetryRequest(validSignatureTests(later), later),
+                new SignedDeviceTelemetryRequest("ignored", invalid),
+                new SignedDeviceTelemetryRequest(validSignatureTests(earlier), earlier)
+        ));
+
+        mockMvc.perform(post("/api/agent/devices/{deviceId}/telemetry/batch", DEVICE_ID)
+                        .header("X-Agent-Instance-Id", AGENT_INSTANCE_ID)
+                        .header("Accept-Language", "pt-BR")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(batch)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results[0].eventId").value(laterEventId.toString()))
+                .andExpect(jsonPath("$.results[0].status").value("ACCEPTED"))
+                .andExpect(jsonPath("$.results[1].status").value("DUPLICATE"))
+                .andExpect(jsonPath("$.results[2].eventId").value(invalidEventId.toString()))
+                .andExpect(jsonPath("$.results[2].status").value("INVALID"))
+                .andExpect(jsonPath("$.results[2].error")
+                        .value("O evento de telemetria do lote possui dados invalidos."))
+                .andExpect(jsonPath("$.results[3].eventId").value(earlierEventId.toString()))
+                .andExpect(jsonPath("$.results[3].status").value("ACCEPTED"));
+
+        assertThat(locations.findAll())
+                .extracting(location -> location.getCollectedAt().toInstant())
+                .containsExactlyInAnyOrder(
+                        COLLECTED_AT.plusMinutes(5).toInstant(),
+                        COLLECTED_AT.minusMinutes(5).toInstant()
+                );
+        assertThat(technicalTelemetry.count()).isEqualTo(2);
+    }
+
+    @Test
+    void reportsNullAndUnauthorizedBatchItemsWithoutRejectingWholeBatchTests() throws Exception {
+        CreateDeviceTelemetryRequest request = completeRequestTests();
+        CreateDeviceTelemetryBatchRequest batch = new CreateDeviceTelemetryBatchRequest(Arrays.asList(
+                null,
+                new SignedDeviceTelemetryRequest("ignored", null),
+                new SignedDeviceTelemetryRequest(null, request),
+                new SignedDeviceTelemetryRequest(" ", request),
+                new SignedDeviceTelemetryRequest("invalid", request)
+        ));
+
+        mockMvc.perform(post("/api/agent/devices/{deviceId}/telemetry/batch", DEVICE_ID)
+                        .header("X-Agent-Instance-Id", AGENT_INSTANCE_ID)
+                        .header("Accept-Language", "pt-BR")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(batch)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results[0].eventId").doesNotExist())
+                .andExpect(jsonPath("$.results[0].status").value("INVALID"))
+                .andExpect(jsonPath("$.results[0].error")
+                        .value("O evento de telemetria do lote e obrigatorio."))
+                .andExpect(jsonPath("$.results[1].status").value("INVALID"))
+                .andExpect(jsonPath("$.results[1].error")
+                        .value("O evento de telemetria do lote e obrigatorio."))
+                .andExpect(jsonPath("$.results[2].status").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("$.results[2].error")
+                        .value("A credencial do dispositivo e invalida."))
+                .andExpect(jsonPath("$.results[3].status").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("$.results[3].error")
+                        .value("A credencial do dispositivo e invalida."))
+                .andExpect(jsonPath("$.results[4].eventId").value(EVENT_ID.toString()))
+                .andExpect(jsonPath("$.results[4].status").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("$.results[4].error")
+                        .value("A credencial do dispositivo e invalida."));
+
+        assertThat(locations.count()).isZero();
+        assertThat(technicalTelemetry.count()).isZero();
+    }
+
+    @Test
     void rejectsOutOfRangeAndEmptyTelemetryTests() throws Exception {
         CreateDeviceTelemetryRequest invalidRange = new CreateDeviceTelemetryRequest(
                 EVENT_ID,
@@ -217,6 +301,29 @@ class AgentDeviceTelemetryControllerTests {
                 .header("X-Agent-Signature", signature)
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(request)));
+    }
+
+    private static CreateDeviceTelemetryRequest requestTests(UUID eventId, OffsetDateTime collectedAt) {
+        return new CreateDeviceTelemetryRequest(
+                eventId,
+                new TelemetryLocationRequest(
+                        new BigDecimal("-23.55052000"),
+                        new BigDecimal("-46.63330800"),
+                        new BigDecimal("4.500"),
+                        null,
+                        new BigDecimal("0.000"),
+                        "GPS",
+                        collectedAt
+                ),
+                new TechnicalTelemetryRequest(
+                        12,
+                        false,
+                        "CELLULAR",
+                        -101,
+                        new TelemetryPermissionsRequest("GRANTED", "GRANTED"),
+                        collectedAt.plusSeconds(2)
+                )
+        );
     }
 
     private String validSignatureTests(CreateDeviceTelemetryRequest request) throws Exception {

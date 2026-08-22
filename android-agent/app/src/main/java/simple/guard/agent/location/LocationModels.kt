@@ -62,14 +62,48 @@ sealed interface LocationCollectionResult {
     data object LocationUnavailable : LocationCollectionResult
 }
 
-sealed interface TelemetrySendResult {
-    data object Sent : TelemetrySendResult
-    data object Failed : TelemetrySendResult
+enum class TelemetryBatchItemStatus {
+    ACCEPTED,
+    DUPLICATE,
+    INVALID,
+    UNAUTHORIZED,
+    FAILED
 }
 
+data class TelemetryBatchItemResult(
+    val eventId: String?,
+    val status: TelemetryBatchItemStatus,
+    val error: String?
+)
+
+data class SignedTelemetryEnvelope(
+    val signature: String,
+    val envelope: TelemetryEnvelope
+)
+
+sealed interface TelemetryBatchSendResult {
+    data class Completed(val results: List<TelemetryBatchItemResult>) : TelemetryBatchSendResult
+    data class Failed(val error: String) : TelemetryBatchSendResult
+}
+
+data class QueuedTelemetryEvent(
+    val envelope: TelemetryEnvelope,
+    val queuedAt: Instant,
+    val attemptCount: Int = 0,
+    val lastAttemptAt: Instant? = null,
+    val lastError: String? = null
+)
+
 sealed interface LocationSynchronizationResult {
-    data class Sent(val locationStatus: LocationCollectionStatus) : LocationSynchronizationResult
-    data class SendFailure(val locationStatus: LocationCollectionStatus) : LocationSynchronizationResult
+    data class Sent(
+        val locationStatus: LocationCollectionStatus?,
+        val pendingEvents: Int = 0
+    ) : LocationSynchronizationResult
+
+    data class SendFailure(
+        val locationStatus: LocationCollectionStatus?,
+        val pendingEvents: Int = 0
+    ) : LocationSynchronizationResult
 }
 
 fun interface LocationCollector {
@@ -80,8 +114,20 @@ fun interface TechnicalTelemetryCollector {
     fun collect(): TechnicalTelemetryReading
 }
 
-fun interface LocationSender {
-    fun send(envelope: TelemetryEnvelope, callback: (TelemetrySendResult) -> Unit)
+fun interface TelemetryBatchSender {
+    fun send(envelopes: List<TelemetryEnvelope>, callback: (TelemetryBatchSendResult) -> Unit)
+}
+
+interface TelemetryOfflineQueue {
+    fun enqueue(envelope: TelemetryEnvelope, queuedAt: Instant)
+    fun pending(limit: Int, now: Instant): List<QueuedTelemetryEvent>
+    fun acknowledge(eventIds: Set<String>)
+    fun recordFailure(eventIds: Set<String>, attemptedAt: Instant, error: String)
+    fun size(now: Instant): Int
+}
+
+fun TelemetryEnvelope.originalCollectedAt(): Instant {
+    return minOf(location?.collectedAt ?: technical.collectedAt, technical.collectedAt)
 }
 
 object TelemetrySignaturePayload {

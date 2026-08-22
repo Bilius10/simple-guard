@@ -9,6 +9,8 @@ public enum SimpleGuardTranslation {
     ERROR_DEVICE_PLATFORM_MISMATCH("simple_guard_error_device_platform_mismatch"),
     ERROR_DEVICE_CREDENTIAL_INVALID("simple_guard_error_device_credential_invalid"),
     ERROR_DEVICE_CREDENTIAL_REVOKED("simple_guard_error_device_credential_revoked"),
+    ERROR_TELEMETRY_BATCH_ITEM_REQUIRED("simple_guard_error_telemetry_batch_item_required"),
+    ERROR_TELEMETRY_BATCH_ITEM_INVALID("simple_guard_error_telemetry_batch_item_invalid"),
     ERROR_DEVICE_UNPAIRING_REQUEST_NOT_FOUND("simple_guard_error_device_unpairing_request_not_found"),
     ERROR_PAIRING_SESSION_INVALID("simple_guard_error_pairing_session_invalid"),
     ERROR_PAIRING_SESSION_EXPIRED("simple_guard_error_pairing_session_expired"),
@@ -35,5 +37,3 @@ public enum SimpleGuardTranslation {
         return key;
     }
 }
-
-

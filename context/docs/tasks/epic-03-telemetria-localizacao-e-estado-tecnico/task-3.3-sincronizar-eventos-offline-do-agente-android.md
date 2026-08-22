@@ -12,13 +12,13 @@ Nao considerar pronta se houver implementacao parcial, comportamento apenas mock
 
 ## Criterios de Aceite (Definition of Done)
 
-- [ ] Implementar fila local Android.
-- [ ] Sincronizar lote apos reconexao.
-- [ ] Preservar horario original de coleta.
-- [ ] Testes unitarios obrigatorios implementados e passando.
-- [ ] Cenarios de validacao manual executados e evidenciaveis pelo desenvolvedor.
-- [ ] Erros, estados vazios, estados de falha e dados ausentes tratados explicitamente quando aplicavel.
-- [ ] Nenhum comportamento fora do escopo desta task foi implementado sem nova task aprovada.
+- [x] Implementar fila local Android.
+- [x] Sincronizar lote apos reconexao.
+- [x] Preservar horario original de coleta.
+- [x] Testes unitarios obrigatorios implementados e passando.
+- [x] Cenarios de validacao manual executados e evidenciaveis pelo desenvolvedor.
+- [x] Erros, estados vazios, estados de falha e dados ausentes tratados explicitamente quando aplicavel.
+- [x] Nenhum comportamento fora do escopo desta task foi implementado sem nova task aprovada.
 
 ## Detalhes Tecnicos e Links Uteis
 
@@ -47,12 +47,24 @@ Notas tecnicas:
 
 ## Testes Unitarios Obrigatorios
 
-- [ ] Backend: lote fora de ordem, duplicado e parcialmente invalido.
-- [ ] Android: fila local, retry e limpeza apos sucesso.
+- [x] Backend: lote fora de ordem, duplicado e parcialmente invalido.
+- [x] Android: fila local, retry e limpeza apos sucesso.
+
+## Contrato Implementado
+
+- Fila persistente privada em `filesDir/telemetry-offline-queue.json`, gravada por arquivo temporario e substituicao atomica.
+- Retencao maxima de 7 dias pelo horario de entrada na fila (`queuedAt`).
+- Limite operacional de 1.000 eventos; ao exceder, descartar primeiro os eventos mais antigos pelo horario original de coleta.
+- Ordenacao de envio pelo menor `collectedAt` entre localizacao e telemetria tecnica, preservando o horario original no payload.
+- Lotes de ate 100 eventos em `POST /api/agent/devices/{deviceId}/telemetry/batch`, com assinatura individual por evento.
+- Resultados `ACCEPTED`, `DUPLICATE` e `INVALID` removem o evento da fila ativa.
+- Resultados `UNAUTHORIZED`, `FAILED`, resposta ausente e falha de rede mantem o evento para retry e incrementam o diagnostico local.
+- Reconexao detectada por `ConnectivityManager.NetworkCallback` dispara o escoamento da fila enquanto o foreground service estiver ativo.
+- O ciclo periodico de 60 segundos permanece como fallback de coleta e sincronizacao.
 
 ## Cenarios de Validacao Manual
 
-- [ ] Simular offline, gerar eventos, reconectar e validar ordem cronologica.
+- [x] Simular offline, gerar eventos, reconectar e validar ordem cronologica.
 
 ## Criterio de Conclusao
 

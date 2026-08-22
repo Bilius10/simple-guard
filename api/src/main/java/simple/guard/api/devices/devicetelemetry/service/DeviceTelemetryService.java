@@ -9,8 +9,6 @@ import simple.guard.api.devices.devicekey.service.DeviceKeyService;
 import simple.guard.api.devices.devicelocation.domain.DeviceLocationResolution;
 import simple.guard.api.devices.devicelocation.service.DeviceLocationService;
 import simple.guard.api.devices.devicetelemetry.controller.request.CreateDeviceTelemetryRequest;
-import simple.guard.api.devices.devicetelemetry.controller.request.TechnicalTelemetryRequest;
-import simple.guard.api.devices.devicetelemetry.controller.request.TelemetryPermissionsRequest;
 import simple.guard.api.devices.devicetelemetry.controller.response.DeviceTelemetryResponse;
 import simple.guard.api.devices.devicetelemetry.domain.DeviceTelemetry;
 import simple.guard.api.devices.devicetelemetry.domain.DeviceTelemetryRepository;

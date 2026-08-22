@@ -79,4 +79,19 @@ class LocationSignaturePayloadTests {
             payload
         )
     }
+
+    @Test
+    fun retainsSignatureAndEnvelopeInBatchItemTests() {
+        val envelope = TelemetryEnvelope(
+            eventId = "event",
+            location = null,
+            technical = TechnicalTelemetryReading(null, null, null, null, null, Instant.EPOCH),
+            locationStatus = LocationCollectionStatus.LOCATION_UNAVAILABLE
+        )
+
+        val signed = SignedTelemetryEnvelope("signature", envelope)
+
+        assertEquals("signature", signed.signature)
+        assertEquals(envelope, signed.envelope)
+    }
 }

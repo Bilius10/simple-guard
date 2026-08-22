@@ -68,6 +68,10 @@ class LocationDiagnosticsStore(context: Context) {
         putTechnical(editor, envelope.technical).apply()
     }
 
+    fun recordSendFailure(reason: String) {
+        updateStatus(LocationDiagnosticStatus.SEND_FAILURE, provider = null, failureReason = reason)
+    }
+
     fun snapshot(): LocationDiagnosticsSnapshot {
         return LocationDiagnosticsSnapshot(
             lastAttemptAt = preferences.instant(KEY_LAST_ATTEMPT_AT),
