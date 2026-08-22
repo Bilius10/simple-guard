@@ -12,13 +12,13 @@ Nao considerar pronta se houver implementacao parcial, comportamento apenas mock
 
 ## Criterios de Aceite (Definition of Done)
 
-- [ ] Criar endpoint de ultima telemetria.
-- [ ] Renderizar bateria, sinal, rede, ultima atualizacao, coordenadas e precisao.
-- [ ] Exibir `indisponivel` para dados ausentes.
-- [ ] Testes unitarios obrigatorios implementados e passando.
-- [ ] Cenarios de validacao manual executados e evidenciaveis pelo desenvolvedor.
-- [ ] Erros, estados vazios, estados de falha e dados ausentes tratados explicitamente quando aplicavel.
-- [ ] Nenhum comportamento fora do escopo desta task foi implementado sem nova task aprovada.
+- [x] Criar endpoint de ultima telemetria.
+- [x] Renderizar bateria, sinal, rede, ultima atualizacao, coordenadas e precisao.
+- [x] Exibir `indisponivel` para dados ausentes.
+- [x] Testes unitarios obrigatorios implementados e passando.
+- [x] Cenarios de validacao manual executados e evidenciaveis pelo desenvolvedor.
+- [x] Erros, estados vazios, estados de falha e dados ausentes tratados explicitamente quando aplicavel.
+- [x] Nenhum comportamento fora do escopo desta task foi implementado sem nova task aprovada.
 
 ## Detalhes Tecnicos e Links Uteis
 
@@ -46,13 +46,13 @@ Notas tecnicas:
 
 ## Testes Unitarios Obrigatorios
 
-- [ ] Backend: endpoint de ultima telemetria.
-- [ ] Frontend: dados completos, ausentes, antigos e bateria baixa.
+- [x] Backend: endpoint de ultima telemetria.
+- [x] Frontend: dados completos, ausentes, antigos e bateria baixa.
 
 ## Cenarios de Validacao Manual
 
-- [ ] Selecionar dispositivo com dados completos.
-- [ ] Selecionar dispositivo com dados ausentes e confirmar mensagens corretas.
+- [x] Selecionar dispositivo com dados completos.
+- [x] Selecionar dispositivo com dados ausentes e confirmar mensagens corretas.
 
 ## Criterio de Conclusao
 

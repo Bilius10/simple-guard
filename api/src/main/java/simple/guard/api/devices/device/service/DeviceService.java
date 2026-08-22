@@ -53,6 +53,12 @@ public class DeviceService {
         .toList();
   }
 
+  @Transactional(readOnly = true)
+  public List<Device> listPairedDevices(Account account) {
+    return devices.findAllByAccountIdAndPairingStatusOrderByCreatedAtDesc(
+        account.getId(), DevicePairingStatus.PAIRED);
+  }
+
   public Device findByIdAndAccountId(UUID deviceId, UUID accountId) {
     return devices
         .findByIdAndAccountId(deviceId, accountId)

@@ -11,6 +11,7 @@ import type {
   CreateDeviceRequest,
   Device,
   DeviceUnpairingRequest,
+  LatestDeviceTelemetry,
   PairingSession,
 } from './device.models';
 
@@ -176,6 +177,53 @@ describe('DeviceApiServiceTests', () => {
     request.flush(pairingSessionTests());
   });
 
+  it('fetchesLatestTelemetryThroughApiTests', () => {
+    const telemetry: LatestDeviceTelemetry = {
+      deviceId: 'device-001',
+      deviceName: 'Celular operacional',
+      lastUpdatedAt: '2026-08-20T10:17:00-03:00',
+      batteryLevelPercentage: 12,
+      batteryCharging: false,
+      networkType: 'CELLULAR',
+      signalStrengthDbm: -101,
+      latitude: -23.55052,
+      longitude: -46.633308,
+      accuracyMeters: 4.5,
+    };
+
+    service.latestTelemetry('device-001').subscribe((result) => {
+      expect(result).toEqual(telemetry);
+    });
+
+    const request = http.expectOne('/api/devices/device-001/telemetry/latest');
+    expect(request.request.method).toBe('GET');
+    request.flush(telemetry);
+  });
+
+  it('fetchesLatestTelemetryListThroughApiTests', () => {
+    const telemetry: LatestDeviceTelemetry[] = [
+      {
+        deviceId: 'device-001',
+        deviceName: 'Celular operacional',
+        lastUpdatedAt: '2026-08-20T10:17:00-03:00',
+        batteryLevelPercentage: 12,
+        batteryCharging: false,
+        networkType: 'CELLULAR',
+        signalStrengthDbm: -101,
+        latitude: -23.55052,
+        longitude: -46.633308,
+        accuracyMeters: 4.5,
+      },
+    ];
+
+    service.latestTelemetryList().subscribe((result) => {
+      expect(result).toEqual(telemetry);
+    });
+
+    const request = http.expectOne('/api/devices/telemetry/latest');
+    expect(request.request.method).toBe('GET');
+    request.flush(telemetry);
+  });
   it('unpairsDeviceThroughApiTests', () => {
     service.unpair('device-001').subscribe((result) => {
       expect(result.pairingStatus).toBe('unpaired');

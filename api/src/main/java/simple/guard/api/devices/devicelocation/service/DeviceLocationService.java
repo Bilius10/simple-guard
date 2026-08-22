@@ -1,6 +1,9 @@
 package simple.guard.api.devices.devicelocation.service;
 
 import java.time.OffsetDateTime;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import simple.guard.api.devices.devicelocation.domain.DeviceLocation;
@@ -31,5 +34,13 @@ public class DeviceLocationService {
     return new DeviceLocationResolution(
         locations.saveAndFlush(DeviceLocation.collected(deviceId, eventId, request, receivedAt)),
         true);
+  }
+
+  public Optional<DeviceLocation> findFirstByDeviceIdOrderByCollectedAtDesc(UUID deviceId) {
+    return locations.findFirstByDeviceIdOrderByCollectedAtDesc(deviceId);
+  }
+
+  public List<DeviceLocation> findLatestByDeviceIds(Collection<UUID> deviceIds) {
+    return locations.findLatestByDeviceIds(deviceIds);
   }
 }

@@ -407,17 +407,10 @@ button {
   overflow: hidden;
 }
 
-.map-frame {
-  width: 100%;
-  height: 100%;
-  min-height: 100%;
-  display: block;
-  border: 0;
-  filter: saturate(0.6) brightness(0.58) contrast(1.2);
-}
-
 .operator-panel {
   min-width: 0;
+  position: relative;
+  z-index: 1;
   min-height: 0;
   display: grid;
   align-content: start;
@@ -561,8 +554,7 @@ button {
     min-width: 42px;
   }
 
-  .map-stage,
-  .map-frame {
+  .map-stage {
     min-height: 260px;
   }
 
@@ -673,5 +665,242 @@ button {
   .login-card dd,
   .terminal-card dd {
     text-align: left;
+  }
+}
+
+.selected-device-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.selected-device-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.selected-device-header h2 {
+  margin: 0;
+}
+
+.panel-close-action {
+  width: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  border-color: #647287;
+  padding: 0;
+  background: #202b3f;
+}
+
+.selected-device-list {
+  margin-top: 0;
+}
+
+.selected-device-list div {
+  min-height: 36px;
+}
+
+.selected-device-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.selected-device-actions button {
+  width: min(100%, 200px);
+  min-height: 34px;
+}
+
+.warning-action {
+  border-color: #f2c94c;
+  background: #3d3110;
+  color: #ffe47a;
+}
+
+.warning-action:hover {
+  background: #594813;
+}
+
+/* Leaflet map and paired-device rail. */
+.workspace {
+  grid-template-columns: minmax(128px, 170px) minmax(360px, 1fr) minmax(
+      360px,
+      390px
+    );
+}
+
+.workspace.operator-panel-collapsed {
+  grid-template-columns: minmax(128px, 170px) minmax(360px, 1fr) 42px;
+}
+
+.side-rail {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 8px 6px;
+}
+
+.rail-devices {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  overflow: hidden auto;
+  scrollbar-color: #0d7188 #000911;
+  scrollbar-width: thin;
+}
+
+.rail-device {
+  position: relative;
+  width: 100%;
+  min-height: 34px;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  border-color: #124653;
+  padding: 0 7px;
+  background: #071b24;
+  text-align: left;
+}
+
+.rail-device:hover,
+.rail-device-selected {
+  border-color: #37dff8;
+  background: #053b55;
+}
+
+.rail-device-unmapped {
+  color: #8a93a3;
+}
+
+.side-rail .rail-device-icon,
+.side-rail .rail-device-name {
+  min-height: auto;
+  border: 0;
+  background: transparent;
+}
+
+.rail-device-icon {
+  justify-self: center;
+  position: relative;
+  display: block;
+  color: #e8fbff;
+  transform-origin: center;
+}
+
+.rail-device-icon.device-marker-icon-phone {
+  width: 8px;
+  height: 15px;
+}
+
+.rail-device-icon.device-marker-icon-desktop {
+  width: 17px;
+  height: 11px;
+}
+
+.rail-device-icon.device-marker-icon-generic {
+  width: 11px;
+  height: 11px;
+}
+
+.rail-device-name {
+  min-width: 0;
+  overflow: hidden;
+  color: #d7f7ff;
+  font-size: 0.54rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rail-empty {
+  margin: 0;
+  border: 1px solid #124653;
+  padding: 8px 6px;
+  background: #071b24;
+  color: #7ea4af;
+  font-size: 0.52rem;
+}
+
+.rail-device::after {
+  content: attr(data-device-name);
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 50%;
+  z-index: 1001;
+  max-width: 220px;
+  border: 1px solid #37dff8;
+  padding: 6px 8px;
+  background: #061923;
+  color: #e8fbff;
+  font-size: 0.58rem;
+  line-height: 1.25;
+  opacity: 0;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+  transform: translateY(-50%);
+  transition: opacity 120ms ease;
+  white-space: nowrap;
+}
+
+.rail-device:hover::after,
+.rail-device:focus-visible::after {
+  opacity: 1;
+}
+
+.map-stage {
+  position: relative;
+  z-index: 0;
+  background: #041b35;
+}
+
+.leaflet-map {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+}
+
+.map-state {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  z-index: 1000;
+  border: 1px solid #124653;
+  padding: 8px 10px;
+  background: #061923;
+}
+
+@media (max-width: 900px) {
+  .workspace,
+  .workspace.operator-panel-collapsed {
+    grid-template-columns: minmax(96px, 140px) 1fr;
+  }
+
+  .side-rail {
+    grid-row: 1;
+  }
+}
+
+@media (max-width: 560px) {
+  .side-rail {
+    display: flex;
+    overflow-x: auto;
+  }
+
+  .rail-devices {
+    display: flex;
+    overflow-x: auto;
+  }
+
+  .rail-device {
+    min-width: 116px;
+  }
+
+  .map-stage,
+  .leaflet-map {
+    min-height: 260px;
   }
 }

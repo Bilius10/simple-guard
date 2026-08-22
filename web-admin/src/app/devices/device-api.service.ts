@@ -9,6 +9,7 @@ import type {
   DeviceUnpairingDecisionResponse,
   DeviceUnpairingRequest,
   DeviceUnpairingRequestTerminalStatus,
+  LatestDeviceTelemetry,
   PairingSession,
   UnpairDeviceResponse,
 } from './device.models';
@@ -32,6 +33,18 @@ export class DeviceApiService {
 
   create(request: CreateDeviceRequest) {
     return this.http.post<Device>(`${this.config.apiBaseUrl}/devices`, request);
+  }
+
+  latestTelemetry(deviceId: string) {
+    return this.http.get<LatestDeviceTelemetry>(
+      `${this.config.apiBaseUrl}/devices/${deviceId}/telemetry/latest`,
+    );
+  }
+
+  latestTelemetryList() {
+    return this.http.get<LatestDeviceTelemetry[]>(
+      `${this.config.apiBaseUrl}/devices/telemetry/latest`,
+    );
   }
 
   generatePairingSession(deviceId: string) {

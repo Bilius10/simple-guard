@@ -9,5 +9,8 @@ public interface DeviceRepository extends JpaRepository<Device, UUID> {
 
   List<Device> findAllByAccountIdOrderByCreatedAtDesc(UUID accountId);
 
+  List<Device> findAllByAccountIdAndPairingStatusOrderByCreatedAtDesc(
+      UUID accountId, DevicePairingStatus pairingStatus);
+
   Optional<Device> findByIdAndAccountId(UUID id, UUID accountId);
 }

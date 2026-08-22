@@ -18,6 +18,19 @@ export interface Device {
   readonly createdAt: string;
 }
 
+export interface LatestDeviceTelemetry {
+  readonly deviceId: string;
+  readonly deviceName: string;
+  readonly lastUpdatedAt: string | null;
+  readonly batteryLevelPercentage: number | null;
+  readonly batteryCharging: boolean | null;
+  readonly networkType: string | null;
+  readonly signalStrengthDbm: number | null;
+  readonly latitude: number | null;
+  readonly longitude: number | null;
+  readonly accuracyMeters: number | null;
+}
+
 export interface PairingSession {
   readonly pairingSessionId: string;
   readonly deviceId: string;

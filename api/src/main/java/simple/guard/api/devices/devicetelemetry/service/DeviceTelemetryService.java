@@ -2,6 +2,9 @@ package simple.guard.api.devices.devicetelemetry.service;
 
 import java.time.Clock;
 import java.time.OffsetDateTime;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -41,6 +44,16 @@ public class DeviceTelemetryService {
     this.deviceKeys = deviceKeys;
     this.signatureVerifier = signatureVerifier;
     this.clock = clock;
+  }
+
+  @Transactional(readOnly = true)
+  public Optional<DeviceTelemetry> findFirstByDeviceIdOrderByCollectedAtDesc(UUID deviceId) {
+    return technicalTelemetry.findFirstByDeviceIdOrderByCollectedAtDesc(deviceId);
+  }
+
+  @Transactional(readOnly = true)
+  public List<DeviceTelemetry> findLatestByDeviceIds(Collection<UUID> deviceIds) {
+    return technicalTelemetry.findLatestByDeviceIds(deviceIds);
   }
 
   @Transactional

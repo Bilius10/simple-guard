@@ -77,28 +77,55 @@
     aria-labelledby="workspace-title"
   >
     <h1 id="workspace-title" class="visually-hidden">Hub administrativo</h1>
-    <nav class="side-rail" aria-label="Modulos operacionais">
-      <span>HC</span>
-      <span>INV</span>
-      <span>DEV</span>
-      <span>KEY</span>
-      <span>RPT</span>
-      <span>LOG</span>
+    <nav class="side-rail" aria-label="Dispositivos pareados">
+      @if (session()) {
+      <div class="rail-devices" aria-label="Dispositivos pareados">
+        @for (device of pairedDevices(); track device.deviceId) {
+        <button
+          type="button"
+          class="rail-device"
+          [class.rail-device-selected]="device.deviceId === selectedDeviceId()"
+          [class.rail-device-unmapped]="!hasTelemetryLocation(telemetryByDevice()[device.deviceId])"
+          [attr.aria-label]="'Focar ' + device.name"
+          [attr.data-device-name]="device.name"
+          [title]="device.name"
+          (click)="selectDevice(device.deviceId)"
+        >
+          <span
+            class="rail-device-icon"
+            [class.device-marker-icon-phone]="deviceIconKind(device) === 'phone'"
+            [class.device-marker-icon-desktop]="deviceIconKind(device) === 'desktop'"
+            [class.device-marker-icon-generic]="deviceIconKind(device) === 'generic'"
+            aria-hidden="true"
+          ></span>
+          <span class="rail-device-name">{{ device.name }}</span>
+        </button>
+        } @empty {
+        <p class="rail-empty">sem pareados</p>
+        }
+      </div>
+      }
     </nav>
 
     <section class="map-stage" aria-label="Hub de monitoramento">
-      <iframe
-        class="map-frame"
-        title="Mapa operacional"
-        loading="lazy"
-        referrerpolicy="no-referrer-when-downgrade"
-        src="https://www.openstreetmap.org/export/embed.html?bbox=-46.735%2C-23.625%2C-46.555%2C-23.485&amp;layer=mapnik"
-      ></iframe>
+      <div
+        #mapContainer
+        class="leaflet-map"
+        aria-label="Mapa operacional"
+      ></div>
+
+      @if (devicesError()) {
+      <p class="map-state error">{{ devicesError() }}</p>
+      } @else if (pairedDevices().length === 0) {
+      <p class="map-state">Nenhum dispositivo pareado.</p>
+      } @else if (deviceMarkers().length === 0 && !telemetryLoading()) {
+      <p class="map-state">Nenhum dispositivo pareado com localizacao.</p>
+      }
     </section>
 
     <aside class="operator-panel">
       <header class="operator-panel-toolbar">
-        <span>PAINEL</span>
+        <span>{{ selectedDevice() ? 'DISPOSITIVO' : 'PAINEL' }}</span>
         <button
           type="button"
           class="operator-panel-toggle"
@@ -111,53 +138,128 @@
         </button>
       </header>
 
-      @if (session(); as administrator) {
-      <section class="panel-card operator-meta">
-        <h2>Dispositivo selecionado</h2>
-        <dl class="telemetry-list">
+      @if (session()) { @if (selectedDevice(); as device) {
+      <section
+        class="panel-card selected-device-panel"
+        aria-labelledby="selected-device-title"
+      >
+        <header class="selected-device-header">
+          <h2 id="selected-device-title">Dispositivo selecionado</h2>
+          <button
+            type="button"
+            class="panel-close-action"
+            aria-label="Fechar painel do dispositivo"
+            title="Fechar painel do dispositivo"
+            (click)="clearSelectedDevice()"
+          >
+            x
+          </button>
+        </header>
+
+        <dl class="telemetry-list selected-device-list">
           <div>
-            <dt>Admin</dt>
-            <dd>{{ administrator.displayName }}</dd>
+            <dt>Nome</dt>
+            <dd>{{ device.name }}</dd>
           </div>
           <div>
-            <dt>Entrada</dt>
-            <dd class="danger">Alerta ativo</dd>
+            <dt>Tipo</dt>
+            <dd>{{ device.type }}</dd>
           </div>
           <div>
-            <dt>E-mail</dt>
-            <dd>{{ administrator.email }}</dd>
+            <dt>Estado</dt>
+            <dd
+              [class.warning]="deviceOperationalState(latestTelemetry()) === 'Atencao'"
+            >
+              {{ deviceOperationalState(latestTelemetry()) }}
+            </dd>
           </div>
           <div>
-            <dt>Role</dt>
-            <dd class="warning">{{ administrator.role }}</dd>
+            <dt>Ultima atualizacao</dt>
+            <dd [class.warning]="isTelemetryStale(latestTelemetry())">
+              {{ formatLastUpdated(latestTelemetry()) }}
+            </dd>
+          </div>
+          <div>
+            <dt>Bateria</dt>
+            <dd [class.warning]="isBatteryLow(latestTelemetry())">
+              {{ formatBattery(latestTelemetry()) }}
+            </dd>
+          </div>
+          <div>
+            <dt>Sinal</dt>
+            <dd [class.warning]="isSignalWeak(latestTelemetry())">
+              {{ formatSignal(latestTelemetry()) }}
+            </dd>
+          </div>
+          <div>
+            <dt>Rede</dt>
+            <dd>{{ formatUnavailable(latestTelemetry()?.networkType) }}</dd>
+          </div>
+          <div>
+            <dt>Coordenadas</dt>
+            <dd>{{ formatCoordinates(latestTelemetry()) }}</dd>
+          </div>
+          <div>
+            <dt>Precisao</dt>
+            <dd>{{ formatAccuracy(latestTelemetry()) }}</dd>
           </div>
         </dl>
-        <div class="authenticated-actions" aria-label="Acoes administrativas">
+
+        @if (telemetryError()) {
+        <p class="message error">{{ telemetryError() }}</p>
+        }
+
+        <div class="selected-device-actions" aria-label="Acoes do dispositivo">
+          <button
+            type="button"
+            class="primary-action"
+            (click)="focusSelectedDevice()"
+          >
+            Centralizar
+          </button>
+          <button type="button" class="secondary-action">Ver historico</button>
+          <button type="button" class="warning-action">Abrir incidente</button>
           <button
             type="button"
             class="danger-outline-action"
             (click)="openCriticalActionSimulation()"
           >
-            Confirmar
+            Acionar alarme
           </button>
-          <button
-            type="button"
-            class="secondary-action"
-            (click)="openCriticalActionFailureSimulation()"
-          >
-            Falha simulada
-          </button>
+        </div>
+      </section>
+      } @else {
+      <section
+        class="panel-card operator-meta"
+        aria-labelledby="initial-panel-title"
+      >
+        <h2 id="initial-panel-title">Monitoramento</h2>
+        <dl class="telemetry-list">
+          <div>
+            <dt>Pareados</dt>
+            <dd>{{ pairedDevices().length }}</dd>
+          </div>
+          <div>
+            <dt>No mapa</dt>
+            <dd>{{ deviceMarkers().length }}</dd>
+          </div>
+          <div>
+            <dt>Selecao</dt>
+            <dd>clique em um marcador</dd>
+          </div>
+        </dl>
+        <div class="authenticated-actions" aria-label="Acoes administrativas">
           <button type="button" class="secondary-action" (click)="logout()">
             Sair
           </button>
         </div>
       </section>
-      } @else if (sessionError()) {
+
+      <sg-device-registration />
+      } } @else if (sessionError()) {
       <p class="message error">{{ sessionError() }}</p>
       } @else {
       <p class="message">Validando usuario na API.</p>
-      } @if (session()) {
-      <sg-device-registration />
       } @if (criticalActionEvent(); as event) {
       <p class="message confirmation-event">
         Evento emitido: command-confirmed / {{ event.actionType }}
@@ -166,10 +268,12 @@
     </aside>
 
     <footer class="workspace-footer">
-      <span>14:36 dispositivo remoto</span>
-      <span class="ok">18:40 bloqueio entregue</span>
-      <span class="warning">16:13 gps provavel falso</span>
-      <span>fila 04 eventos</span>
+      <span>{{ pairedDevices().length }} dispositivos pareados</span>
+      <span class="ok">{{ deviceMarkers().length }} no mapa</span>
+      <span class="warning">nao pareados ocultos</span>
+      <span
+        >{{ telemetryLoading() ? 'sincronizando' : 'telemetria pronta' }}</span
+      >
     </footer>
   </section>
   } @case ('session_expired') {
